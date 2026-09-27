@@ -1,0 +1,15 @@
+<!-- 首页结构：地图 + 底部信息栏 -->
+<view class="page">
+  <!-- 地图组件：markers 显示打卡点图钉 -->
+  <map class="map"
+       longitude="{{center.longitude}}"
+       latitude="{{center.latitude}}"
+       scale="{{scale}}"
+       markers="{{markers}}"
+       bindmarkertap="onMarkerTap"></map>
+
+  <!-- 底部信息栏 -->
+  <view class="panel">
+    <view class="tip">{{tip}}</view>
+  </view>
+</view>

@@ -1,0 +1,7 @@
+/* 全局样式 */
+page {
+  height: 100%;
+  font-size: 30rpx;
+  color: #333;
+  background: #f7f8fa;
+}
