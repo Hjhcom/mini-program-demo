@@ -39,8 +39,13 @@ Page({
     tip: '地图加载中...'
   },
 
-  // 页面加载：先登录，再出地图提示
+  // 页面加载：检查登录态，未登录则先跳登录页
   onLoad: function () {
+    const userInfo = wx.getStorageSync('userInfo') || app.globalData.userInfo
+    if (!userInfo) {
+      wx.redirectTo({ url: '/pages/login/login' })
+      return
+    }
     this.login()
   },
 
@@ -51,6 +56,7 @@ Page({
     }).then(res => {
       const user = res.result.user
       app.globalData.userInfo = user
+      wx.setStorageSync('userInfo', user) // 缓存登录态
       this.setData({
         tip: '你好，' + user.nickname + '！点击图钉查看打卡点'
       })
