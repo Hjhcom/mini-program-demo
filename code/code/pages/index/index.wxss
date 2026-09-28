@@ -13,18 +13,58 @@
 
 /* 底部信息栏 */
 .panel {
-  height: 120rpx;
+  min-height: 180rpx;
   background: #ffffff;
   border-top: 2rpx solid #e5e5e5;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0 30rpx;
+  padding: 12rpx 30rpx;
   box-sizing: border-box;
 }
 
 .tip {
-  font-size: 30rpx;
+  font-size: 28rpx;
   color: #333;
   text-align: center;
+  margin-bottom: 12rpx;
+  line-height: 1.5;
+}
+
+/* 按钮行 */
+.btn-row {
+  display: flex;
+  gap: 20rpx;
+}
+
+.btn {
+  width: 200rpx;
+  height: 60rpx;
+  line-height: 60rpx;
+  padding: 0;
+  font-size: 28rpx;
+  background: #1f4e79;
+  color: #ffffff;
+  border-radius: 30rpx;
+}
+
+.btn::after {
+  border: none;
+}
+
+/* 录音按钮 */
+.btn-record {
+  background: #e05a3a;
+}
+
+/* 录音中的状态 */
+.recording {
+  background: #b33a1e;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
