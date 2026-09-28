@@ -1,0 +1,10 @@
+{
+  "name": "voiceCheckin",
+  "version": "1.0.0",
+  "description": "声控打卡：录音识别+咒语比对+写打卡记录",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3",
+    "ws": "^8.13.0"
+  }
+}

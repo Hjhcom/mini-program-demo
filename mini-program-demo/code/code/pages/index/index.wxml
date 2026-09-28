@@ -1,0 +1,20 @@
+<!-- 首页结构：地图 + 底部信息栏 -->
+<view class="page">
+  <!-- 地图组件：markers 显示打卡点图钉 -->
+  <map class="map"
+       longitude="{{center.longitude}}"
+       latitude="{{center.latitude}}"
+       scale="{{scale}}"
+       markers="{{markers}}"
+       bindmarkertap="onMarkerTap"></map>
+
+  <!-- 底部信息栏：提示文字 + 按钮区 -->
+  <view class="panel">
+    <view class="tip">{{tip}}</view>
+    <view class="btn-row">
+      <button class="btn" bindtap="checkIn">定位打卡</button>
+      <button wx:if="{{inRange}}" class="btn btn-record {{recording ? 'recording' : ''}}"
+              bindtap="onRecordTap">{{recording ? '● 录音中，点我停止' : '🎤 说咒语'}}</button>
+    </view>
+  </view>
+</view>
