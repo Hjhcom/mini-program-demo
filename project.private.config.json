@@ -1,5 +1,9 @@
 {
+<<<<<<< HEAD
   "libVersion": "3.17.3",
+=======
+  "libVersion": "3.17.4",
+>>>>>>> 9b5bc6f2f590f8b842e8244a9b5bd7446d575848
   "projectname": "mini-program-demo",
   "setting": {
     "urlCheck": true,
@@ -9,7 +13,11 @@
     "preloadBackgroundData": false,
     "autoAudits": false,
     "showShadowRootInWxmlPanel": true,
+<<<<<<< HEAD
     "compileHotReLoad": true,
     "useGlassEaselForWxml": false
+=======
+    "compileHotReLoad": true
+>>>>>>> 9b5bc6f2f590f8b842e8244a9b5bd7446d575848
   }
 }
