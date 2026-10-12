@@ -21,10 +21,12 @@ mini-program-demo/
 │   │   ├── pages/
 │   │   │   ├── login/             # 登录方式选择页（微信/手机号/游客）
 │   │   │   ├── index/             # 首页（地图打卡）
-│   │   │   └── mine/              # 我的页
+│   │   │   ├── mine/              # 我的页
+│   │   │   └── records/           # 打卡记录页
 │   │   └── cloudfunctions/
 │   │       ├── login/             # 登录云函数（微信/手机号/资料更新）
 │   │       ├── sendCode/          # 短信验证码云函数
+│   │       ├── getRecords/        # 打卡记录查询云函数
 │   │       ├── getPoints/         # 打卡点列表
 │   │       └── voiceCheckin/      # 声控打卡
 │   ├── project.config.json
@@ -70,7 +72,11 @@ mini-program-demo/
   - 未登录时底部面板显示「请先登录，登录后才能打卡」，不展示打卡入口；
   - 点击「定位打卡」/「说咒语」时提示「请先登录」并自动跳转登录界面；
   - 登录态在首页 `onShow` 实时同步。
-- 涉及模块：`app.js`、`app.json`、`pages/index`、`pages/login`、`pages/mine`、`cloudfunctions/login`、`cloudfunctions/sendCode`、`images/tabbar`
+- 打通打卡记录（首页打卡 → 我的页 → 记录详情）：
+  - 新增云函数 `getRecords`：按 openid 查询 `records` 集合，时间倒序、分页（每页 20 条）、返回总数；
+  - 新增页面 `pages/records`：顶部统计栏（总记录 / 成功次数）、记录列表（打卡点、时间、成功/失败徽标）、详情弹窗（打卡时间、应念咒语、识别结果、相似度）、空状态引导；
+  - 「我的」页「我的打卡记录」入口打通（未登录时提示先登录并跳转登录页）。
+- 涉及模块：`app.js`、`app.json`、`pages/index`、`pages/login`、`pages/mine`、`pages/records`、`cloudfunctions/login`、`cloudfunctions/sendCode`、`cloudfunctions/getRecords`、`images/tabbar`
 - 注意事项：
   - `login`、`sendCode` 云函数均有改动/新增，需在开发者工具中「上传并部署：云端安装依赖」后生效；
   - 真实短信验证码通道（腾讯云 SMS）待接入，当前为演示模式。
@@ -82,8 +88,9 @@ mini-program-demo/
 - [x] 首页打卡功能开发（地图 / 定位 / 录音声控打卡）
 - [x] 登录体系与前端联调（微信 / 手机号验证码 / 游客）
 - [x] 用户数据存储与查询（`users` / `records` / `sms_codes` 集合）
+- [x] 「我的打卡记录」页面（列表 + 详情弹窗）
 - [ ] 接入真实短信验证码通道（腾讯云 SMS，需企业实名 + 签名审核）
-- [ ] 「我的打卡记录」页面（查询 `records` 集合并展示）
+- [ ] 打卡记录分页加载（下拉加载更多）
 - [ ] 界面样式统一与视觉优化
 
 ## 日志规范
