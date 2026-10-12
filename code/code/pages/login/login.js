@@ -40,10 +40,10 @@ Page({
     this.setData({ agreed: !this.data.agreed })
   },
 
-  // 点击协议链接（catchtap 阻止冒泡，避免误触勾选）
+  // 点击协议链接（catchtap 阻止冒泡，避免误触勾选；跳转协议详情页）
   onAgreementTap: function (e) {
     const type = e.currentTarget.dataset.type
-    wx.showToast({ title: '《' + type + '》内容即将上线', icon: 'none' })
+    wx.navigateTo({ url: '/pages/agreement/agreement?type=' + type })
   },
 
   // 登录方式共同的协议校验：未勾选则拦截

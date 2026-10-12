@@ -1,0 +1,45 @@
+/* 用户协议 / 隐私政策页样式 */
+.page {
+  height: 100vh;
+  background: #ffffff;
+}
+
+.content {
+  height: 100vh;
+  box-sizing: border-box;
+  padding: 40rpx 50rpx;
+}
+
+.doc-title {
+  font-size: 40rpx;
+  font-weight: bold;
+  color: #333333;
+  text-align: center;
+}
+
+.doc-update {
+  font-size: 22rpx;
+  color: #999999;
+  text-align: center;
+  margin-top: 12rpx;
+  margin-bottom: 40rpx;
+}
+
+.section {
+  margin-bottom: 36rpx;
+}
+
+.section-h {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #1f4e79;
+  margin-bottom: 14rpx;
+}
+
+.section-c {
+  font-size: 28rpx;
+  color: #444444;
+  line-height: 1.8;
+  margin-bottom: 12rpx;
+  text-align: justify;
+}

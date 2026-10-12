@@ -22,7 +22,8 @@ mini-program-demo/
 │   │   │   ├── login/             # 登录方式选择页（微信/手机号/游客）
 │   │   │   ├── index/             # 首页（地图打卡）
 │   │   │   ├── mine/              # 我的页
-│   │   │   └── records/           # 打卡记录页
+│   │   │   ├── records/           # 打卡记录页
+│   │   │   └── agreement/         # 用户协议 / 隐私政策页
 │   │   └── cloudfunctions/
 │   │       ├── login/             # 登录云函数（微信/手机号/资料更新）
 │   │       ├── sendCode/          # 短信验证码云函数
@@ -76,7 +77,10 @@ mini-program-demo/
   - 新增云函数 `getRecords`：按 openid 查询 `records` 集合，时间倒序、分页（每页 20 条）、返回总数；
   - 新增页面 `pages/records`：顶部统计栏（总记录 / 成功次数）、记录列表（打卡点、时间、成功/失败徽标）、详情弹窗（打卡时间、应念咒语、识别结果、相似度）、空状态引导；
   - 「我的」页「我的打卡记录」入口打通（未登录时提示先登录并跳转登录页）。
-- 涉及模块：`app.js`、`app.json`、`pages/index`、`pages/login`、`pages/mine`、`pages/records`、`cloudfunctions/login`、`cloudfunctions/sendCode`、`cloudfunctions/getRecords`、`images/tabbar`
+- 新增《用户协议》《隐私政策》内容：
+  - 新增页面 `pages/agreement`（`?type=user|privacy` 切换）：用户协议 8 章、隐私政策 9 章全文；
+  - 登录页协议勾选中的链接由占位提示改为跳转真实协议页面。
+- 涉及模块：`app.js`、`app.json`、`pages/index`、`pages/login`、`pages/mine`、`pages/records`、`pages/agreement`、`cloudfunctions/login`、`cloudfunctions/sendCode`、`cloudfunctions/getRecords`、`images/tabbar`
 - 注意事项：
   - `login`、`sendCode` 云函数均有改动/新增，需在开发者工具中「上传并部署：云端安装依赖」后生效；
   - 真实短信验证码通道（腾讯云 SMS）待接入，当前为演示模式。

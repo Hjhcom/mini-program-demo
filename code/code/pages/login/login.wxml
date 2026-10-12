@@ -32,9 +32,9 @@
       <text wx:if="{{agreed}}" class="check-mark">✓</text>
     </view>
     <text class="agree-text">我已阅读并同意</text>
-    <text class="link" catchtap="onAgreementTap" data-type="用户协议">《用户协议》</text>
+    <text class="link" catchtap="onAgreementTap" data-type="user">《用户协议》</text>
     <text class="agree-text">和</text>
-    <text class="link" catchtap="onAgreementTap" data-type="隐私政策">《隐私政策》</text>
+    <text class="link" catchtap="onAgreementTap" data-type="privacy">《隐私政策》</text>
   </view>
 
   <!-- 手机号验证码登录弹窗 -->

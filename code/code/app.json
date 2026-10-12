@@ -3,7 +3,8 @@
     "pages/index/index",
     "pages/mine/mine",
     "pages/login/login",
-    "pages/records/records"
+    "pages/records/records",
+    "pages/agreement/agreement"
   ],
   "window": {
     "navigationBarBackgroundColor": "#1f4e79",
