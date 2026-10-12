@@ -1,49 +1,215 @@
+/* 打卡记录页样式（风格与全局一致） */
 .page {
   min-height: 100vh;
-  background: #f4f7fa;
-  padding: 20rpx;
+  background: #f5f6f7;
+}
+
+/* 统计栏 */
+.stat-bar {
+  display: flex;
+  justify-content: space-around;
+  padding: 40rpx 0;
+  background: #1f4e79;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-num {
+  color: #ffffff;
+  font-size: 48rpx;
+  font-weight: bold;
+}
+
+.stat-num.ok {
+  color: #7fd19a;
+}
+
+.stat-label {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 24rpx;
+  margin-top: 8rpx;
+}
+
+/* 记录列表 */
+.list {
+  padding: 24rpx 30rpx;
+}
+
+.record-item {
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border-radius: 16rpx;
+  padding: 26rpx 30rpx;
+  margin-bottom: 20rpx;
+}
+
+.status-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  margin-right: 24rpx;
+  flex-shrink: 0;
+}
+
+.status-dot.ok {
+  background: #2fae63;
+}
+
+.status-dot.fail {
+  background: #d33a31;
+}
+
+.record-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.record-name {
+  font-size: 32rpx;
+  color: #333333;
+  font-weight: bold;
+}
+
+.record-time {
+  font-size: 24rpx;
+  color: #999999;
+  margin-top: 8rpx;
+}
+
+.record-badge {
+  font-size: 22rpx;
+  padding: 6rpx 18rpx;
+  border-radius: 20rpx;
+  flex-shrink: 0;
+}
+
+.record-badge.ok {
+  color: #2fae63;
+  background: #e6f6ec;
+}
+
+.record-badge.fail {
+  color: #d33a31;
+  background: #fbeae8;
+}
+
+/* 空状态 */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 160rpx;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #999999;
+}
+
+.empty-btn {
+  margin-top: 40rpx;
+  width: 300rpx;
+  height: 80rpx;
+  line-height: 80rpx;
+  font-size: 28rpx;
+  color: #ffffff;
+  background: #1f4e79;
+  border-radius: 40rpx;
+}
+
+.empty-btn::after {
+  border: none;
+}
+
+/* 详情弹窗 */
+.mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.detail-pop {
+  width: 600rpx;
+  background: #ffffff;
+  border-radius: 24rpx;
+  padding: 50rpx 40rpx 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   box-sizing: border-box;
 }
-.empty {
-  margin-top: 200rpx;
-  text-align: center;
-  color: #999;
-  font-size: 30rpx;
-  line-height: 1.8;
+
+.detail-name {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333333;
 }
-.item {
-  background: #fff;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  margin-bottom: 20rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.05);
-  border-left: 8rpx solid #ccc;
+
+.detail-status {
+  font-size: 26rpx;
+  margin-top: 12rpx;
+  padding: 6rpx 24rpx;
+  border-radius: 24rpx;
 }
-.item.ok { border-left-color: #2e7d32; }
-.item.fail { border-left-color: #c62828; }
-.item-top {
+
+.detail-status.ok {
+  color: #2fae63;
+  background: #e6f6ec;
+}
+
+.detail-status.fail {
+  color: #d33a31;
+  background: #fbeae8;
+}
+
+.detail-row {
+  width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 22rpx 0;
+  border-bottom: 2rpx solid #f0f0f0;
 }
-.name {
-  font-size: 30rpx;
-  font-weight: bold;
-  color: #333;
-}
-.badge {
-  font-size: 24rpx;
-  padding: 4rpx 16rpx;
-  border-radius: 20rpx;
-}
-.badge-ok { background: #e8f5e9; color: #2e7d32; }
-.badge-fail { background: #ffebee; color: #c62828; }
-.time {
-  font-size: 24rpx;
-  color: #999;
-  margin: 8rpx 0;
-}
-.detail {
+
+.detail-label {
   font-size: 26rpx;
-  color: #666;
+  color: #999999;
+  flex-shrink: 0;
+}
+
+.detail-value {
+  font-size: 28rpx;
+  color: #333333;
+  margin-left: 30rpx;
+  text-align: right;
+  word-break: break-all;
+}
+
+.detail-close {
+  margin-top: 40rpx;
+  width: 100%;
+  height: 84rpx;
+  line-height: 84rpx;
+  font-size: 30rpx;
+  color: #ffffff;
+  background: #1f4e79;
+  border-radius: 42rpx;
+}
+
+.detail-close::after {
+  border: none;
 }

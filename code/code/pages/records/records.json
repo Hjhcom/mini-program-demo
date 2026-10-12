@@ -1,4 +1,4 @@
 {
-  "navigationBarTitleText": "我的打卡记录",
-  "enablePullDownRefresh": true
+  "navigationBarTitleText": "打卡记录",
+  "usingComponents": {}
 }

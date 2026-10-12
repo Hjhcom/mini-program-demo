@@ -57,6 +57,18 @@ Page({
   // 功能列表项点击
   onItemTap: function (e) {
     const type = e.currentTarget.dataset.type
+    // 我的打卡记录：未登录先登录，已登录跳转记录页
+    if (type === '打卡记录') {
+      if (!this.data.user) {
+        wx.showToast({ title: '请先登录', icon: 'none' })
+        setTimeout(() => {
+          wx.navigateTo({ url: '/pages/login/login' })
+        }, 800)
+        return
+      }
+      wx.navigateTo({ url: '/pages/records/records' })
+      return
+    }
     wx.showToast({
       title: '「' + type + '」功能建设中，敬请期待',
       icon: 'none'
