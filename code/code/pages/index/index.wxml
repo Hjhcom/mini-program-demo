@@ -8,8 +8,18 @@
        markers="{{markers}}"
        bindmarkertap="onMarkerTap"></map>
 
-  <!-- 底部信息栏：提示文字 + 按钮区 -->
-  <view class="panel">
+  <!-- 底部信息栏 -->
+  <!-- 未登录：先登录才能打卡 -->
+  <view class="panel" wx:if="{{!isLoggedIn}}">
+    <view class="tip">请先登录，登录后才能打卡</view>
+    <view class="btn-row">
+      <button class="btn" bindtap="checkIn">定位打卡</button>
+      <button class="btn" bindtap="goLogin">去登录</button>
+    </view>
+  </view>
+
+  <!-- 已登录：提示文字 + 打卡按钮区 -->
+  <view class="panel" wx:else>
     <view class="tip">{{tip}}</view>
     <view class="btn-row">
       <button class="btn" bindtap="checkIn">定位打卡</button>

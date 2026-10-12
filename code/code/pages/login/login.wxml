@@ -1,17 +1,81 @@
-<!-- 登录页结构 -->
-<view class="login-page">
-  <!-- 顶部装饰区：图标 + 标题 -->
-  <view class="hero">
-    <view class="logo">🎤</view>
-    <view class="title">声控打卡游戏</view>
-    <view class="subtitle">走到打卡点，说出咒语，完成打卡</view>
+<!-- pages/login/login.wxml —— 登录方式选择 -->
+<view class="page">
+
+  <!-- 品牌区 -->
+  <view class="brand">
+    <view class="logo">声</view>
+    <view class="brand-title">声控打卡游戏</view>
+    <view class="brand-sub">登录后开启你的打卡之旅</view>
   </view>
 
-  <!-- 登录按钮区 -->
-  <view class="login-area">
-    <button class="login-btn" bindtap="onLoginTap" disabled="{{loading}}">
-      {{loading ? '登录中...' : '微信一键登录'}}
+  <!-- 三种登录方式 -->
+  <view class="login-ways">
+    <button class="way wechat" bindtap="loginWithWechat">
+      <view class="way-icon">微</view>
+      <text>微信一键登录</text>
     </button>
-    <view class="hint">使用你的微信账号登录</view>
+
+    <button class="way phone" bindtap="openSmsLogin">
+      <view class="way-icon">机</view>
+      <text>手机号验证登录</text>
+    </button>
+
+    <button class="way guest" bindtap="loginAsGuest">
+      <view class="way-icon">客</view>
+      <text>游客登录</text>
+    </button>
   </view>
+
+  <!-- 协议勾选 -->
+  <view class="agree-row" bindtap="toggleAgree">
+    <view class="checkbox {{agreed ? 'checked' : ''}}">
+      <text wx:if="{{agreed}}" class="check-mark">✓</text>
+    </view>
+    <text class="agree-text">我已阅读并同意</text>
+    <text class="link" catchtap="onAgreementTap" data-type="用户协议">《用户协议》</text>
+    <text class="agree-text">和</text>
+    <text class="link" catchtap="onAgreementTap" data-type="隐私政策">《隐私政策》</text>
+  </view>
+
+  <!-- 手机号验证码登录弹窗 -->
+  <view class="mask" wx:if="{{showSms}}">
+    <view class="profile-pop">
+      <view class="pop-title">手机号验证登录</view>
+      <view class="pop-sub">验证码将发送到你输入的手机号</view>
+
+      <view class="sms-row">
+        <input class="sms-input" type="number" maxlength="11" placeholder="请输入手机号" value="{{phone}}" bindinput="onPhoneInput" />
+        <button class="code-btn {{canSend ? '' : 'code-disabled'}}" disabled="{{!canSend}}" bindtap="onSendCode">{{ canSend ? '获取验证码' : '重新发送(' + countdown + 's)' }}</button>
+      </view>
+
+      <input class="sms-input sms-code-input" type="number" maxlength="6" placeholder="请输入6位验证码" value="{{code}}" bindinput="onCodeInput" />
+
+      <view class="pop-actions">
+        <button class="pop-btn cancel" bindtap="closeSmsLogin">取消</button>
+        <button class="pop-btn confirm" bindtap="onSmsLogin">登录</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 头像昵称授权弹窗（微信登录时弹出） -->
+  <view class="mask" wx:if="{{showProfile}}">
+    <view class="profile-pop">
+      <view class="pop-title">完善头像昵称</view>
+      <view class="pop-sub">授权微信头像和昵称，用于打卡记录展示</view>
+
+      <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+        <image wx:if="{{avatarUrl}}" class="avatar-img" src="{{avatarUrl}}" mode="aspectFill" />
+        <view wx:else class="avatar-placeholder">+</view>
+      </button>
+      <view class="avatar-tip">点击选择微信头像</view>
+
+      <input class="nick-input" type="nickname" placeholder="请输入昵称" value="{{nickname}}" bindchange="onNicknameChange" bindblur="onNicknameChange" />
+
+      <view class="pop-actions">
+        <button class="pop-btn cancel" bindtap="onCancelProfile">暂不</button>
+        <button class="pop-btn confirm" bindtap="onConfirmProfile">完成登录</button>
+      </view>
+    </view>
+  </view>
+
 </view>

@@ -1,5 +1,4 @@
 {
-  "navigationBarTitleText": "声控打卡游戏",
-  "navigationBarBackgroundColor": "#1f4e79",
-  "navigationBarTextStyle": "white"
+  "navigationBarTitleText": "登录",
+  "usingComponents": {}
 }

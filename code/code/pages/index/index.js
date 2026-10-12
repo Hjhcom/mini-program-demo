@@ -28,12 +28,13 @@ Page({
     selectedPoint: null, // 当前选中的打卡点
     inRange: false, // 是否已在打卡点范围内（决定是否显示录音按钮）
     recording: false, // 是否正在录音
+    isLoggedIn: false, // 是否已登录（未登录不能打卡）
     tip: '地图加载中...'
   },
 
-  // 页面加载：登录 + 拉取打卡点 + 初始化录音
+  // 页面加载：初始化登录态 + 拉取打卡点 + 初始化录音
   onLoad: function () {
-    this.login()
+    this.initUser()
     this.loadPoints()
 
     // 录音停止：上传 + 识别
@@ -46,14 +47,41 @@ Page({
     })
   },
 
-  // 登录：调用云函数，拿用户信息
+  // 页面显示时同步登录态提示（在「我的」页登录/退出后回来会变化）
+  onShow: function () {
+    const user = app.globalData.userInfo
+    this.setData({ isLoggedIn: !!user })
+    if (user) {
+      this.setData({ tip: '你好，' + user.nickname + '！点图钉选打卡点，然后点「定位打卡」' })
+    } else {
+      this.setData({ tip: '请先登录，登录后才能打卡' })
+    }
+  },
+
+  // 初始化登录态：已有登录态直接用；没有则微信静默登录（云函数识别 openid）
+  initUser: function () {
+    const user = app.globalData.userInfo
+    if (user) {
+      this.setData({
+        isLoggedIn: true,
+        tip: '你好，' + user.nickname + '！点图钉选打卡点，然后点「定位打卡」'
+      })
+      console.log('已有登录态', user)
+      return
+    }
+    this.login()
+  },
+
+  // 微信静默登录：调用云函数，拿用户信息并保存全局登录态
   login: function () {
     wx.cloud.callFunction({
       name: 'login'
     }).then(res => {
       const user = res.result.user
-      app.globalData.userInfo = user
+      user.source = 'wechat'
+      app.setUser(user)
       this.setData({
+        isLoggedIn: true,
         tip: '你好，' + user.nickname + '！点图钉选打卡点，然后点「定位打卡」'
       })
       console.log('登录成功', user)
@@ -61,6 +89,11 @@ Page({
       console.error('登录失败：', err)
       this.setData({ tip: '登录失败，请检查云函数' })
     })
+  },
+
+  // 未登录 → 跳转登录方式选择页
+  goLogin: function () {
+    wx.navigateTo({ url: '/pages/login/login' })
   },
 
   // 从云数据库读取打卡点，生成地图图钉
@@ -100,8 +133,16 @@ Page({
     }
   },
 
-  // 定位打卡：获取当前位置，判断是否在打卡点围栏内
+  // 定位打卡：获取当前位置，判断是否在打卡点围栏内（需先登录）
   checkIn: function () {
+    if (!this.data.isLoggedIn) {
+      // 未登录：提示并跳转登录界面
+      wx.showToast({ title: '请先登录', icon: 'none' })
+      setTimeout(() => {
+        wx.navigateTo({ url: '/pages/login/login' })
+      }, 800)
+      return
+    }
     const p = this.data.selectedPoint
     if (!p) {
       this.setData({ tip: '先点击地图上的图钉，选中一个打卡点' })
@@ -140,8 +181,16 @@ Page({
     wx.navigateTo({ url: '/pages/records/records' })
   },
 
-  // 说咒语按钮：开始录音 / 停止录音
+  // 说咒语按钮：开始录音 / 停止录音（需先登录）
   onRecordTap: function () {
+    if (!this.data.isLoggedIn) {
+      // 未登录：提示并跳转登录界面
+      wx.showToast({ title: '请先登录', icon: 'none' })
+      setTimeout(() => {
+        wx.navigateTo({ url: '/pages/login/login' })
+      }, 800)
+      return
+    }
     if (this.data.recording) {
       // 正在录音 → 停止
       recorder.stop()
