@@ -1,5 +1,5 @@
 <!-- pages/agreement/agreement.wxml —— 用户协议 / 隐私政策 -->
-<view class="page">
+<view class="page {{dark ? 'dark' : ''}} {{fontScale == 'lg' ? 'font-lg' : fontScale == 'xl' ? 'font-xl' : ''}}">
   <scroll-view scroll-y class="content">
     <view class="doc-title">{{docTitle}}</view>
     <view class="doc-update">更新日期：2026 年 10 月 12 日</view>

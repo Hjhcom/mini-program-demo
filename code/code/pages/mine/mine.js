@@ -5,13 +5,19 @@ Page({
   data: {
     user: null,
     avatarDisplay: '', // 头像展示链接（云 fileID 转临时 https 链接）
-    needProfile: false // 微信/手机号用户资料不全 → 显示完善入口
+    needProfile: false, // 微信/手机号用户资料不全 → 显示完善入口
+    dark: false,        // 深色模式（全局设置）
+    fontScale: 'md'     // 字体大小（全局设置）
   },
 
   // 每次显示都同步最新的登录态（登录/退出后回到本页会刷新）
   onShow() {
     const user = app.globalData.userInfo
-    this.setData({ user })
+    this.setData({
+      user,
+      dark: app.globalData.darkMode,
+      fontScale: app.globalData.fontScale
+    })
     console.log('【我的页 onShow】nickname=', user ? user.nickname : null, 'avatarUrl=', user ? user.avatarUrl : null)
 
     // 资料不全（无头像或默认昵称）→ 显示「完善头像昵称」按钮
@@ -67,6 +73,11 @@ Page({
         return
       }
       wx.navigateTo({ url: '/pages/records/records' })
+      return
+    }
+    // 设置：跳转设置页（深色模式 / 字体大小 / 清除缓存）
+    if (type === '设置') {
+      wx.navigateTo({ url: '/pages/settings/settings' })
       return
     }
     wx.showToast({

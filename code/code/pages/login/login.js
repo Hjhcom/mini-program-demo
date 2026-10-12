@@ -11,7 +11,9 @@ Page({
     phone: '',          // 手机号
     code: '',           // 验证码
     countdown: 0,       // 重发倒计时（秒）
-    canSend: true       // 是否可点击获取验证码
+    canSend: true,      // 是否可点击获取验证码
+    dark: false,        // 深色模式（全局设置）
+    fontScale: 'md'     // 字体大小（全局设置）
   },
 
   // 页面加载：从「我的」页带 mode=profile 进入时，直接弹出头像昵称授权弹窗（完善资料）
@@ -25,6 +27,14 @@ Page({
         nickname: user.nickname && user.nickname !== '打卡玩家' ? user.nickname : ''
       })
     }
+  },
+
+  // 页面显示：同步全局设置（深色模式 / 字体大小）
+  onShow: function () {
+    this.setData({
+      dark: app.globalData.darkMode,
+      fontScale: app.globalData.fontScale
+    })
   },
 
   // 页面卸载：清理倒计时定时器

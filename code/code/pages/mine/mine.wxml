@@ -1,5 +1,5 @@
 <!-- pages/mine/mine.wxml —— 我的页面 -->
-<view class="page">
+<view class="page {{dark ? 'dark' : ''}} {{fontScale == 'lg' ? 'font-lg' : fontScale == 'xl' ? 'font-xl' : ''}}">
 
   <!-- 未登录：登录引导卡片（按钮在下方区域） -->
   <view class="user-card" wx:if="{{!user}}">

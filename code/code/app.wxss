@@ -5,3 +5,115 @@ page {
   color: #333;
   background: #f7f8fa;
 }
+
+/* ============ 深色模式（页面根节点加 .dark 生效） ============ */
+.page.dark {
+  background: #1c1c1e;
+}
+
+/* 卡片 / 面板背景 */
+.page.dark .panel,
+.page.dark .cell-group,
+.page.dark .record-item,
+.page.dark .detail-pop,
+.page.dark .profile-pop {
+  background: #2c2c2e;
+}
+
+/* 主文字 */
+.page.dark .tip,
+.page.dark .cell-label,
+.page.dark .nickname,
+.page.dark .record-name,
+.page.dark .pop-title,
+.page.dark .detail-value,
+.page.dark .brand-title,
+.page.dark .doc-title,
+.page.dark .section-h,
+.page.dark .font-option {
+  color: #e5e5e5;
+}
+
+/* 次级文字 */
+.page.dark .status,
+.page.dark .record-time,
+.page.dark .detail-label,
+.page.dark .agree-text,
+.page.dark .stat-label,
+.page.dark .cache-size,
+.page.dark .group-title,
+.page.dark .avatar-tip,
+.page.dark .pop-sub,
+.page.dark .doc-update {
+  color: #9a9a9c;
+}
+
+/* 分隔线 */
+.page.dark .cell {
+  border-bottom-color: #3a3a3c;
+}
+
+.page.dark .panel {
+  border-top-color: #3a3a3c;
+}
+
+/* 输入框 */
+.page.dark .nick-input,
+.page.dark .sms-input {
+  background: #3a3a3c;
+  color: #e5e5e5;
+}
+
+/* 按钮类（主色按钮保持品牌色） */
+.page.dark .logout {
+  background: #2c2c2e;
+}
+
+.page.dark .code-btn {
+  background: #3a3a3c;
+}
+
+.page.dark .code-disabled {
+  background: #333335;
+}
+
+.page.dark .avatar-btn {
+  background: #3a3a3c;
+}
+
+.page.dark .empty-text,
+.page.dark .agreement {
+  color: #8a8a8c;
+}
+
+/* 协议正文 */
+.page.dark .section-c {
+  color: #c8c8ca;
+}
+
+/* ============ 字体大小（页面根节点加 .font-lg / .font-xl 生效） ============ */
+.page.font-lg .tip { font-size: 32rpx; }
+.page.font-lg .cell-label { font-size: 34rpx; }
+.page.font-lg .nickname { font-size: 40rpx; }
+.page.font-lg .record-name { font-size: 36rpx; }
+.page.font-lg .brand-title { font-size: 44rpx; }
+.page.font-lg .way { font-size: 36rpx; }
+.page.font-lg .agree-text { font-size: 27rpx; }
+.page.font-lg .pop-title { font-size: 40rpx; }
+.page.font-lg .detail-value { font-size: 31rpx; }
+.page.font-lg .section-h { font-size: 33rpx; }
+.page.font-lg .section-c { font-size: 31rpx; }
+.page.font-lg .cell-arrow { font-size: 40rpx; }
+
+.page.font-xl .tip { font-size: 36rpx; }
+.page.font-xl .cell-label { font-size: 38rpx; }
+.page.font-xl .nickname { font-size: 44rpx; }
+.page.font-xl .record-name { font-size: 40rpx; }
+.page.font-xl .brand-title { font-size: 48rpx; }
+.page.font-xl .way { font-size: 40rpx; }
+.page.font-xl .agree-text { font-size: 30rpx; }
+.page.font-xl .pop-title { font-size: 44rpx; }
+.page.font-xl .detail-value { font-size: 34rpx; }
+.page.font-xl .section-h { font-size: 36rpx; }
+.page.font-xl .section-c { font-size: 34rpx; }
+.page.font-xl .cell-arrow { font-size: 44rpx; }

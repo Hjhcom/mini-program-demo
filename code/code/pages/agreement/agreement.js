@@ -1,8 +1,12 @@
 // pages/agreement/agreement.js —— 用户协议 / 隐私政策（?type=user|privacy 切换）
+const app = getApp()
+
 Page({
   data: {
     docTitle: '用户协议',
-    sections: []
+    sections: [],
+    dark: false,     // 深色模式（全局设置）
+    fontScale: 'md'  // 字体大小（全局设置）
   },
 
   onLoad: function (options) {
@@ -13,6 +17,14 @@ Page({
       sections: doc.sections
     })
     wx.setNavigationBarTitle({ title: doc.title })
+  },
+
+  // 页面显示：同步全局设置（深色模式 / 字体大小）
+  onShow: function () {
+    this.setData({
+      dark: app.globalData.darkMode,
+      fontScale: app.globalData.fontScale
+    })
   }
 })
 
@@ -59,7 +71,7 @@ const USER_AGREEMENT = {
     {
       h: '六、知识产权',
       c: [
-        '本小程序的界面设计、文案内容、打卡点设计与相关素材的知识产权归开发者所有。',
+        '本小程序的界面设计、文案内容、打卡点设计与相关素材的知识产权归开发者（北京理工大学软件工程小组）所有。',
         '未经书面许可，任何人不得以任何形式复制、修改、传播上述内容。'
       ]
     },

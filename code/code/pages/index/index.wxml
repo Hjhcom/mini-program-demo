@@ -1,5 +1,5 @@
 <!-- 首页结构：地图 + 底部信息栏 -->
-<view class="page">
+<view class="page {{dark ? 'dark' : ''}} {{fontScale == 'lg' ? 'font-lg' : fontScale == 'xl' ? 'font-xl' : ''}}">
   <!-- 地图组件：markers 显示打卡点图钉 -->
   <map class="map"
        longitude="{{center.longitude}}"

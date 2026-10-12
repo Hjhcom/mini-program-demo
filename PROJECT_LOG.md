@@ -23,7 +23,8 @@ mini-program-demo/
 │   │   │   ├── index/             # 首页（地图打卡）
 │   │   │   ├── mine/              # 我的页
 │   │   │   ├── records/           # 打卡记录页
-│   │   │   └── agreement/         # 用户协议 / 隐私政策页
+│   │   │   ├── agreement/         # 用户协议 / 隐私政策页
+│   │   │   └── settings/          # 设置页（深色模式/字体大小/清除缓存）
 │   │   └── cloudfunctions/
 │   │       ├── login/             # 登录云函数（微信/手机号/资料更新）
 │   │       ├── sendCode/          # 短信验证码云函数
@@ -80,7 +81,12 @@ mini-program-demo/
 - 新增《用户协议》《隐私政策》内容：
   - 新增页面 `pages/agreement`（`?type=user|privacy` 切换）：用户协议 8 章、隐私政策 9 章全文；
   - 登录页协议勾选中的链接由占位提示改为跳转真实协议页面。
-- 涉及模块：`app.js`、`app.json`、`pages/index`、`pages/login`、`pages/mine`、`pages/records`、`pages/agreement`、`cloudfunctions/login`、`cloudfunctions/sendCode`、`cloudfunctions/getRecords`、`images/tabbar`
+- 新增「设置」功能（我的页 → 设置 → 通用）：
+  - 新增页面 `pages/settings`：深色模式开关、字体大小三档（标准/大/特大）、清除缓存（显示缓存大小，清理时保留登录态与设置）；
+  - `app.js` 新增全局设置管理（`darkMode` / `fontScale`，本地缓存持久化、启动恢复）；
+  - `app.wxss` 新增全局深色主题覆盖与字体大小覆盖；
+  - 全部页面（index/mine/login/records/agreement/settings）接入设置状态并在 `onShow` 同步。
+- 涉及模块：`app.js`、`app.wxss`、`app.json`、`pages/index`、`pages/login`、`pages/mine`、`pages/records`、`pages/agreement`、`pages/settings`、`cloudfunctions/login`、`cloudfunctions/sendCode`、`cloudfunctions/getRecords`、`images/tabbar`
 - 注意事项：
   - `login`、`sendCode` 云函数均有改动/新增，需在开发者工具中「上传并部署：云端安装依赖」后生效；
   - 真实短信验证码通道（腾讯云 SMS）待接入，当前为演示模式。
@@ -93,6 +99,7 @@ mini-program-demo/
 - [x] 登录体系与前端联调（微信 / 手机号验证码 / 游客）
 - [x] 用户数据存储与查询（`users` / `records` / `sms_codes` 集合）
 - [x] 「我的打卡记录」页面（列表 + 详情弹窗）
+- [x] 设置功能（深色模式 / 字体大小 / 清除缓存）
 - [ ] 接入真实短信验证码通道（腾讯云 SMS，需企业实名 + 签名审核）
 - [ ] 打卡记录分页加载（下拉加载更多）
 - [ ] 界面样式统一与视觉优化

@@ -29,6 +29,8 @@ Page({
     inRange: false, // 是否已在打卡点范围内（决定是否显示录音按钮）
     recording: false, // 是否正在录音
     isLoggedIn: false, // 是否已登录（未登录不能打卡）
+    dark: false,       // 深色模式（全局设置）
+    fontScale: 'md',   // 字体大小（全局设置）
     tip: '地图加载中...'
   },
 
@@ -47,10 +49,14 @@ Page({
     })
   },
 
-  // 页面显示时同步登录态提示（在「我的」页登录/退出后回来会变化）
+  // 页面显示时同步登录态与全局设置（登录/退出后回来会变化）
   onShow: function () {
     const user = app.globalData.userInfo
-    this.setData({ isLoggedIn: !!user })
+    this.setData({
+      isLoggedIn: !!user,
+      dark: app.globalData.darkMode,
+      fontScale: app.globalData.fontScale
+    })
     if (user) {
       this.setData({ tip: '你好，' + user.nickname + '！点图钉选打卡点，然后点「定位打卡」' })
     } else {

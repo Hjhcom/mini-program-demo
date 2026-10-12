@@ -4,7 +4,8 @@
     "pages/mine/mine",
     "pages/login/login",
     "pages/records/records",
-    "pages/agreement/agreement"
+    "pages/agreement/agreement",
+    "pages/settings/settings"
   ],
   "window": {
     "navigationBarBackgroundColor": "#1f4e79",

@@ -8,11 +8,21 @@ Page({
     successCount: 0,   // 成功次数
     loading: true,
     showDetail: false, // 是否显示详情弹窗
-    detail: null       // 当前查看的记录
+    detail: null,      // 当前查看的记录
+    dark: false,       // 深色模式（全局设置）
+    fontScale: 'md'    // 字体大小（全局设置）
   },
 
   onLoad: function () {
     this.loadRecords()
+  },
+
+  // 页面显示：同步全局设置（深色模式 / 字体大小）
+  onShow: function () {
+    this.setData({
+      dark: app.globalData.darkMode,
+      fontScale: app.globalData.fontScale
+    })
   },
 
   // 加载打卡记录（调 getRecords 云函数）

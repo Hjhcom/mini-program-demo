@@ -1,5 +1,5 @@
 <!-- pages/records/records.wxml —— 我的打卡记录 -->
-<view class="page">
+<view class="page {{dark ? 'dark' : ''}} {{fontScale == 'lg' ? 'font-lg' : fontScale == 'xl' ? 'font-xl' : ''}}">
 
   <!-- 统计栏 -->
   <view class="stat-bar">
