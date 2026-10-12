@@ -1,0 +1,53 @@
+<!-- pages/mine/mine.wxml —— 我的页面 -->
+<view class="page">
+
+  <!-- 未登录：登录引导卡片（按钮在下方区域） -->
+  <view class="user-card" wx:if="{{!user}}">
+    <view class="avatar avatar-guest">客</view>
+    <view class="user-info">
+      <text class="nickname">未登录</text>
+      <text class="status">登录后记录你的每一次打卡</text>
+    </view>
+  </view>
+
+  <!-- 已登录：用户卡片 -->
+  <view class="user-card" wx:else>
+    <view class="avatar" wx:if="{{user.avatarUrl}}">
+      <image class="avatar-img" src="{{avatarDisplay}}" mode="aspectFill" />
+    </view>
+    <view class="avatar" wx:else>{{ user.nickname ? user.nickname[0] : '客' }}</view>
+    <view class="user-info">
+      <text class="nickname">{{ user.nickname }}</text>
+      <text class="status">{{ user.source == 'guest' ? '游客身份，换微信登录可保存记录' : '已登录，欢迎回来' }}</text>
+    </view>
+    <!-- 资料不全：提供完善入口 -->
+    <button class="profile-btn" wx:if="{{needProfile}}" bindtap="goProfile">完善头像昵称</button>
+  </view>
+
+  <!-- 功能列表 -->
+  <view class="cell-group">
+    <view class="cell" bindtap="onItemTap" data-type="打卡记录">
+      <text class="cell-label">我的打卡记录</text>
+      <text class="cell-arrow">›</text>
+    </view>
+    <view class="cell" bindtap="onItemTap" data-type="设置">
+      <text class="cell-label">设置</text>
+      <text class="cell-arrow">›</text>
+    </view>
+    <view class="cell" bindtap="onItemTap" data-type="关于">
+      <text class="cell-label">关于声控打卡游戏</text>
+      <text class="cell-arrow">›</text>
+    </view>
+  </view>
+
+  <!-- 未登录：登录按钮（页面下方） -->
+  <view class="login-section" wx:if="{{!user}}">
+    <button class="login-btn" bindtap="goLogin">点击登录</button>
+  </view>
+
+  <!-- 退出登录（仅登录后显示） -->
+  <view class="logout-wrap" wx:if="{{user}}">
+    <button class="logout" bindtap="onLogout">退出登录</button>
+  </view>
+
+</view>

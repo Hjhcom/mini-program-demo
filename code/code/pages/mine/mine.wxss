@@ -1,0 +1,139 @@
+/* 我的页面样式（风格与首页一致：主色 #1f4e79） */
+.page {
+  min-height: 100vh;
+  background: #f5f6f7;
+}
+
+/* 用户卡片 */
+.user-card {
+  display: flex;
+  align-items: center;
+  padding: 60rpx 40rpx;
+  background: #1f4e79;
+}
+
+/* 未登录头像 */
+.avatar-guest {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+/* 未登录：登录按钮区域（页面下方） */
+.login-section {
+  margin: 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* 登录按钮（全宽主色） */
+.login-btn {
+  width: 100%;
+  height: 88rpx;
+  line-height: 88rpx;
+  font-size: 32rpx;
+  color: #ffffff;
+  background: #1f4e79;
+  border-radius: 44rpx;
+}
+
+.login-btn::after {
+  border: none;
+}
+
+.avatar {
+  width: 120rpx;
+  height: 120rpx;
+  line-height: 120rpx;
+  text-align: center;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #1f4e79;
+  font-size: 52rpx;
+  font-weight: bold;
+  margin-right: 30rpx;
+  overflow: hidden;
+}
+
+.avatar-img {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+}
+
+/* 已登录资料不全：「完善头像昵称」按钮 */
+.profile-btn {
+  margin-left: auto;
+  padding: 0 30rpx;
+  height: 60rpx;
+  line-height: 60rpx;
+  font-size: 24rpx;
+  color: #1f4e79;
+  background: #ffffff;
+  border-radius: 30rpx;
+}
+
+.profile-btn::after {
+  border: none;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.nickname {
+  color: #ffffff;
+  font-size: 36rpx;
+  font-weight: bold;
+}
+
+.status {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 24rpx;
+  margin-top: 8rpx;
+}
+
+/* 功能列表 */
+.cell-group {
+  margin: 24rpx 0;
+  background: #ffffff;
+}
+
+.cell {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28rpx 40rpx;
+  border-bottom: 2rpx solid #f0f0f0;
+}
+
+.cell:last-child {
+  border-bottom: none;
+}
+
+.cell-label {
+  font-size: 30rpx;
+  color: #333333;
+}
+
+.cell-arrow {
+  font-size: 36rpx;
+  color: #cccccc;
+}
+
+/* 退出登录 */
+.logout-wrap {
+  margin: 40rpx;
+}
+
+.logout {
+  background: #ffffff;
+  color: #d33a31;
+  font-size: 30rpx;
+  border-radius: 12rpx;
+}
+
+.logout::after {
+  border: none;
+}
