@@ -15,6 +15,7 @@
       <button class="btn" bindtap="checkIn">定位打卡</button>
       <button wx:if="{{inRange}}" class="btn btn-record {{recording ? 'recording' : ''}}"
               bindtap="onRecordTap">{{recording ? '● 录音中，点我停止' : '🎤 说咒语'}}</button>
+      <button class="btn btn-ghost" bindtap="goRecords">📋 记录</button>
     </view>
   </view>
 </view>

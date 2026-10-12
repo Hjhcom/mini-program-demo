@@ -4,11 +4,11 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 
-// 测试打卡点（后续可在云开发控制台/后台管理里添加更多）
+// 打卡点种子数据（首次空集合时写入；已写库的记录需在云开发控制台直接改）
 const SEED_POINTS = [
-  { name: '天安门', longitude: 116.397, latitude: 39.908, spell: '芝麻开门', radius: 50 },
-  { name: '故宫', longitude: 116.391, latitude: 39.916, spell: '宝塔镇河妖', radius: 50 },
-  { name: '王府井', longitude: 116.410, latitude: 39.914, spell: '我爱打卡', radius: 50 }
+  { name: '北京理工大学良乡校区文萃楼B', longitude: 116.174609, latitude: 39.731685, spell: '我爱文萃', radius: 50 },
+  { name: '北京理工大学良乡校区甘棠园7D', longitude: 116.173819, latitude: 39.735082, spell: '我爱甘棠', radius: 50 },
+  { name: '北京理工大学良乡校区综教楼A', longitude: 116.171219, latitude: 39.733311, spell: '我爱综教', radius: 50 }
 ]
 
 exports.main = async (event, context) => {

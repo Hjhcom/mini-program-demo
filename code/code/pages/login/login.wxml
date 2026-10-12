@@ -1,0 +1,17 @@
+<!-- 登录页结构 -->
+<view class="login-page">
+  <!-- 顶部装饰区：图标 + 标题 -->
+  <view class="hero">
+    <view class="logo">🎤</view>
+    <view class="title">声控打卡游戏</view>
+    <view class="subtitle">走到打卡点，说出咒语，完成打卡</view>
+  </view>
+
+  <!-- 登录按钮区 -->
+  <view class="login-area">
+    <button class="login-btn" bindtap="onLoginTap" disabled="{{loading}}">
+      {{loading ? '登录中...' : '微信一键登录'}}
+    </button>
+    <view class="hint">使用你的微信账号登录</view>
+  </view>
+</view>

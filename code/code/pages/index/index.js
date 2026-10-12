@@ -17,10 +17,10 @@ const recorder = wx.getRecorderManager()
 
 Page({
   data: {
-    // 地图中心点（测试用北京天安门一带，可改成你们学校/城市）
+    // 地图中心点（北京理工大学良乡校区）
     center: {
-      longitude: 116.397,
-      latitude: 39.908
+      longitude: 116.172181,
+      latitude: 39.731737
     },
     scale: 14, // 地图缩放级别
     markers: [], // 地图图钉（由数据库数据生成）
@@ -111,9 +111,9 @@ Page({
     wx.getLocation({
       type: 'gcj02', // 与腾讯地图坐标系一致
       success: res => {
-        // 临时测试：假装站在天安门（测试完删掉这行）
-         res = { latitude: 39.908, longitude: 116.397 }
-
+        // 调试用：打印当前真实 GPS 坐标（校准打卡点后可删）
+        console.log('📍 我的当前位置：经度', res.longitude, '纬度', res.latitude,
+                    '｜打卡点坐标：经度', p.longitude, '纬度', p.latitude)
         const dist = getDistance(res.latitude, res.longitude, p.latitude, p.longitude)
         if (dist <= p.radius) {
           this.setData({
@@ -133,6 +133,11 @@ Page({
         this.setData({ tip: '定位失败：' + (err.errMsg || '请检查定位权限') })
       }
     })
+  },
+
+  // 跳转到打卡记录页
+  goRecords: function () {
+    wx.navigateTo({ url: '/pages/records/records' })
   },
 
   // 说咒语按钮：开始录音 / 停止录音

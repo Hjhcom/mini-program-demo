@@ -1,0 +1,18 @@
+<!-- 打卡记录列表 -->
+<view class="page">
+  <view wx:if="{{loading}}" class="empty">加载中...</view>
+  <view wx:elif="{{list.length === 0}}" class="empty">还没有打卡记录<br/>快去校园里打第一个卡吧！</view>
+
+  <view wx:else>
+    <view class="item {{r.matched ? 'ok' : 'fail'}}" wx:for="{{list}}" wx:key="_id">
+      <view class="item-top">
+        <text class="name">{{r.pointName}}</text>
+        <text class="badge {{r.matched ? 'badge-ok' : 'badge-fail'}}">
+          {{r.matched ? '✓ 成功' : '✗ 失败'}}
+        </text>
+      </view>
+      <view class="time">{{r.timeText}}</view>
+      <view class="detail">识别到：「{{r.recognizedText}}」　相似度 {{r.similarity * 100}}%</view>
+    </view>
+  </view>
+</view>
