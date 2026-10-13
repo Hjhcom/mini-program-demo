@@ -30,6 +30,10 @@
       <text class="cell-label">我的打卡记录</text>
       <text class="cell-arrow">›</text>
     </view>
+    <view class="cell" bindtap="onItemTap" data-type="打卡任务">
+      <text class="cell-label">打卡任务</text>
+      <text class="cell-arrow">›</text>
+    </view>
     <view class="cell" bindtap="onItemTap" data-type="设置">
       <text class="cell-label">设置</text>
       <text class="cell-arrow">›</text>

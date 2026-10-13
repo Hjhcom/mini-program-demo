@@ -137,6 +137,7 @@ exports.main = async (event, context) => {
   const { OPENID } = cloud.getWXContext()
   const fileID = event.fileID
   const pointId = event.pointId
+  const taskId = event.taskId || ''
 
   // 1. 下载用户录音
   const dl = await cloud.downloadFile({ fileID })
@@ -151,31 +152,66 @@ exports.main = async (event, context) => {
   }
 
   // 2. 读取打卡点（拿咒语）
-  const pointRes = await db.collection('points').doc(pointId).get()
-  const point = pointRes.data
+  //    ⚠️ 同样用 where：云函数端 doc(pointId).get() 在点位不存在时会「抛异常」，
+  //    不是返回 null，友好提示写不出来。where 空结果返回空数组，data[0] 为 undefined。
+  const pointRes = await db.collection('points').where({ _id: pointId }).get()
+  const point = pointRes.data[0]
+  if (!point) return { code: -1, msg: '打卡点不存在' }
+
+  let targetSpell = point.spell
+  let task = null
+  if (taskId) {
+    // ⚠️ 必须用 where 查，不能用 doc(taskId).get()
+    //    云函数端 doc().get() 查不到记录时会「抛异常」，不是返回 null：
+    //    errCode: -1, errMsg: document.get:fail document with _id xxx does not exist
+    //    也就是说下面的 if (!task) 永远执行不到，前端只会收到一个函数执行失败的报错。
+    //    where 查询空结果返回空数组，才能真正走到友好提示。
+    const tRes = await db.collection('tasks').where({ _id: taskId }).get()
+    task = tRes.data[0]
+    if (!task) return { code: -1, msg: '任务不存在' }
+    if (task.status !== 'accepted') return { code: -1, msg: '任务状态异常' }
+    if (task.assigneeOpenid !== OPENID) return { code: -1, msg: '这不是指派给你的任务' }
+    // 任务必须在指定点位完成：任务写在 A 点，站在 B 点念对咒语也不算过。
+    // 前端虽然限制了「同点位才传 taskId」，但前端不可信，云函数才是真正的关卡。
+    if (task.pointId !== pointId) return { code: -1, msg: '请在任务指定点位打卡' }
+    if (new Date(task.deadline) < new Date()) return { code: -1, msg: '任务已超时' }
+    targetSpell = task.spell
+  }
 
   // 3. 讯飞识别
   const recognizedText = await recognize(audio)
 
   // 4. 归一化后比对（相似度 ≥ 0.8 或互为包含 都算通过）
-  const target = normalize(point.spell)
+  const target = normalize(targetSpell)
   const got = normalize(recognizedText)
   const sim = similarity(got, target)
   const matched = sim >= 0.8 || (got.includes(target) || target.includes(got))
 
   // 5. 写入打卡记录
-  await db.collection('records').add({
+  const addRes = await db.collection('records').add({
     data: {
       openid: OPENID,
       pointId: pointId,
       pointName: point.name,
-      spell: point.spell,
+      spell: targetSpell,                 // 原来是 point.spell，改成实际比对用的咒语
       recognizedText: recognizedText,
       similarity: Math.round(sim * 100) / 100,
       matched: matched,
+      taskId: taskId || null,             // 新增
       createTime: db.serverDate()
     }
   })
+
+  // 打卡成功且属于任务打卡 → 把任务置为已完成
+  if (task && matched) {
+    await db.collection('tasks').doc(taskId).update({
+      data: {
+        status: 'completed',
+        completedAt: db.serverDate(),
+        recordId: addRes._id              // 对应 tasks 字段表里的 recordId
+      }
+    })
+  }
 
   return {
     code: 0,

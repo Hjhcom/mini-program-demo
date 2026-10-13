@@ -1,0 +1,50 @@
+<!-- pages/task-create/task-create.wxml —— 发布打卡任务 -->
+<view class="page {{dark ? 'dark' : ''}} {{fontScale == 'lg' ? 'font-lg' : fontScale == 'xl' ? 'font-xl' : ''}}">
+
+  <!-- 1. 任务内容 -->
+  <view class="form-card">
+    <view class="form-label">任务标题<text class="required">*</text></view>
+    <input class="form-input" placeholder="例如：去文萃楼B帮我打卡" maxlength="30"
+           value="{{title}}" bindinput="onTitleInput" />
+    <view class="form-label">任务描述（选填）</view>
+    <input class="form-input" placeholder="想补充点什么？" maxlength="100"
+           value="{{desc}}" bindinput="onDescInput" />
+  </view>
+
+  <!-- 2. 选择打卡点 -->
+  <view class="form-card">
+    <view class="form-label">选择打卡点<text class="required">*</text></view>
+    <view class="point-item {{pointIndex == index ? 'on' : ''}}" wx:for="{{points}}" wx:key="_id"
+          bindtap="onPointTap" data-index="{{index}}">
+      <view class="point-main">
+        <text class="point-name">{{item.name}}</text>
+        <text class="point-spell">咒语：{{item.spell}}</text>
+      </view>
+      <view class="point-check" wx:if="{{pointIndex == index}}">✓</view>
+    </view>
+    <view class="loading-tip" wx:if="{{points.length == 0}}">打卡点加载中…</view>
+  </view>
+
+  <!-- 3. 有效期 -->
+  <view class="form-card">
+    <view class="form-label">有效期</view>
+    <view class="duration-row">
+      <view class="duration-option {{durationIndex == index ? 'on' : ''}}" wx:for="{{durations}}"
+            wx:key="*this" bindtap="onDurationTap" data-index="{{index}}">{{item}}</view>
+    </view>
+  </view>
+
+  <button class="submit-btn" bindtap="onSubmit" disabled="{{submitting}}">发布任务</button>
+
+  <!-- 发布成功：大字显示任务码 -->
+  <view class="mask" wx:if="{{showCode}}">
+    <view class="code-pop">
+      <view class="pop-title">任务发布成功</view>
+      <view class="pop-sub">把任务码发给好友，让他到点位念咒语打卡</view>
+      <view class="code-big">{{inviteCode}}</view>
+      <button class="code-copy" bindtap="copyCode">复制任务码</button>
+      <view class="code-close" bindtap="closeCode">返回任务列表</view>
+    </view>
+  </view>
+
+</view>

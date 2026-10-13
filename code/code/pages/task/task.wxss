@@ -1,0 +1,230 @@
+/* pages/task/task.wxss —— 打卡任务页样式（复用 records 的卡片/徽标风格） */
+.page {
+  min-height: 100vh;
+  background: #f5f6f7;
+  padding-bottom: 160rpx;
+  box-sizing: border-box;
+}
+
+/* ===== 顶部：Tab + 输入任务码 ===== */
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #1f4e79;
+  padding: 20rpx 30rpx;
+}
+
+.tabs {
+  display: flex;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 32rpx;
+  padding: 6rpx;
+}
+
+.tab {
+  padding: 10rpx 34rpx;
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.8);
+  border-radius: 26rpx;
+}
+
+.tab.on {
+  background: #ffffff;
+  color: #1f4e79;
+  font-weight: bold;
+}
+
+.code-entry {
+  font-size: 26rpx;
+  color: #ffffff;
+  border: 2rpx solid rgba(255, 255, 255, 0.6);
+  border-radius: 28rpx;
+  padding: 8rpx 24rpx;
+}
+
+/* ===== 任务列表 ===== */
+.list {
+  padding: 24rpx 30rpx;
+}
+
+.task-item {
+  background: #ffffff;
+  border-radius: 16rpx;
+  padding: 26rpx 30rpx;
+  margin-bottom: 20rpx;
+}
+
+.task-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.task-title {
+  flex: 1;
+  font-size: 32rpx;
+  color: #333333;
+  font-weight: bold;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.task-badge {
+  font-size: 22rpx;
+  padding: 6rpx 18rpx;
+  border-radius: 20rpx;
+  flex-shrink: 0;
+  margin-left: 20rpx;
+}
+
+/* 待接受 */
+.task-badge.pending {
+  color: #b8860b;
+  background: #fdf3d8;
+}
+
+/* 进行中 */
+.task-badge.accepted {
+  color: #1f4e79;
+  background: #e8f0f8;
+}
+
+/* 已完成 */
+.task-badge.ok {
+  color: #2fae63;
+  background: #e6f6ec;
+}
+
+/* 已过期 */
+.task-badge.fail {
+  color: #d33a31;
+  background: #fbeae8;
+}
+
+.task-meta {
+  font-size: 26rpx;
+  color: #666666;
+  margin-top: 12rpx;
+  line-height: 1.5;
+}
+
+.task-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 18rpx;
+  padding-top: 16rpx;
+  border-top: 2rpx solid #f0f0f0;
+}
+
+.task-time {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.task-code {
+  font-size: 24rpx;
+  color: #1f4e79;
+}
+
+/* ===== 空状态 ===== */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 160rpx;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #999999;
+}
+
+.empty-btn {
+  margin-top: 40rpx;
+  width: 300rpx;
+  height: 80rpx;
+  line-height: 80rpx;
+  font-size: 28rpx;
+  color: #ffffff;
+  background: #1f4e79;
+  border-radius: 40rpx;
+}
+
+.empty-btn::after {
+  border: none;
+}
+
+/* ===== 右下角悬浮发布按钮 ===== */
+.fab {
+  position: fixed;
+  right: 40rpx;
+  bottom: 80rpx;
+  width: 110rpx;
+  height: 110rpx;
+  border-radius: 50%;
+  background: #1f4e79;
+  color: #ffffff;
+  font-size: 56rpx;
+  line-height: 104rpx;
+  text-align: center;
+  box-shadow: 0 8rpx 24rpx rgba(31, 78, 121, 0.35);
+  z-index: 10;
+}
+
+/* ===== 深色模式补充 ===== */
+.page.dark .head {
+  background: #1b3a56;
+}
+
+.page.dark .task-item {
+  background: #2c2c2e;
+}
+
+.page.dark .task-title {
+  color: #e5e5e5;
+}
+
+.page.dark .task-meta {
+  color: #b8b8ba;
+}
+
+.page.dark .task-foot {
+  border-top-color: #3a3a3c;
+}
+
+.page.dark .task-time,
+.page.dark .empty-text {
+  color: #9a9a9c;
+}
+
+.page.dark .task-code {
+  color: #7fb0dd;
+}
+
+.page.dark .tab.on {
+  background: #3a3a3c;
+  color: #7fb0dd;
+}
+
+.page.dark .task-badge.accepted {
+  color: #7fb0dd;
+  background: #26384a;
+}
+
+.page.dark .task-badge.pending {
+  color: #e8c46a;
+  background: #3d3524;
+}
+
+/* ===== 字体大小补充 ===== */
+.page.font-lg .task-title { font-size: 36rpx; }
+.page.font-lg .task-meta { font-size: 29rpx; }
+.page.font-lg .tab { font-size: 31rpx; }
+
+.page.font-xl .task-title { font-size: 40rpx; }
+.page.font-xl .task-meta { font-size: 32rpx; }
+.page.font-xl .tab { font-size: 34rpx; }

@@ -11,6 +11,63 @@
   width: 100%;
 }
 
+/* 待完成任务提示条（在地图与底部面板之间） */
+.task-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff6e0;
+  border-top: 2rpx solid #f0dfae;
+  padding: 18rpx 30rpx;
+}
+
+.task-bar-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.task-bar-title {
+  font-size: 27rpx;
+  color: #8a6100;
+  font-weight: bold;
+}
+
+.task-bar-desc {
+  font-size: 25rpx;
+  color: #a67c1a;
+  margin-top: 6rpx;
+}
+
+.task-bar-arrow {
+  flex-shrink: 0;
+  margin-left: 20rpx;
+  font-size: 40rpx;
+  color: #c9a227;
+}
+
+/* 深色模式 */
+.page.dark .task-bar {
+  background: #3d3524;
+  border-top-color: #55482b;
+}
+
+.page.dark .task-bar-title {
+  color: #e8c46a;
+}
+
+.page.dark .task-bar-desc {
+  color: #c2a75c;
+}
+
+/* 字体大小 */
+.page.font-lg .task-bar-title { font-size: 30rpx; }
+.page.font-lg .task-bar-desc { font-size: 28rpx; }
+
+.page.font-xl .task-bar-title { font-size: 33rpx; }
+.page.font-xl .task-bar-desc { font-size: 31rpx; }
+
 /* 底部信息栏 */
 .panel {
   min-height: 180rpx;

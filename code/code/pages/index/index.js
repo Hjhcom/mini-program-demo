@@ -29,6 +29,7 @@ Page({
     inRange: false, // 是否已在打卡点范围内（决定是否显示录音按钮）
     recording: false, // 是否正在录音
     isLoggedIn: false, // 是否已登录（未登录不能打卡）
+    pendingTask: null, // 指派给我、进行中且未过期的任务（用于底部提示条 + 打卡时带 taskId）
     dark: false,       // 深色模式（全局设置）
     fontScale: 'md',   // 字体大小（全局设置）
     tip: '地图加载中...'
@@ -59,9 +60,33 @@ Page({
     })
     if (user) {
       this.setData({ tip: '你好，' + user.nickname + '！点图钉选打卡点，然后点「定位打卡」' })
+      // 查一下有没有指派给我、还没完成的任务
+      this.loadPendingTask()
     } else {
-      this.setData({ tip: '请先登录，登录后才能打卡' })
+      this.setData({ pendingTask: null, tip: '请先登录，登录后才能打卡' })
     }
+  },
+
+  // 拉取「指派给我、进行中、未过期」的任务，用于底部提示条
+  // 失败不阻塞打卡主流程，只清空提示条并在控制台记日志
+  loadPendingTask: function () {
+    wx.cloud.callFunction({
+      name: 'listTasks',
+      data: { type: 'assigned' }
+    }).then(res => {
+      const list = (res.result && res.result.tasks) || []
+      const now = new Date()
+      const valid = list.filter(t => t.status === 'accepted' && new Date(t.deadline) > now)
+      // 若当前已选中某个点位，优先展示该点位上的任务
+      const cur = this.data.selectedPoint
+      const hit = cur ? valid.find(t => t.pointId === cur._id) : null
+      const pendingTask = hit || valid[0] || null
+      this.setData({ pendingTask: pendingTask })
+      console.log('待完成任务：', pendingTask)
+    }).catch(err => {
+      console.error('加载待完成任务失败：', err)
+      this.setData({ pendingTask: null })
+    })
   },
 
   // 初始化登录态：已有登录态直接用；没有则微信静默登录（云函数识别 openid）
@@ -130,13 +155,17 @@ Page({
     // markerId 是下标+1，倒推回数据库数组下标
     const index = e.detail.markerId - 1
     const p = this.data.points[index]
-    if (p) {
-      this.setData({
-        selectedPoint: p,
-        inRange: false,
-        tip: '已选「' + p.name + '」　咒语：' + p.spell + '　点「定位打卡」检测距离'
-      })
-    }
+    if (!p) return
+    // 该点位若正好有指派给我的任务，提示条里改说"这里有你的任务"
+    const t = this.data.pendingTask
+    const hasTask = !!(t && t.pointId === p._id)
+    this.setData({
+      selectedPoint: p,
+      inRange: false,
+      tip: hasTask
+        ? '已选「' + p.name + '」　📌 这里有你的任务，念咒语「' + t.spell + '」即可完成'
+        : '已选「' + p.name + '」　咒语：' + p.spell + '　点「定位打卡」检测距离'
+    })
   },
 
   // 定位打卡：获取当前位置，判断是否在打卡点围栏内（需先登录）
@@ -187,6 +216,11 @@ Page({
     wx.navigateTo({ url: '/pages/records/records' })
   },
 
+  // 跳转到打卡任务页（点击底部任务提示条）
+  goTask: function () {
+    wx.navigateTo({ url: '/pages/task/task' })
+  },
+
   // 说咒语按钮：开始录音 / 停止录音（需先登录）
   onRecordTap: function () {
     if (!this.data.isLoggedIn) {
@@ -209,7 +243,10 @@ Page({
       numberOfChannels: 1,
       format: 'wav'
     })
-    this.setData({ recording: true, tip: '🎤 录音中…请说出咒语「' + this.data.selectedPoint.spell + '」，再点一次停止' })
+    // 该点位若有待完成任务，提示语里的咒语用任务里的
+    const t = this.data.pendingTask
+    const spell = (t && t.pointId === this.data.selectedPoint._id) ? t.spell : this.data.selectedPoint.spell
+    this.setData({ recording: true, tip: '🎤 录音中…请说出咒语「' + spell + '」，再点一次停止' })
   },
 
   // 录音停止：上传云存储 → 调 voiceCheckin 识别比对
@@ -218,25 +255,38 @@ Page({
     const tempFilePath = res.tempFilePath
     const cloudPath = 'voice/' + Date.now() + '-' + Math.floor(Math.random() * 1000) + '.wav'
 
+    const point = this.data.selectedPoint
+    const pending = this.data.pendingTask
+    // 只有"任务的点位 == 当前打卡点位"时才带 taskId（任务必须到指定点位完成）
+    const taskId = (pending && pending.pointId === point._id) ? pending._id : ''
+
     wx.cloud.uploadFile({
       cloudPath: cloudPath,
       filePath: tempFilePath
     }).then(up => {
-      // 上传成功 → 调用语音打卡云函数
+      // 上传成功 → 调用语音打卡云函数（带 taskId 时按任务里的咒语判定）
       return wx.cloud.callFunction({
         name: 'voiceCheckin',
         data: {
           fileID: up.fileID,
-          pointId: this.data.selectedPoint._id
+          pointId: point._id,
+          taskId: taskId
         }
       })
     }).then(res => {
-      const r = res.result
+      const r = res.result || {}
+      // 任务校验失败（任务不存在 / 状态异常 / 不属于你 / 已超时）时先兜住 msg
+      if (r.code !== 0) {
+        this.setData({ tip: '⚠️ ' + (r.msg || '打卡失败，请重试') })
+        return
+      }
       if (r.matched) {
         this.setData({
           tip: '🎉 打卡成功！你说的是「' + r.recognizedText + '」，相似度 ' + Math.round(r.similarity * 100) + '%'
         })
         console.log('打卡成功', r)
+        // 任务打卡成功 → 刷新待完成任务（该任务已变成已完成）
+        if (taskId) this.loadPendingTask()
       } else {
         this.setData({
           tip: '❌ 咒语没对上（听到：「' + r.recognizedText + '」），再试一次'

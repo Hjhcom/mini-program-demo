@@ -1,0 +1,9 @@
+{
+  "name": "acceptTask",
+  "version": "1.0.0",
+  "description": "凭任务码接受任务",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

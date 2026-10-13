@@ -1,0 +1,45 @@
+<!-- pages/task/task.wxml —— 打卡任务：我发布的 / 我接的 -->
+<view class="page {{dark ? 'dark' : ''}} {{fontScale == 'lg' ? 'font-lg' : fontScale == 'xl' ? 'font-xl' : ''}}">
+
+  <!-- 顶部：Tab 切换 + 输入任务码入口 -->
+  <view class="head">
+    <view class="tabs">
+      <view class="tab {{tab == 'created' ? 'on' : ''}}" bindtap="onTabTap" data-tab="created">我发布的</view>
+      <view class="tab {{tab == 'assigned' ? 'on' : ''}}" bindtap="onTabTap" data-tab="assigned">我接的</view>
+    </view>
+    <view class="code-entry" bindtap="onAcceptTap">输入任务码</view>
+  </view>
+
+  <!-- 未登录 -->
+  <view class="empty" wx:if="{{!loggedIn && !loading}}">
+    <text class="empty-text">登录后才能发布和接受任务</text>
+    <button class="empty-btn" bindtap="goLogin">去登录</button>
+  </view>
+
+  <!-- 任务列表 -->
+  <view class="list" wx:elif="{{tasks.length > 0}}">
+    <view class="task-item" wx:for="{{tasks}}" wx:key="_id" bindtap="onTaskTap" data-index="{{index}}">
+      <view class="task-top">
+        <text class="task-title">{{item.title}}</text>
+        <view class="task-badge {{item.statusCls}}">{{item.statusText}}</view>
+      </view>
+      <view class="task-meta">📍 {{item.pointName}}</view>
+      <view class="task-meta">🗣 咒语：{{item.spell}}</view>
+      <view class="task-foot">
+        <text class="task-time">截止 {{item.deadlineText}}</text>
+        <text class="task-code" wx:if="{{item.canCopyCode}}">任务码 {{item.inviteCode}} · 点击复制</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty" wx:elif="{{!loading}}">
+    <text class="empty-text">{{tab == 'created' ? '还没有发布过任务' : '还没有接到任务'}}</text>
+    <button class="empty-btn" wx:if="{{tab == 'created'}}" bindtap="goCreate">发布一个任务</button>
+    <button class="empty-btn" wx:else bindtap="onAcceptTap">输入任务码</button>
+  </view>
+
+  <!-- 右下角悬浮按钮：发布任务 -->
+  <view class="fab" bindtap="goCreate">＋</view>
+
+</view>

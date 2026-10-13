@@ -5,7 +5,9 @@
     "pages/login/login",
     "pages/records/records",
     "pages/agreement/agreement",
-    "pages/settings/settings"
+    "pages/settings/settings",
+    "pages/task/task",
+    "pages/task-create/task-create"
   ],
   "window": {
     "navigationBarBackgroundColor": "#1f4e79",

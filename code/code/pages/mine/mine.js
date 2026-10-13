@@ -75,6 +75,18 @@ Page({
       wx.navigateTo({ url: '/pages/records/records' })
       return
     }
+    // 打卡任务：未登录先登录，已登录跳转任务页
+    if (type === '打卡任务') {
+      if (!this.data.user) {
+        wx.showToast({ title: '请先登录', icon: 'none' })
+        setTimeout(() => {
+          wx.navigateTo({ url: '/pages/login/login' })
+        }, 800)
+        return
+      }
+      wx.navigateTo({ url: '/pages/task/task' })
+      return
+    }
     // 设置：跳转设置页（深色模式 / 字体大小 / 清除缓存）
     if (type === '设置') {
       wx.navigateTo({ url: '/pages/settings/settings' })

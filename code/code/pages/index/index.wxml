@@ -8,6 +8,15 @@
        markers="{{markers}}"
        bindmarkertap="onMarkerTap"></map>
 
+  <!-- 待完成任务提示条（指派给我、进行中、未过期） -->
+  <view class="task-bar" wx:if="{{pendingTask}}" bindtap="goTask">
+    <view class="task-bar-main">
+      <text class="task-bar-title">📌 你有 1 个任务待完成</text>
+      <text class="task-bar-desc">到「{{pendingTask.pointName}}」说「{{pendingTask.spell}}」</text>
+    </view>
+    <text class="task-bar-arrow">›</text>
+  </view>
+
   <!-- 底部信息栏 -->
   <!-- 未登录：先登录才能打卡 -->
   <view class="panel" wx:if="{{!isLoggedIn}}">
