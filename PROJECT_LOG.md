@@ -22,6 +22,8 @@ mini-program-demo/
 │   │   │   ├── login/             # 登录方式选择页（微信/手机号/游客）
 │   │   │   ├── index/             # 首页（地图打卡）
 │   │   │   ├── mine/              # 我的页
+│   │   │   ├── task/              # 打卡任务页（我发布的 / 我接的）
+│   │   │   ├── task-create/       # 发布打卡任务页
 │   │   │   ├── records/           # 打卡记录页
 │   │   │   ├── agreement/         # 用户协议 / 隐私政策页
 │   │   │   └── settings/          # 设置页（深色模式/字体大小/清除缓存）
@@ -30,9 +32,14 @@ mini-program-demo/
 │   │       ├── sendCode/          # 短信验证码云函数
 │   │       ├── getRecords/        # 打卡记录查询云函数
 │   │       ├── getPoints/         # 打卡点列表
-│   │       └── voiceCheckin/      # 声控打卡
+│   │       ├── createTask/        # 创建打卡任务（生成 6 位任务码）
+│   │       ├── acceptTask/        # 凭任务码接受任务
+│   │       ├── listTasks/         # 查询我发布 / 我接受的任务
+│   │       └── voiceCheckin/      # 声控打卡（支持任务打卡 taskId）
 │   ├── project.config.json
 │   └── project.private.config.json
+├── docs/                          # 开发文档
+│   └── 下一步功能规划与操作说明.md
 ├── .gitignore
 ├── README.md
 └── PROJECT_LOG.md                 # 本文件
@@ -91,6 +98,34 @@ mini-program-demo/
   - `login`、`sendCode` 云函数均有改动/新增，需在开发者工具中「上传并部署：云端安装依赖」后生效；
   - 真实短信验证码通道（腾讯云 SMS）待接入，当前为演示模式。
 
+### 2026-10-14
+
+> 本批改动为 10-13 晚 ~ 10-14 凌晨连续开发，按提交日期记为 10-14。
+
+- 新增**打卡任务系统**（对应课程选题要求「用户可以给他人设定打卡任务」，`7c42d53` 新增打卡任务系统）：
+  - 新增云函数 `createTask`：随机生成 6 位任务码（生成时查重重试），写入 `tasks` 集合并返回 `{ taskId, inviteCode }`；任务咒语默认取点位咒语。
+  - 新增云函数 `acceptTask`：凭任务码查找 `pending` 状态任务，拦截「接受自己发布的任务」；截止时间已过则顺手将任务置为 `expired`；通过后写入 `assigneeOpenid` 并将状态改为 `accepted`。
+  - 新增云函数 `listTasks`：按 `type=created|assigned` 分别查询「我发布的」「我接的」任务，`createdAt` 倒序、上限 50 条。
+  - 改造云函数 `voiceCheckin` 支持任务打卡（新增入参 `event.taskId`）：在调用讯飞识别前先做任务校验（任务存在 / 状态为 `accepted` / 属于当前用户 / **点位与任务指定点位一致** / 未超时）；比对咒语由点位默认咒语改为任务咒语（`targetSpell`）；打卡记录新增 `taskId` 字段；打卡成功后回写任务 `status=completed` + `completedAt` + `recordId`，实现「同一任务不可重复打卡」。
+  - 新增页面 `pages/task`：顶部 Tab「我发布的 / 我接的」、任务卡片（标题 / 点位 / 咒语 / 截止时间 / 状态徽标）、点击待接受任务复制任务码、右上角输入任务码接受任务、右下角悬浮按钮跳转发布页、支持下拉刷新。
+  - 新增页面 `pages/task-create`：从打卡点列表中选择点位，填写标题（必填，最多 30 字）与描述，有效期四选一（1 小时 / 6 小时 / 24 小时 / 3 天），提交后弹窗以大字展示任务码并支持一键复制。
+  - 首页 `pages/index`：新增「待完成任务」提示条（显示任务点位与咒语，点击跳转任务页）；录音打卡携带 `taskId`（仅当任务点位与当前选中点位一致时）；补上云函数返回码非 0 的提示分支（原先只判断 `matched`，任务校验失败时会显示「听到：undefined」）。
+  - 「我的」页新增「打卡任务」入口（未登录时先引导登录）；`app.json` 注册 `pages/task/task`、`pages/task-create/task-create`。
+- 新增开发文档 `docs/下一步功能规划与操作说明.md`：对照课程实践指南的选题要求梳理现状差距，给出 P0/P1/P2 功能优先级、逐项操作步骤、云开发控制台操作清单（集合 / 索引 / 权限 / 部署）、验收用例与开发排期建议。
+- 云开发控制台配置（代码之外，不随仓库同步，需在控制台手工完成）：
+  - 新建 `tasks` 集合，权限统一设为「所有用户不可读写」（所有数据访问一律走云函数，客户端不直连数据库）；
+  - 为 `tasks` 建立 3 条索引：`inviteCode`（**唯一**，任务码不重复的最后一道防线）、`creatorOpenid + createdAt`（降序）、`assigneeOpenid + createdAt`（降序）；
+  - `createTask` / `acceptTask` / `listTasks` / `voiceCheckin` 四个云函数均以「上传并部署：云端安装依赖」方式部署。
+- 修复与加固：
+  - `app.json` 中页面路径原写作 `"pages/task"`（缺少文件名一层），导致开发者工具每次编译都自动生成空白页面文件 `pages/task.js` / `pages/task.wxml`，已改为 `"pages/task/task"` 并删除自动生成的文件；
+  - 云函数读取单条记录原用 `db.collection().doc(id).get()`，记录不存在时会**抛异常**而非返回空值，导致友好提示永远执行不到，已统一改为 `where({ _id: id })` 再取 `data[0]`（涉及 `voiceCheckin` 读取打卡点与任务）；
+  - `voiceCheckin` 原先不校验任务指定点位，用户在其他点位念对咒语也会判定完成，已补上点位校验。
+- 涉及模块：`cloudfunctions/createTask`、`cloudfunctions/acceptTask`、`cloudfunctions/listTasks`、`cloudfunctions/voiceCheckin`、`pages/task`、`pages/task-create`、`pages/index`、`pages/mine`、`app.json`、`docs/`、`.gitignore`
+- 注意事项：
+  - `voiceCheckin` 属**改造**，必须重新部署，否则前端传入的 `taskId` 不生效；
+  - 任务码的唯一性依赖 `tasks.inviteCode` 的唯一索引（云函数内查重无法覆盖并发场景），该索引只能在控制台手工创建；
+  - `.workbuddy/` 为本地工作目录，已加入 `.gitignore`，不随仓库共享。
+
 ## 后续计划
 
 > 待补充：以下为基于当前进度的建议项，请按团队实际安排更新。
@@ -100,8 +135,15 @@ mini-program-demo/
 - [x] 用户数据存储与查询（`users` / `records` / `sms_codes` 集合）
 - [x] 「我的打卡记录」页面（列表 + 详情弹窗）
 - [x] 设置功能（深色模式 / 字体大小 / 清除缓存）
+- [x] 打卡任务系统（发布任务 / 凭任务码接受 / 任务打卡，`tasks` 集合）
+- [ ] 点位打卡用户展示（在地图上查看每个点位打卡成功的用户信息）
+- [ ] 积分排行榜与用户积分（增强游戏性）
+- [ ] 连续打卡与成就徽章
+- [ ] 用户自建打卡点位
 - [ ] 接入真实短信验证码通道（腾讯云 SMS，需企业实名 + 签名审核）
 - [ ] 打卡记录分页加载（下拉加载更多）
+- [ ] 定时触发器：自动将超时任务置为 `expired`
+- [ ] 云函数敏感配置外置（讯飞 APPID / APIKey / APISecret 改为环境变量并轮换）
 - [ ] 界面样式统一与视觉优化
 
 ## 日志规范
