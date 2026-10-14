@@ -5,11 +5,11 @@
   <view class="stat-bar">
     <view class="stat">
       <text class="stat-num">{{total}}</text>
-      <text class="stat-label">总记录</text>
+      <text class="stat-label">{{lang.records.total}}</text>
     </view>
     <view class="stat">
       <text class="stat-num ok">{{successCount}}</text>
-      <text class="stat-label">打卡成功</text>
+      <text class="stat-label">{{lang.records.success}}</text>
     </view>
   </view>
 
@@ -21,40 +21,40 @@
         <text class="record-name">{{item.pointName}}</text>
         <text class="record-time">{{item.timeText}}</text>
       </view>
-      <view class="record-badge {{item.matched ? 'ok' : 'fail'}}">{{item.matched ? '打卡成功' : '未匹配'}}</view>
+      <view class="record-badge {{item.matched ? 'ok' : 'fail'}}">{{item.matched ? lang.records.okBadge : lang.records.failBadge}}</view>
     </view>
   </view>
 
   <!-- 空状态 -->
   <view class="empty" wx:elif="{{!loading}}">
-    <text class="empty-text">暂无打卡记录</text>
-    <button class="empty-btn" bindtap="goHome">去首页打卡</button>
+    <text class="empty-text">{{lang.records.empty}}</text>
+    <button class="empty-btn" bindtap="goHome">{{lang.records.goHome}}</button>
   </view>
 
   <!-- 详情弹窗 -->
   <view class="mask" wx:if="{{showDetail}}">
     <view class="detail-pop">
       <view class="detail-name">{{detail.pointName}}</view>
-      <view class="detail-status {{detail.matched ? 'ok' : 'fail'}}">{{detail.matched ? '打卡成功' : '打卡失败'}}</view>
+      <view class="detail-status {{detail.matched ? 'ok' : 'fail'}}">{{detail.matched ? lang.records.okBadge : lang.records.failDetail}}</view>
 
       <view class="detail-row">
-        <text class="detail-label">打卡时间</text>
+        <text class="detail-label">{{lang.records.time}}</text>
         <text class="detail-value">{{detail.timeText}}</text>
       </view>
       <view class="detail-row">
-        <text class="detail-label">应念咒语</text>
+        <text class="detail-label">{{lang.records.spell}}</text>
         <text class="detail-value">{{detail.spell}}</text>
       </view>
       <view class="detail-row">
-        <text class="detail-label">识别结果</text>
-        <text class="detail-value">{{detail.recognizedText || '无'}}</text>
+        <text class="detail-label">{{lang.records.recognized}}</text>
+        <text class="detail-value">{{detail.recognizedText || lang.records.none}}</text>
       </view>
       <view class="detail-row">
-        <text class="detail-label">相似度</text>
+        <text class="detail-label">{{lang.records.similarity}}</text>
         <text class="detail-value">{{detail.simText}}</text>
       </view>
 
-      <button class="detail-close" bindtap="closeDetail">关闭</button>
+      <button class="detail-close" bindtap="closeDetail">{{lang.records.close}}</button>
     </view>
   </view>
 

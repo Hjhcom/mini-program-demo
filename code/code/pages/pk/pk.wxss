@@ -1,0 +1,238 @@
+/* 好友打卡PK页样式（风格与我的页一致：主色 #1f4e79） */
+.page {
+  min-height: 100vh;
+  background: #f5f6f7;
+}
+
+/* 邀请入口 */
+.invite-banner {
+  margin: 24rpx;
+  padding: 30rpx;
+  background: #1f4e79;
+  border-radius: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.banner-text {
+  flex: 1;
+}
+
+.banner-title {
+  color: #ffffff;
+  font-size: 32rpx;
+  font-weight: bold;
+}
+
+.banner-sub {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 24rpx;
+  margin-top: 8rpx;
+}
+
+.banner-btn {
+  margin: 0;
+  padding: 0 28rpx;
+  height: 64rpx;
+  line-height: 64rpx;
+  font-size: 26rpx;
+  background: #ffffff;
+  color: #1f4e79;
+  border-radius: 32rpx;
+}
+
+.banner-btn::after {
+  border: none;
+}
+
+/* 好友列表 */
+.friend-item {
+  display: flex;
+  align-items: center;
+  margin: 0 24rpx 24rpx;
+  padding: 28rpx 30rpx;
+  background: #ffffff;
+  border-radius: 12rpx;
+}
+
+.friend-avatar {
+  width: 88rpx;
+  height: 88rpx;
+  line-height: 88rpx;
+  text-align: center;
+  border-radius: 50%;
+  background: #1f4e79;
+  color: #ffffff;
+  font-size: 36rpx;
+  font-weight: bold;
+  margin-right: 24rpx;
+  overflow: hidden;
+}
+
+.friend-info {
+  flex: 1;
+}
+
+.friend-name {
+  font-size: 30rpx;
+  color: #333333;
+  font-weight: bold;
+}
+
+.friend-stats {
+  font-size: 24rpx;
+  color: #999999;
+  margin-top: 6rpx;
+}
+
+.friend-arrow {
+  font-size: 26rpx;
+  color: #1f4e79;
+}
+
+/* 空态 */
+.empty {
+  padding: 120rpx 40rpx;
+  text-align: center;
+}
+
+.empty-text {
+  color: #999999;
+  font-size: 28rpx;
+}
+
+/* PK 弹窗 */
+.mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.pk-pop {
+  width: 80%;
+  background: #ffffff;
+  border-radius: 16rpx;
+  padding: 40rpx;
+}
+
+.pk-title {
+  text-align: center;
+  font-size: 34rpx;
+  font-weight: bold;
+  color: #1f4e79;
+  margin-bottom: 30rpx;
+}
+
+.vs-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.vs-side {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.vs-avatar {
+  width: 100rpx;
+  height: 100rpx;
+  line-height: 100rpx;
+  text-align: center;
+  border-radius: 50%;
+  background: #1f4e79;
+  color: #ffffff;
+  font-size: 40rpx;
+  font-weight: bold;
+}
+
+.vs-name {
+  margin-top: 12rpx;
+  font-size: 26rpx;
+  color: #333333;
+}
+
+.vs-num {
+  margin-top: 8rpx;
+  font-size: 48rpx;
+  font-weight: bold;
+  color: #1f4e79;
+}
+
+.vs-label {
+  font-size: 22rpx;
+  color: #999999;
+}
+
+.vs-mid {
+  width: 140rpx;
+  text-align: center;
+  font-size: 40rpx;
+  font-weight: bold;
+  color: #999999;
+}
+
+.pk-result {
+  margin: 24rpx 0;
+  text-align: center;
+  font-size: 28rpx;
+  color: #333333;
+}
+
+.pk-detail {
+  background: #f5f6f7;
+  border-radius: 12rpx;
+  padding: 20rpx 30rpx;
+}
+
+.pk-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 26rpx;
+  color: #666666;
+  padding: 10rpx 0;
+}
+
+.pk-close {
+  margin-top: 30rpx;
+  background: #1f4e79;
+  color: #ffffff;
+  font-size: 30rpx;
+  border-radius: 40rpx;
+}
+
+.pk-close::after {
+  border: none;
+}
+
+/* 深色模式 */
+.page.dark .friend-item,
+.page.dark .pk-pop {
+  background: #2c2c2e;
+}
+
+.page.dark .friend-name {
+  color: #e5e5e5;
+}
+
+.page.dark .pk-result {
+  color: #e5e5e5;
+}
+
+.page.dark .pk-row {
+  color: #9a9a9c;
+}
+
+.page.dark .vs-name {
+  color: #e5e5e5;
+}

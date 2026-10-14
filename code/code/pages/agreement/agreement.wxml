@@ -2,7 +2,7 @@
 <view class="page {{dark ? 'dark' : ''}} {{fontScale == 'lg' ? 'font-lg' : fontScale == 'xl' ? 'font-xl' : ''}}">
   <scroll-view scroll-y class="content">
     <view class="doc-title">{{docTitle}}</view>
-    <view class="doc-update">更新日期：2026 年 10 月 12 日</view>
+    <view class="doc-update">{{lang.agreement.updated}}</view>
 
     <view class="section" wx:for="{{sections}}" wx:key="h">
       <view class="section-h">{{item.h}}</view>

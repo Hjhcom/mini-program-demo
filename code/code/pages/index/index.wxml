@@ -11,10 +11,10 @@
   <!-- 底部信息栏 -->
   <!-- 未登录：先登录才能打卡 -->
   <view class="panel" wx:if="{{!isLoggedIn}}">
-    <view class="tip">请先登录，登录后才能打卡</view>
+    <view class="tip">{{lang.index.tipLoginFirst}}</view>
     <view class="btn-row">
-      <button class="btn" bindtap="checkIn">定位打卡</button>
-      <button class="btn" bindtap="goLogin">去登录</button>
+      <button class="btn" bindtap="checkIn">{{lang.index.checkIn}}</button>
+      <button class="btn" bindtap="goLogin">{{lang.index.goLogin}}</button>
     </view>
   </view>
 
@@ -22,10 +22,10 @@
   <view class="panel" wx:else>
     <view class="tip">{{tip}}</view>
     <view class="btn-row">
-      <button class="btn" bindtap="checkIn">定位打卡</button>
+      <button class="btn" bindtap="checkIn">{{lang.index.checkIn}}</button>
       <button wx:if="{{inRange}}" class="btn btn-record {{recording ? 'recording' : ''}}"
-              bindtap="onRecordTap">{{recording ? '● 录音中，点我停止' : '🎤 说咒语'}}</button>
-      <button class="btn btn-ghost" bindtap="goRecords">📋 记录</button>
+              bindtap="onRecordTap">{{recording ? lang.index.recording : lang.index.spell}}</button>
+      <button class="btn btn-ghost" bindtap="goRecords">{{lang.index.records}}</button>
     </view>
   </view>
 </view>

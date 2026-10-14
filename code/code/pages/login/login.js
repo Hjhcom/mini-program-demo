@@ -1,5 +1,6 @@
 // pages/login/login.js —— 登录方式选择：微信一键登录（头像昵称授权） / 手机号验证码登录 / 游客登录
 const app = getApp()
+const i18n = require('../../utils/i18n')
 
 Page({
   data: {
@@ -12,8 +13,10 @@ Page({
     code: '',           // 验证码
     countdown: 0,       // 重发倒计时（秒）
     canSend: true,      // 是否可点击获取验证码
+    resendText: '',     // 倒计时按钮文案（按当前语言生成）
     dark: false,        // 深色模式（全局设置）
-    fontScale: 'md'     // 字体大小（全局设置）
+    fontScale: 'md',    // 字体大小（全局设置）
+    lang: i18n.zh       // 当前语言文案
   },
 
   // 页面加载：从「我的」页带 mode=profile 进入时，直接弹出头像昵称授权弹窗（完善资料）
@@ -29,12 +32,20 @@ Page({
     }
   },
 
-  // 页面显示：同步全局设置（深色模式 / 字体大小）
+  // 页面显示：同步全局设置（深色模式 / 字体大小 / 语言）
   onShow: function () {
+    const isEn = app.globalData.language === 'en'
+    const lang = isEn ? i18n.en : i18n.zh
     this.setData({
       dark: app.globalData.darkMode,
-      fontScale: app.globalData.fontScale
+      fontScale: app.globalData.fontScale,
+      lang: lang
     })
+    wx.setNavigationBarTitle({ title: isEn ? 'Log in' : '登录' })
+    // 倒计时进行中：刷新倒计时按钮文案（语言可能已切换）
+    if (!this.data.canSend) {
+      this.setData({ resendText: i18n.format(lang.login.resend, { s: this.data.countdown }) })
+    }
   },
 
   // 页面卸载：清理倒计时定时器
@@ -59,7 +70,7 @@ Page({
   // 登录方式共同的协议校验：未勾选则拦截
   checkAgreed: function () {
     if (!this.data.agreed) {
-      wx.showToast({ title: '请先阅读并同意《用户协议》和《隐私政策》', icon: 'none' })
+      wx.showToast({ title: this.data.lang.login.agreeFirst, icon: 'none' })
       return false
     }
     return true
@@ -69,7 +80,7 @@ Page({
   // 静默获取 openid → 资料不完整时弹「头像昵称授权」弹窗
   loginWithWechat: function () {
     if (!this.checkAgreed()) return
-    wx.showLoading({ title: '微信登录中…' })
+    wx.showLoading({ title: this.data.lang.login.wechatLoading })
     wx.cloud.callFunction({
       name: 'login'
     }).then(res => {
@@ -88,7 +99,7 @@ Page({
     }).catch(err => {
       wx.hideLoading()
       console.error('微信登录失败：', err)
-      wx.showToast({ title: '微信登录失败，请重试', icon: 'none' })
+      wx.showToast({ title: this.data.lang.login.wechatLoginFail, icon: 'none' })
     })
   },
 
@@ -105,17 +116,18 @@ Page({
   // 暂不完善 → 关闭弹窗，放弃本次微信登录
   onCancelProfile: function () {
     this.setData({ showProfile: false })
-    wx.showToast({ title: '已取消，可继续使用其他登录方式', icon: 'none' })
+    wx.showToast({ title: this.data.lang.login.cancelProfile, icon: 'none' })
   },
 
   // 确认完善：上传头像 + 更新昵称 → 完成微信登录
   onConfirmProfile: function () {
+    const lang = this.data.lang
     const nick = (this.data.nickname || '').trim()
     if (!nick) {
-      wx.showToast({ title: '请输入昵称', icon: 'none' })
+      wx.showToast({ title: lang.login.nickErr, icon: 'none' })
       return
     }
-    wx.showLoading({ title: '保存中…' })
+    wx.showLoading({ title: lang.login.saving })
 
     // 头像：有选择则先上传到云存储，拿 fileID
     const finish = (avatarFileID) => {
@@ -133,7 +145,7 @@ Page({
       }).catch(err => {
         wx.hideLoading()
         console.error('保存资料失败：', err)
-        wx.showToast({ title: '保存失败，请重试', icon: 'none' })
+        wx.showToast({ title: lang.login.saveFail, icon: 'none' })
       })
     }
 
@@ -147,7 +159,7 @@ Page({
       }).catch(err => {
         wx.hideLoading()
         console.error('头像上传失败：', err)
-        wx.showToast({ title: '头像上传失败，请重试', icon: 'none' })
+        wx.showToast({ title: lang.login.avatarFail, icon: 'none' })
       })
     } else {
       finish('')
@@ -178,64 +190,70 @@ Page({
 
   // 获取验证码：调 sendCode 云函数
   onSendCode: function () {
+    const lang = this.data.lang
     const phone = (this.data.phone || '').trim()
     if (!/^1\d{10}$/.test(phone)) {
-      wx.showToast({ title: '请输入正确的11位手机号', icon: 'none' })
+      wx.showToast({ title: lang.login.phoneErr, icon: 'none' })
       return
     }
-    wx.showLoading({ title: '发送中…' })
+    wx.showLoading({ title: lang.login.sending })
     wx.cloud.callFunction({
       name: 'sendCode',
       data: { phone: phone }
     }).then(res => {
       wx.hideLoading()
       if (res.result.code !== 0) {
-        wx.showToast({ title: res.result.msg || '发送失败', icon: 'none' })
+        wx.showToast({ title: res.result.msg || lang.login.sendFail, icon: 'none' })
         return
       }
       // 演示模式：未接真实短信通道，验证码直接展示
       if (res.result.devCode) {
-        wx.showToast({ title: '测试验证码：' + res.result.devCode, icon: 'none', duration: 3000 })
+        wx.showToast({ title: i18n.format(lang.login.testCode, { code: res.result.devCode }), icon: 'none', duration: 3000 })
         console.log('【验证码】' + phone + ' -> ' + res.result.devCode)
       }
       this.startCountdown()
     }).catch(err => {
       wx.hideLoading()
       console.error('验证码发送失败：', err)
-      wx.showToast({ title: '发送失败，请检查 sendCode 云函数', icon: 'none' })
+      wx.showToast({ title: lang.login.sendFail, icon: 'none' })
     })
   },
 
   // 验证码发送后 60 秒倒计时
   startCountdown: function () {
     if (this.timer) clearInterval(this.timer)
-    this.setData({ canSend: false, countdown: 60 })
+    const lang = this.data.lang
+    this.setData({ canSend: false, countdown: 60, resendText: i18n.format(lang.login.resend, { s: 60 }) })
     this.timer = setInterval(() => {
       const left = this.data.countdown - 1
       if (left <= 0) {
         clearInterval(this.timer)
         this.timer = null
-        this.setData({ canSend: true, countdown: 0 })
+        this.setData({ canSend: true, countdown: 0, resendText: '' })
       } else {
-        this.setData({ countdown: left })
+        this.setData({
+          countdown: left,
+          resendText: i18n.format(this.data.lang.login.resend, { s: left })
+        })
       }
     }, 1000)
   },
 
   // 提交手机号 + 验证码登录
   onSmsLogin: function () {
+    const lang = this.data.lang
     if (!this.checkAgreed()) return
     const phone = (this.data.phone || '').trim()
     const code = (this.data.code || '').trim()
     if (!/^1\d{10}$/.test(phone)) {
-      wx.showToast({ title: '请输入正确的11位手机号', icon: 'none' })
+      wx.showToast({ title: lang.login.phoneErr, icon: 'none' })
       return
     }
     if (!/^\d{6}$/.test(code)) {
-      wx.showToast({ title: '请输入6位验证码', icon: 'none' })
+      wx.showToast({ title: lang.login.codeErr, icon: 'none' })
       return
     }
-    wx.showLoading({ title: '登录中…' })
+    wx.showLoading({ title: lang.login.loginLoading })
     wx.cloud.callFunction({
       name: 'login',
       data: { phone: phone, code: code }
@@ -250,7 +268,7 @@ Page({
     }).catch(err => {
       wx.hideLoading()
       console.error('手机号登录失败：', err)
-      wx.showToast({ title: err.message || '登录失败，请重试', icon: 'none' })
+      wx.showToast({ title: err.message || lang.login.loginFail, icon: 'none' })
     })
   },
 
@@ -273,10 +291,38 @@ Page({
   // 登录成功：提示后返回上一页（「我的」）
   onLoginSuccess: function (msg) {
     wx.showToast({ title: msg, icon: 'success' })
+    // 若从分享卡片进来，登录成功后自动绑定邀请人好友关系
+    app.bindPendingInvite()
     setTimeout(() => {
       wx.navigateBack({
         fail: () => wx.switchTab({ url: '/pages/mine/mine' })
       })
     }, 800)
+  },
+
+  // 右上角「...」菜单 → 转发给朋友：分享指向首页
+  onShareAppMessage: function () {
+    const user = app.globalData.userInfo
+    const invite = (user && user.inviteCode) || ''
+    const title = app.globalData.language === 'en'
+      ? 'Voice Check-in Game - say the spell to check in!'
+      : '声控打卡游戏｜到打卡点念出咒语，完成打卡！'
+    return {
+      title: title,
+      path: '/pages/index/index' + (invite ? '?invite=' + invite : '')
+    }
+  },
+
+  // 右上角「...」菜单 → 分享到朋友圈
+  onShareTimeline: function () {
+    const user = app.globalData.userInfo
+    const invite = (user && user.inviteCode) || ''
+    const title = app.globalData.language === 'en'
+      ? 'Voice Check-in Game - say the spell to check in!'
+      : '声控打卡游戏｜到打卡点念出咒语，完成打卡！'
+    return {
+      title: title,
+      query: invite ? 'invite=' + invite : 'from=timeline'
+    }
   }
 })

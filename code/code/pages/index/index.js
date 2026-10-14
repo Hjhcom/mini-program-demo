@@ -1,5 +1,6 @@
 // 首页逻辑：地图 + 打卡点 + 定位判定 + 录音声控打卡
 const app = getApp()
+const i18n = require('../../utils/i18n')
 
 // 计算两个经纬度之间的距离（米）——球面距离公式
 function getDistance(lat1, lng1, lat2, lng2) {
@@ -31,11 +32,19 @@ Page({
     isLoggedIn: false, // 是否已登录（未登录不能打卡）
     dark: false,       // 深色模式（全局设置）
     fontScale: 'md',   // 字体大小（全局设置）
-    tip: '地图加载中...'
+    lang: i18n.zh,     // 当前语言文案
+    tip: i18n.zh.index.tipLoading
   },
 
   // 页面加载：初始化登录态 + 拉取打卡点 + 初始化录音
-  onLoad: function () {
+  onLoad: function (options) {
+    // 来自分享卡片：先把邀请码存起来，登录后自动绑定好友
+    if (options && options.invite) {
+      try {
+        wx.setStorageSync('pendingInvite', options.invite)
+      } catch (e) {}
+    }
+
     this.initUser()
     this.loadPoints()
 
@@ -45,23 +54,43 @@ Page({
     })
     recorder.onError(err => {
       console.error('录音失败：', err)
-      this.setData({ recording: false, tip: '录音失败：' + (err.errMsg || '请检查麦克风权限') })
+      this.setData({ recording: false, tip: i18n.format(this.data.lang.index.errRecord, { msg: err.errMsg || '请检查麦克风权限' }) })
     })
   },
 
   // 页面显示时同步登录态与全局设置（登录/退出后回来会变化）
   onShow: function () {
     const user = app.globalData.userInfo
+    const isEn = app.globalData.language === 'en'
+    const lang = isEn ? i18n.en : i18n.zh
     this.setData({
       isLoggedIn: !!user,
       dark: app.globalData.darkMode,
-      fontScale: app.globalData.fontScale
+      fontScale: app.globalData.fontScale,
+      lang: lang
     })
-    if (user) {
-      this.setData({ tip: '你好，' + user.nickname + '！点图钉选打卡点，然后点「定位打卡」' })
-    } else {
-      this.setData({ tip: '请先登录，登录后才能打卡' })
+    wx.setNavigationBarTitle({ title: lang.common.appName })
+    // 同步底部 tabBar 文字（tabBar 已渲染，setTabBarItem 才能生效）
+    app.applyTabBarLang()
+    this.refreshTip()
+    // 处理分享卡片带来的邀请码（好友绑定）
+    app.bindPendingInvite()
+  },
+
+  // 按当前状态刷新提示语（语言切换后也会调用）
+  refreshTip: function () {
+    const lang = this.data.lang
+    const d = this.data
+    if (!d.isLoggedIn) {
+      this.setData({ tip: lang.index.tipLoginFirst })
+      return
     }
+    if (d.recording && d.selectedPoint) {
+      this.setData({ tip: i18n.format(lang.index.tipRecording, { spell: d.selectedPoint.spell }) })
+      return
+    }
+    const user = app.globalData.userInfo
+    this.setData({ tip: i18n.format(lang.index.tipWelcome, { name: user ? user.nickname : '' }) })
   },
 
   // 初始化登录态：已有登录态直接用；没有则微信静默登录（云函数识别 openid）
@@ -70,7 +99,7 @@ Page({
     if (user) {
       this.setData({
         isLoggedIn: true,
-        tip: '你好，' + user.nickname + '！点图钉选打卡点，然后点「定位打卡」'
+        tip: i18n.format(this.data.lang.index.tipWelcome, { name: user.nickname })
       })
       console.log('已有登录态', user)
       return
@@ -88,12 +117,12 @@ Page({
       app.setUser(user)
       this.setData({
         isLoggedIn: true,
-        tip: '你好，' + user.nickname + '！点图钉选打卡点，然后点「定位打卡」'
+        tip: i18n.format(this.data.lang.index.tipWelcome, { name: user.nickname })
       })
       console.log('登录成功', user)
     }).catch(err => {
       console.error('登录失败：', err)
-      this.setData({ tip: '登录失败，请检查云函数' })
+      this.setData({ tip: this.data.lang.index.errLogin })
     })
   },
 
@@ -121,7 +150,7 @@ Page({
       console.log('打卡点加载成功', points)
     }).catch(err => {
       console.error('打卡点加载失败：', err)
-      this.setData({ tip: '打卡点加载失败，请检查 getPoints 云函数' })
+      this.setData({ tip: this.data.lang.index.errLoadPoints })
     })
   },
 
@@ -134,16 +163,17 @@ Page({
       this.setData({
         selectedPoint: p,
         inRange: false,
-        tip: '已选「' + p.name + '」　咒语：' + p.spell + '　点「定位打卡」检测距离'
+        tip: i18n.format(this.data.lang.index.tipSelected, { name: p.name, spell: p.spell })
       })
     }
   },
 
   // 定位打卡：获取当前位置，判断是否在打卡点围栏内（需先登录）
   checkIn: function () {
+    const lang = this.data.lang
     if (!this.data.isLoggedIn) {
       // 未登录：提示并跳转登录界面
-      wx.showToast({ title: '请先登录', icon: 'none' })
+      wx.showToast({ title: lang.index.loginFirst, icon: 'none' })
       setTimeout(() => {
         wx.navigateTo({ url: '/pages/login/login' })
       }, 800)
@@ -151,7 +181,7 @@ Page({
     }
     const p = this.data.selectedPoint
     if (!p) {
-      this.setData({ tip: '先点击地图上的图钉，选中一个打卡点' })
+      this.setData({ tip: lang.index.tipSelectPoint })
       return
     }
 
@@ -165,19 +195,19 @@ Page({
         if (dist <= p.radius) {
           this.setData({
             inRange: true,
-            tip: '✅ 已在「' + p.name + '」范围内（' + Math.round(dist) + '米）！点击「说咒语」开始录音'
+            tip: i18n.format(lang.index.tipInRange, { name: p.name, dist: Math.round(dist) })
           })
           console.log('在范围内，距离：', Math.round(dist), '米')
         } else {
           this.setData({
             inRange: false,
-            tip: '距「' + p.name + '」还差 ' + Math.round(dist - p.radius) + ' 米，先走过去再打卡~'
+            tip: i18n.format(lang.index.tipTooFar, { name: p.name, dist: Math.round(dist - p.radius) })
           })
         }
       },
       fail: err => {
         console.error('定位失败：', err)
-        this.setData({ tip: '定位失败：' + (err.errMsg || '请检查定位权限') })
+        this.setData({ tip: i18n.format(lang.index.errLocation, { msg: err.errMsg || '请检查定位权限' }) })
       }
     })
   },
@@ -191,7 +221,7 @@ Page({
   onRecordTap: function () {
     if (!this.data.isLoggedIn) {
       // 未登录：提示并跳转登录界面
-      wx.showToast({ title: '请先登录', icon: 'none' })
+      wx.showToast({ title: this.data.lang.index.loginFirst, icon: 'none' })
       setTimeout(() => {
         wx.navigateTo({ url: '/pages/login/login' })
       }, 800)
@@ -209,12 +239,16 @@ Page({
       numberOfChannels: 1,
       format: 'wav'
     })
-    this.setData({ recording: true, tip: '🎤 录音中…请说出咒语「' + this.data.selectedPoint.spell + '」，再点一次停止' })
+    this.setData({
+      recording: true,
+      tip: i18n.format(this.data.lang.index.tipRecording, { spell: this.data.selectedPoint.spell })
+    })
   },
 
   // 录音停止：上传云存储 → 调 voiceCheckin 识别比对
   onRecordStop: function (res) {
-    this.setData({ recording: false, tip: '识别中…' })
+    const lang = this.data.lang
+    this.setData({ recording: false, tip: lang.index.tipRecognizing })
     const tempFilePath = res.tempFilePath
     const cloudPath = 'voice/' + Date.now() + '-' + Math.floor(Math.random() * 1000) + '.wav'
 
@@ -234,17 +268,46 @@ Page({
       const r = res.result
       if (r.matched) {
         this.setData({
-          tip: '🎉 打卡成功！你说的是「' + r.recognizedText + '」，相似度 ' + Math.round(r.similarity * 100) + '%'
+          tip: i18n.format(lang.index.tipSuccess, {
+            text: r.recognizedText,
+            sim: Math.round(r.similarity * 100)
+          })
         })
         console.log('打卡成功', r)
       } else {
         this.setData({
-          tip: '❌ 咒语没对上（听到：「' + r.recognizedText + '」），再试一次'
+          tip: i18n.format(lang.index.tipMismatch, { text: r.recognizedText })
         })
       }
     }).catch(err => {
       console.error('打卡失败：', err)
-      this.setData({ tip: '打卡失败：' + (err.errMsg || '请检查 voiceCheckin 云函数') })
+      this.setData({ tip: i18n.format(lang.index.errCheckin, { msg: err.errMsg || '请检查 voiceCheckin 云函数' }) })
     })
+  },
+
+  // 右上角「...」菜单 → 转发给朋友：分享首页（带我的邀请码）
+  onShareAppMessage: function () {
+    const user = app.globalData.userInfo
+    const invite = (user && user.inviteCode) || ''
+    const title = app.globalData.language === 'en'
+      ? 'Voice Check-in Game - say the spell to check in!'
+      : '声控打卡游戏｜到打卡点念出咒语，完成打卡！'
+    return {
+      title: title,
+      path: '/pages/index/index' + (invite ? '?invite=' + invite : '')
+    }
+  },
+
+  // 右上角「...」菜单 → 分享到朋友圈
+  onShareTimeline: function () {
+    const user = app.globalData.userInfo
+    const invite = (user && user.inviteCode) || ''
+    const title = app.globalData.language === 'en'
+      ? 'Voice Check-in Game - say the spell to check in!'
+      : '声控打卡游戏｜到打卡点念出咒语，完成打卡！'
+    return {
+      title: title,
+      query: invite ? 'invite=' + invite : 'from=timeline'
+    }
   }
 })

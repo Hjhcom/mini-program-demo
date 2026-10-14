@@ -1,0 +1,8 @@
+<!-- pages/splash/splash.wxml —— 启动封面：展示 5 秒后自动跳转首页 -->
+<view class="splash">
+  <view class="logo">声</view>
+  <view class="title">声控打卡游戏</view>
+  <view class="subtitle">到点打卡，念出咒语，畅游北理</view>
+
+  <view class="skip" bindtap="onSkip">{{countdown > 0 ? '跳过 ' + countdown + 's' : '进入'}}</view>
+</view>
