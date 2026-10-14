@@ -81,6 +81,94 @@
   box-sizing: border-box;
 }
 
+/* 选中点位后：面板变成「半屏卡片」，内容多了可以滚动（文档 3.2.3） */
+.panel-sheet {
+  max-height: 45vh;
+  overflow-y: auto;
+  align-items: stretch;
+  justify-content: flex-start;
+  padding-top: 24rpx;
+}
+
+/* ===== 点位信息 ===== */
+.point-head {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 16rpx;
+}
+
+.point-name {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #1f4e79;
+}
+
+.point-spell {
+  font-size: 26rpx;
+  color: #666;
+  margin-top: 6rpx;
+}
+
+/* ===== F-02 打卡玩家 ===== */
+.users-block {
+  margin-bottom: 16rpx;
+}
+
+.users-title {
+  display: block;
+  font-size: 26rpx;
+  color: #8a6100;
+  margin-bottom: 12rpx;
+}
+
+.avatar-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20rpx;
+}
+
+.avatar-item {
+  width: 96rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.avatar-img,
+.avatar-ph {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background: #eef3f8;
+}
+
+/* 无头像时的昵称首字占位 */
+.avatar-ph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  color: #1f4e79;
+  font-weight: bold;
+}
+
+.avatar-name {
+  width: 96rpx;
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #666;
+  text-align: center;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.users-empty {
+  display: block;
+  font-size: 26rpx;
+  color: #999;
+}
+
 .tip {
   font-size: 28rpx;
   color: #333;
@@ -92,6 +180,8 @@
 /* 按钮行 */
 .btn-row {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 20rpx;
 }
 
@@ -131,3 +221,53 @@
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
 }
+
+/* ===== 深色模式：点位信息与打卡玩家 =====
+   注意 .panel / .tip 的深色样式已在 app.wxss 全局定义，这里不要重复，
+   只补 F-02 新增元素（色板与 app.wxss 保持一致：主文字 #e5e5e5 / 次级 #9a9a9c） */
+.page.dark .point-name {
+  color: #8ab4e8;
+}
+
+.page.dark .point-spell {
+  color: #9a9a9c;
+}
+
+.page.dark .users-title {
+  color: #e8c46a;
+}
+
+.page.dark .avatar-img,
+.page.dark .avatar-ph {
+  background: #3a3a3c;
+}
+
+.page.dark .avatar-ph {
+  color: #8ab4e8;
+}
+
+.page.dark .avatar-name {
+  color: #9a9a9c;
+}
+
+.page.dark .users-empty {
+  color: #9a9a9c;
+}
+
+.page.dark .btn-ghost {
+  background: #3a3a3c;
+  color: #8ab4e8;
+}
+
+/* ===== 字体大小：点位信息与打卡玩家 ===== */
+.page.font-lg .point-name { font-size: 35rpx; }
+.page.font-lg .point-spell { font-size: 29rpx; }
+.page.font-lg .users-title { font-size: 29rpx; }
+.page.font-lg .users-empty { font-size: 29rpx; }
+.page.font-lg .avatar-name { font-size: 24rpx; }
+
+.page.font-xl .point-name { font-size: 38rpx; }
+.page.font-xl .point-spell { font-size: 32rpx; }
+.page.font-xl .users-title { font-size: 32rpx; }
+.page.font-xl .users-empty { font-size: 32rpx; }
+.page.font-xl .avatar-name { font-size: 26rpx; }

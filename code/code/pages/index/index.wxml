@@ -11,8 +11,8 @@
   <!-- 待完成任务提示条（指派给我、进行中、未过期） -->
   <view class="task-bar" wx:if="{{pendingTask}}" bindtap="goTask">
     <view class="task-bar-main">
-      <text class="task-bar-title">📌 你有 1 个任务待完成</text>
-      <text class="task-bar-desc">到「{{pendingTask.pointName}}」说「{{pendingTask.spell}}」</text>
+      <text class="task-bar-title">{{lang.index.taskBarTitle}}</text>
+      <text class="task-bar-desc">{{taskBarDesc}}</text>
     </view>
     <text class="task-bar-arrow">›</text>
   </view>
@@ -27,13 +27,34 @@
     </view>
   </view>
 
-  <!-- 已登录：提示文字 + 打卡按钮区 -->
-  <view class="panel" wx:else>
+  <!-- 已登录：点位信息 / 打卡玩家 / 提示文字 / 按钮区 -->
+  <view class="panel {{selectedPoint ? 'panel-sheet' : ''}}" wx:else>
+    <!-- 选中点位：点位名 + 咒语 -->
+    <view class="point-head" wx:if="{{selectedPoint}}">
+      <text class="point-name">{{selectedPoint.name}}</text>
+      <text class="point-spell">{{lang.index.spellLabel}}{{selectedPoint.spell}}</text>
+    </view>
+
+    <!-- F-02：该点位的打卡玩家（人数 + 头像墙） -->
+    <view class="users-block" wx:if="{{selectedPoint}}">
+      <text class="users-title" wx:if="{{usersTitle}}">{{usersTitle}}</text>
+      <view class="avatar-row" wx:if="{{recentUsers.length > 0}}">
+        <view class="avatar-item" wx:for="{{recentUsers}}" wx:key="index">
+          <image class="avatar-img" src="{{item.avatarUrl}}" mode="aspectFill" wx:if="{{item.avatarUrl}}" />
+          <view class="avatar-ph" wx:else>{{item.initial}}</view>
+          <text class="avatar-name">{{item.nickname}}</text>
+        </view>
+      </view>
+      <text class="users-empty" wx:elif="{{usersLoading}}">{{lang.index.usersLoading}}</text>
+      <text class="users-empty" wx:else>{{lang.index.usersEmpty}}</text>
+    </view>
+
     <view class="tip">{{tip}}</view>
     <view class="btn-row">
       <button class="btn" bindtap="checkIn">{{lang.index.checkIn}}</button>
       <button wx:if="{{inRange}}" class="btn btn-record {{recording ? 'recording' : ''}}"
               bindtap="onRecordTap">{{recording ? lang.index.recording : lang.index.spell}}</button>
+      <button wx:if="{{selectedPoint}}" class="btn btn-ghost" bindtap="goCreateTask">{{lang.index.createTaskForFriend}}</button>
       <button class="btn btn-ghost" bindtap="goRecords">{{lang.index.records}}</button>
     </view>
   </view>

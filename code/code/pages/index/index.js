@@ -31,6 +31,12 @@ Page({
     recording: false, // 是否正在录音
     isLoggedIn: false, // 是否已登录（未登录不能打卡）
     pendingTask: null, // 指派给我、进行中且未过期的任务（用于底部提示条 + 打卡时带 taskId）
+    taskBarDesc: '',   // 任务提示条第二行文案（带占位符，在 JS 里拼好）
+    // F-02 点位打卡用户展示
+    userCount: 0,        // 该点位打卡成功的人数（按 openid 去重）
+    recentUsers: [],     // 最近打卡的玩家 [{ nickname, avatarUrl, initial }]
+    usersTitle: '',      // 人数文案（带占位符，wxml 不能调函数所以在这里拼好）
+    usersLoading: false, // 玩家数据加载中
     dark: false,       // 深色模式（全局设置）
     fontScale: 'md',   // 字体大小（全局设置）
     lang: i18n.zh,     // 当前语言文案
@@ -74,12 +80,20 @@ Page({
     if (user) {
       this.loadPendingTask()
     } else {
-      this.setData({ pendingTask: null })
+      this.setData({ pendingTask: null, taskBarDesc: '' })
     }
 
     wx.setNavigationBarTitle({ title: lang.common.appName })
     // 同步底部 tabBar 文字（tabBar 已渲染，setTabBarItem 才能生效）
     app.applyTabBarLang()
+    // 语言切换后，拼好的文案要跟着一起换（不换会残留旧语言）
+    if (this.data.selectedPoint && this.data.userCount > 0) {
+      this.setData({ usersTitle: i18n.format(lang.index.usersCount, { n: this.data.userCount }) })
+    }
+    if (this.data.pendingTask) {
+      const pt = this.data.pendingTask
+      this.setData({ taskBarDesc: i18n.format(lang.index.taskBarDesc, { name: pt.pointName, spell: pt.spell }) })
+    }
     this.refreshTip()
     // 处理分享卡片带来的邀请码（好友绑定）
     app.bindPendingInvite()
@@ -115,11 +129,16 @@ Page({
       const cur = this.data.selectedPoint
       const hit = cur ? valid.find(t => t.pointId === cur._id) : null
       const pendingTask = hit || valid[0] || null
-      this.setData({ pendingTask: pendingTask })
+      this.setData({
+        pendingTask: pendingTask,
+        taskBarDesc: pendingTask
+          ? i18n.format(this.data.lang.index.taskBarDesc, { name: pendingTask.pointName, spell: pendingTask.spell })
+          : ''
+      })
       console.log('待完成任务：', pendingTask)
     }).catch(err => {
       console.error('加载待完成任务失败：', err)
-      this.setData({ pendingTask: null })
+      this.setData({ pendingTask: null, taskBarDesc: '' })
     })
   },
 
@@ -196,10 +215,61 @@ Page({
     this.setData({
       selectedPoint: p,
       inRange: false,
+      // F-02：先清空上一个点位的玩家数据，避免看到别人的头像
+      userCount: 0,
+      usersTitle: '',
+      recentUsers: [],
+      usersLoading: true,
       tip: hasTask
         ? i18n.format(this.data.lang.index.tipHasTask, { name: p.name, spell: t.spell })
         : i18n.format(this.data.lang.index.tipSelected, { name: p.name, spell: p.spell })
     })
+    this.loadPointUsers(p._id)
+  },
+
+  // F-02：拉取该点位「打卡成功」的人数与最近打卡的玩家
+  // 失败不阻塞打卡主流程，只把加载态收掉（面板显示空态文案）
+  loadPointUsers: function (pointId) {
+    // 快速连点不同图钉时，先发的请求可能后回来把数据盖掉 —— 用序号丢弃过期响应
+    this._usersSeq = (this._usersSeq || 0) + 1
+    const seq = this._usersSeq
+    wx.cloud.callFunction({
+      name: 'getPointUsers',
+      data: { pointId: pointId }
+    }).then(res => {
+      if (seq !== this._usersSeq) return // 已有更新的请求，丢弃这次结果
+      const r = res.result || {}
+      if (r.code !== 0) throw new Error(r.msg || '加载失败')
+      const lang = this.data.lang
+      // 无头像时显示昵称首字（wxml 里不便做字符串下标，这里先算好）
+      const users = (r.recentUsers || []).map(u => {
+        const name = u.nickname || lang.index.usersFallbackName
+        return { nickname: name, avatarUrl: u.avatarUrl || '', initial: name.charAt(0) }
+      })
+      const count = r.userCount || 0
+      this.setData({
+        userCount: count,
+        recentUsers: users,
+        usersTitle: count > 0 ? i18n.format(this.data.lang.index.usersCount, { n: count }) : '',
+        usersLoading: false
+      })
+    }).catch(err => {
+      if (seq !== this._usersSeq) return
+      console.error('获取打卡用户失败：', err)
+      this.setData({ usersLoading: false })
+    })
+  },
+
+  // 选中点位 → 跳发布任务页（F-01 × F-02 联动）
+  goCreateTask: function () {
+    if (!this.data.isLoggedIn) {
+      wx.showToast({ title: this.data.lang.index.loginFirst, icon: 'none' })
+      setTimeout(() => {
+        wx.navigateTo({ url: '/pages/login/login' })
+      }, 800)
+      return
+    }
+    wx.navigateTo({ url: '/pages/task-create/task-create' })
   },
 
   // 定位打卡：获取当前位置，判断是否在打卡点围栏内（需先登录）
@@ -329,6 +399,10 @@ Page({
         console.log('打卡成功', r)
         // 任务打卡成功 → 刷新待完成任务（该任务已变成已完成）
         if (taskId) this.loadPendingTask()
+        // 我刚打卡成功 → 刷新头像墙，让「我」立刻出现在名单里
+        if (point && this.data.selectedPoint && this.data.selectedPoint._id === point._id) {
+          this.loadPointUsers(point._id)
+        }
       } else {
         this.setData({
           tip: i18n.format(lang.index.tipMismatch, { text: r.recognizedText })

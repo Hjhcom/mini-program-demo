@@ -173,6 +173,27 @@ mini-program-demo/
   - `listTasks`：补上此前注释声称却并未实现的「顺手把过期的标一下」——把本次查出的 50 条中状态仍为 `pending` / `accepted` 且已过 `deadline` 的任务批量置为 `expired`，并同步修正返回值，前端本次刷新即可看到「已过期」徽标。彻底清理仍建议走定时触发器（见文档 3.9）。
   - 注意：三个函数改动后都必须重新部署（「上传并部署：云端安装依赖」）。
   - 涉及模块：`cloudfunctions/createTask`、`cloudfunctions/acceptTask`、`cloudfunctions/listTasks`。
+- 新增**点位打卡用户信息展示**（F-02 / P0，文档 3.2）：
+  - 新增云函数 `getPointUsers`：给定 `pointId`，返回该点位「打卡成功」的**人数**（按 openid 去重）与**最近打卡的 5 位玩家**（昵称 + 头像）。
+    - 人数统计用 `aggregate().match({pointId, matched:true}).group({_id:'$openid'}).count('n')`——只回传一个数字，不会像 `addToSet('$openid')` 那样把全部 openid 堆进一个数组顶到聚合内存上限；
+    - 头像墙先取最近 20 条成功记录再去重取 5 个不同用户（同一用户连续打卡也能凑满 5 人）；
+    - `users.avatarUrl` 存的是云存储 fileID，在云函数里用 `cloud.getTempFileURL()` 批量换成 https 临时链接再返回（`<image>` 不能直接渲染 fileID），失败时退回昵称首字占位；
+    - **隐私**：openid 只在服务端用于去重与排序，**返回值里不含 openid**（openid 属于敏感标识，报告里需说明这一点）。
+  - 首页 `pages/index` 改造：
+    - 选中图钉后自动拉取该点位玩家数据，底部面板新增「点位名 + 咒语」标题区与玩家区（`已有 N 位玩家在此打卡成功` + 头像墙；无人时显示「还没有人在这里打卡，你可以做第一个！」）；
+    - 选中点位时面板加 `.panel-sheet` 类变为可滚动的半屏卡片（`max-height: 45vh`），未选中时保持原样，不改动打卡主流程的按钮与提示语；
+    - 新增「给好友设个任务」按钮（跳 `pages/task-create`），把 F-01 与 F-02 串起来；
+    - 打卡成功后自动刷新头像墙；连点不同图钉时用请求序号丢弃过期响应，避免数据错位。
+  - i18n：`utils/i18n.js` 的 `index` 分区新增 8 条（`spellLabel` / `taskBarTitle` / `taskBarDesc` / `usersCount` / `usersEmpty` / `usersLoading` / `usersFallbackName` / `createTaskForFriend`，zh/en 各 8 条，语言包总量 191 → 199），并顺带把首页任务提示条里原先硬编码的两句中文接入 i18n。
+  - 修复：`cloudfunctions/acceptTask/index.js`、`cloudfunctions/voiceCheckin/index.js` 的 require 曾被误改为相对路径 `'../getPointUsers/node_modules/wx-server-sdk'`（本地无该目录、云端更不存在，会导致这两个函数运行失败），已还原为 `require('wx-server-sdk')`。
+  - 涉及模块：`cloudfunctions/getPointUsers`（新建）、`pages/index`、`utils/i18n.js`、`cloudfunctions/acceptTask`、`cloudfunctions/voiceCheckin`、`docs/下一步功能规划与操作说明.md`。
+  - 注意：`getPointUsers` 为新函数，需在开发者工具中「创建并部署：云端安装依赖」；`acceptTask` / `voiceCheckin` 若之前用被改坏的版本部署过，需重新部署一次。
+- 文档补充**验收与部署清单**（`docs/下一步功能规划与操作说明.md`）：
+  - 第 6 节重构为 6.1 功能验收用例（T-01~T-09 / U-01~U-05 逐条可打勾）、6.2 双账号测试环境（多账号调试 / 体验版 / 体验成员三种方案对比）、6.3~6.5 功能完整性 / 代码质量 / 文档自检；3.1.6、3.2.4 处加了指向 6.1 的交叉引用；
+  - 3.9.2 索引表新增 IDX-10（`records` 的 `pointId + matched + createTime`，F-02 聚合与"取最近 5 人"用）、IDX-11~IDX-13（`friends` 好友列表 / 好友关系唯一索引、`users.inviteCode` 唯一索引），并补了唯一索引建不上的处理说明；
+  - 3.9.3 权限表补 `friends` 集合（同学提交的好友 PK 功能引入，之前遗漏）；
+  - 3.9.4 云函数部署改为**完整部署清单**（10 个函数逐项标注「必传 / 可跳过」及原因），补充「右键显示『创建并部署』需先同步云函数列表」的排错说明；
+  - 第 8 节「马上可以做的 5 件事」同步更新为 IDX-10 + IDX-07~09、5 个集合权限。
 
 ## 后续计划
 
@@ -184,7 +205,7 @@ mini-program-demo/
 - [x] 「我的打卡记录」页面（列表 + 详情弹窗）
 - [x] 设置功能（深色模式 / 字体大小 / 清除缓存）
 - [x] 打卡任务系统（发布任务 / 凭任务码接受 / 任务打卡，`tasks` 集合）
-- [ ] 点位打卡用户展示（在地图上查看每个点位打卡成功的用户信息）
+- [x] 点位打卡用户展示（在地图上查看每个点位打卡成功的用户信息，`getPointUsers`）
 - [ ] 积分排行榜与用户积分（增强游戏性）
 - [ ] 连续打卡与成就徽章
 - [ ] 用户自建打卡点位
