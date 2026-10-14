@@ -21,5 +21,23 @@ exports.main = async (event) => {
   await db.collection('tasks').doc(task._id).update({
     data: { assigneeOpenid: OPENID, status: 'accepted', acceptedAt: db.serverDate() }
   })
-  return { code: 0, task }
+
+  // ⚠️ 只回传白名单字段：绝不能把整个 task 丢给前端，
+  //    里面带 creatorOpenid / assigneeOpenid，违背「不下发 openid」的约定。
+  return {
+    code: 0,
+    task: {
+      _id: task._id,
+      title: task.title,
+      desc: task.desc || '',
+      pointId: task.pointId,
+      pointName: task.pointName,
+      spell: task.spell,
+      radius: task.radius,
+      deadline: task.deadline,
+      status: 'accepted',
+      inviteCode: task.inviteCode,
+      creatorNickname: task.creatorNickname || ''
+    }
+  }
 }

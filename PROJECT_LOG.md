@@ -167,6 +167,12 @@ mini-program-demo/
   - 修复 `project.private.config.json`（仓库根目录）：该文件自早期提交（`3f8056d`）起就带着 Git 冲突标记（`<<<<<<< HEAD` / `>>>>>>> 9b5bc6f...`），早已不是合法 JSON；已清理为合法 JSON（`libVersion` 取 `3.17.3`，保留 `useGlassEaselForWxml: false`）并补上文件末尾换行。
   - 涉及模块：`utils/i18n.js`、`pages/task`、`pages/task-create`、`project.private.config.json`。
   - 说明：各页 `json` 中的 `navigationBarTitleText` 保留中文作为默认值（与既有页面一致），运行时由 `wx.setNavigationBarTitle` 按当前语言覆盖。
+- 打卡任务云函数加固（`createTask` / `acceptTask` / `listTasks`，三处均为既有代码的缺陷修复）：
+  - `createTask`：① 读取打卡点由 `db.collection('points').doc(pointId).get()` 改为 `where({ _id: pointId })` 再取 `data[0]`——云函数端 `doc(id).get()` 在记录不存在时**抛异常**而非返回空值，导致原先写好的「打卡点不存在」友好提示永远执行不到，前端只会收到函数执行失败；② 新增截止时间校验：必须为合法日期、晚于当前时间、且不超过 30 天（前端有效期最大 3 天，30 天只是防客户端被改的宽松上限）。
+  - `acceptTask`：返回值不再回传整个任务对象（原对象含 `creatorOpenid` / `assigneeOpenid`），改为白名单字段（`_id` / `title` / `desc` / `pointId` / `pointName` / `spell` / `radius` / `deadline` / `status` / `inviteCode` / `creatorNickname`），遵循「不下发 openid」约定。前端只判断 `code`、不消费该对象，无需配合改动。
+  - `listTasks`：补上此前注释声称却并未实现的「顺手把过期的标一下」——把本次查出的 50 条中状态仍为 `pending` / `accepted` 且已过 `deadline` 的任务批量置为 `expired`，并同步修正返回值，前端本次刷新即可看到「已过期」徽标。彻底清理仍建议走定时触发器（见文档 3.9）。
+  - 注意：三个函数改动后都必须重新部署（「上传并部署：云端安装依赖」）。
+  - 涉及模块：`cloudfunctions/createTask`、`cloudfunctions/acceptTask`、`cloudfunctions/listTasks`。
 
 ## 后续计划
 
