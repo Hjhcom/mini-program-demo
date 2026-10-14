@@ -9,7 +9,8 @@
     "pages/agreement/agreement",
     "pages/settings/settings",
     "pages/task/task",
-    "pages/task-create/task-create"
+    "pages/task-create/task-create",
+    "pages/ranking/ranking"
   ],
   "window": {
     "navigationBarBackgroundColor": "#1f4e79",

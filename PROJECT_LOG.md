@@ -20,26 +20,35 @@ mini-program-demo/
 │   │   │   └── tabbar/            # tabBar 图标（首页/我的 × 灰色/选中蓝）
 │   │   ├── pages/
 │   │   │   ├── login/             # 登录方式选择页（微信/手机号/游客）
-│   │   │   ├── index/             # 首页（地图打卡）
+│   │   │   ├── index/             # 首页（地图打卡 + 点位打卡玩家展示）
 │   │   │   ├── mine/              # 我的页
 │   │   │   ├── task/              # 打卡任务页（我发布的 / 我接的）
 │   │   │   ├── task-create/       # 发布打卡任务页
+│   │   │   ├── ranking/           # 积分排行榜页（玩家榜 / 点位榜）
+│   │   │   ├── pk/                # 好友打卡 PK 页
 │   │   │   ├── records/           # 打卡记录页
 │   │   │   ├── agreement/         # 用户协议 / 隐私政策页
 │   │   │   └── settings/          # 设置页（深色模式/字体大小/清除缓存）
+│   │   ├── utils/
+│   │   │   └── i18n.js            # 中英文语言包（各页面文案统一走这里）
 │   │   └── cloudfunctions/
 │   │       ├── login/             # 登录云函数（微信/手机号/资料更新）
 │   │       ├── sendCode/          # 短信验证码云函数
 │   │       ├── getRecords/        # 打卡记录查询云函数
 │   │       ├── getPoints/         # 打卡点列表
+│   │       ├── getPointUsers/     # 点位打卡玩家展示（人数 + 最近打卡玩家）
+│   │       ├── getRanking/        # 积分排行榜（玩家榜 + 点位热度榜，含 lib/points.js）
 │   │       ├── createTask/        # 创建打卡任务（生成 6 位任务码）
 │   │       ├── acceptTask/        # 凭任务码接受任务
 │   │       ├── listTasks/         # 查询我发布 / 我接受的任务
+│   │       ├── friends/           # 好友 PK（邀请码加好友 / 好友列表）
 │   │       └── voiceCheckin/      # 声控打卡（支持任务打卡 taskId）
 │   ├── project.config.json
 │   └── project.private.config.json
 ├── docs/                          # 开发文档
 │   └── 下一步功能规划与操作说明.md
+├── tools/                         # 本地开发脚本（不进小程序包）
+│   └── test-points.js             # F-03 积分规则单元测试（node tools/test-points.js）
 ├── .gitignore
 ├── README.md
 └── PROJECT_LOG.md                 # 本文件
@@ -194,6 +203,17 @@ mini-program-demo/
   - 3.9.3 权限表补 `friends` 集合（同学提交的好友 PK 功能引入，之前遗漏）；
   - 3.9.4 云函数部署改为**完整部署清单**（10 个函数逐项标注「必传 / 可跳过」及原因），补充「右键显示『创建并部署』需先同步云函数列表」的排错说明；
   - 第 8 节「马上可以做的 5 件事」同步更新为 IDX-10 + IDX-07~09、5 个集合权限。
+- 新增**积分与排行榜**（F-03 / P1，文档 3.3）：
+  - 新增云函数 `getRanking`：`type=user`（默认）返回玩家积分榜 + 「我的排名」，`type=point` 返回点位热度榜（总打卡次数 + 独立用户数）。
+    - **积分按文档 3.3.1 四条规则实时计算、不落库**：`成功打卡 × 10 + 完成他人任务 × 20 + 发布被完成 × 5 + 连续打卡奖励`；同分依次比成功次数、打卡点位数。
+    - **连续打卡奖励**：按「用户 + 自然日」去重（`$dateToString` + `timezone: 'Asia/Shanghai'`）拿到 dayKey，再在 JS 里按天扫描算 streak（`+5 × min(n, 5)`，n≥2 起算、断档重置）。该聚合包在 `try/catch` 中，失败时奖励按 0 计并打日志，不影响榜单其余部分。
+    - **聚合不用 `addToSet`**：打卡按 (openid, pointId) 两阶段聚合，点位榜按 (pointId, openid) → pointId 两阶段聚合，只回传计数值，避免把大量 openid 装进数组顶到聚合内存上限。
+    - **隐私**：openid 仅用于服务端去重 / 排序 / 映射昵称，**返回值里不含 openid**；头像 `cloud://` fileID 用 `getTempFileURL` 换 https 临时链接（每批 50 个），失败退回昵称首字占位。
+    - 纯计算部分抽到 `cloudfunctions/getRanking/lib/points.js`（不依赖 `wx-server-sdk`），配套本地单测 `tools/test-points.js`（**25 条用例，全部通过**，覆盖连续打卡的天数边界：首日不计、断档重置、封顶、跨月跨年、闰年）。
+  - 新增页面 `pages/ranking/ranking`（已注册 `app.json`）：玩家榜 / 点位榜两个 Tab，顶部「我的排名」卡，前三名金银铜徽标，点击弹出**积分明细**（四项各「几次 × 多少分」+ 合计），底部「积分规则」说明；支持下拉刷新、深色模式、字体大小、中英文切换（`i18n.ranking` 31 条 × zh/en）。
+  - 入口：「我的」页功能列表新增「积分排行榜」；首页底部面板新增「🏆 排行榜」按钮；**未登录也能看**（无云端数据时只少「我的排名」卡）。
+  - 涉及模块：`cloudfunctions/getRanking`（新建）、`pages/ranking`（新建）、`pages/index`、`pages/mine`、`utils/i18n.js`、`app.json`、`tools/test-points.js`（新建）、`docs/下一步功能规划与操作说明.md`。
+  - 注意：`getRanking` 为新函数需「创建并部署：云端安装依赖」（带 `lib/points.js` 子目录，共 4 个文件）；本功能**不需要新建集合与索引也能跑**（数据量小），索引可在控制台按需补 IDX-14/IDX-15。
 
 ## 后续计划
 
@@ -206,7 +226,7 @@ mini-program-demo/
 - [x] 设置功能（深色模式 / 字体大小 / 清除缓存）
 - [x] 打卡任务系统（发布任务 / 凭任务码接受 / 任务打卡，`tasks` 集合）
 - [x] 点位打卡用户展示（在地图上查看每个点位打卡成功的用户信息，`getPointUsers`）
-- [ ] 积分排行榜与用户积分（增强游戏性）
+- [x] 积分排行榜与用户积分（玩家积分榜 / 点位热度榜，`getRanking`，积分实时计算不落库）
 - [ ] 连续打卡与成就徽章
 - [ ] 用户自建打卡点位
 - [ ] 接入真实短信验证码通道（腾讯云 SMS，需企业实名 + 签名审核）

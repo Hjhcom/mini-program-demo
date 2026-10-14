@@ -1,0 +1,9 @@
+{
+  "name": "getRanking",
+  "version": "1.0.0",
+  "description": "积分排行榜：玩家积分榜 / 点位热度榜（实时聚合，积分不落库）",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

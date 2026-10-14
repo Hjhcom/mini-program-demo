@@ -1,0 +1,467 @@
+/* 排行榜页样式（风格与 records/mine 保持一致：主色 #1f4e79，卡片圆角 16rpx）
+   注意：.panel / .tip / .pop-title / .empty-text 的深色样式已在 app.wxss 全局定义，
+   这里不重复，只补本页新增元素（深色色板与 app.wxss 一致：主文字 #e5e5e5 / 次级 #9a9a9c） */
+.page {
+  min-height: 100vh;
+  background: #f5f6f7;
+  padding-bottom: 40rpx;
+  box-sizing: border-box;
+}
+
+/* ===== 顶部 Tab ===== */
+.tabs {
+  display: flex;
+  background: #ffffff;
+  border-bottom: 2rpx solid #ececec;
+}
+
+.tab {
+  flex: 1;
+  text-align: center;
+  padding: 26rpx 0;
+  font-size: 30rpx;
+  color: #666666;
+  position: relative;
+}
+
+.tab.on {
+  color: #1f4e79;
+  font-weight: bold;
+}
+
+.tab.on::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 90rpx;
+  height: 6rpx;
+  border-radius: 3rpx;
+  background: #1f4e79;
+}
+
+/* ===== 我的排名卡 ===== */
+.me-card {
+  display: flex;
+  align-items: center;
+  margin: 24rpx 30rpx 0;
+  padding: 26rpx 30rpx;
+  background: #1f4e79;
+  border-radius: 16rpx;
+}
+
+.me-card.empty-card {
+  justify-content: center;
+  background: #eef3f8;
+}
+
+.me-rank {
+  width: 64rpx;
+  height: 64rpx;
+  line-height: 64rpx;
+  text-align: center;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #1f4e79;
+  font-size: 28rpx;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.me-rank.gold { background: #ffe9a8; color: #8a6100; }
+.me-rank.silver { background: #ececec; color: #6b6b6b; }
+.me-rank.bronze { background: #f3ddc7; color: #8a5a2b; }
+
+.me-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  margin-left: 22rpx;
+}
+
+.me-name {
+  font-size: 30rpx;
+  color: #ffffff;
+  font-weight: bold;
+}
+
+.me-sub {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 8rpx;
+}
+
+.me-card.empty-card .me-sub {
+  color: #7a8b9c;
+}
+
+.me-right {
+  display: flex;
+  align-items: baseline;
+  flex-shrink: 0;
+}
+
+.me-points {
+  font-size: 44rpx;
+  color: #ffd766;
+  font-weight: bold;
+}
+
+.me-unit {
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.8);
+  margin-left: 6rpx;
+}
+
+/* ===== 榜单列表 ===== */
+.list {
+  padding: 24rpx 30rpx 0;
+}
+
+.rank-item {
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border-radius: 16rpx;
+  padding: 22rpx 28rpx;
+  margin-bottom: 18rpx;
+}
+
+.rank-item.is-me {
+  border: 2rpx solid #1f4e79;
+}
+
+.rank-badge {
+  width: 52rpx;
+  height: 52rpx;
+  line-height: 52rpx;
+  text-align: center;
+  border-radius: 50%;
+  background: #eef3f8;
+  color: #7a8b9c;
+  font-size: 26rpx;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.rank-badge.gold { background: #ffe9a8; color: #8a6100; }
+.rank-badge.silver { background: #ececec; color: #6b6b6b; }
+.rank-badge.bronze { background: #f3ddc7; color: #8a5a2b; }
+
+.rank-avatar {
+  width: 76rpx;
+  height: 76rpx;
+  border-radius: 50%;
+  margin-left: 22rpx;
+  background: #eef3f8;
+  flex-shrink: 0;
+}
+
+/* 无头像时的昵称首字占位 */
+.rank-ph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30rpx;
+  color: #1f4e79;
+  font-weight: bold;
+}
+
+.rank-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  margin-left: 20rpx;
+}
+
+.rank-name {
+  font-size: 30rpx;
+  color: #333333;
+  font-weight: bold;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.rank-sub {
+  font-size: 23rpx;
+  color: #999999;
+  margin-top: 8rpx;
+}
+
+.rank-right {
+  display: flex;
+  align-items: baseline;
+  flex-shrink: 0;
+  margin-left: 16rpx;
+}
+
+.rank-points {
+  font-size: 38rpx;
+  color: #1f4e79;
+  font-weight: bold;
+}
+
+.rank-unit {
+  font-size: 22rpx;
+  color: #999999;
+  margin-left: 6rpx;
+}
+
+.list-note {
+  text-align: center;
+  font-size: 23rpx;
+  color: #999999;
+  padding: 10rpx 0 20rpx;
+}
+
+/* ===== 空状态 / 加载中 ===== */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 140rpx;
+}
+
+.empty-btn {
+  margin-top: 40rpx;
+  width: 300rpx;
+  height: 80rpx;
+  line-height: 80rpx;
+  font-size: 28rpx;
+  color: #ffffff;
+  background: #1f4e79;
+  border-radius: 40rpx;
+}
+
+.empty-btn::after {
+  border: none;
+}
+
+.loading-box {
+  padding: 60rpx 0;
+  text-align: center;
+}
+
+.loading-text {
+  font-size: 26rpx;
+  color: #999999;
+}
+
+/* ===== 积分规则入口 ===== */
+.rules-link {
+  margin-top: 30rpx;
+  text-align: center;
+  font-size: 26rpx;
+  color: #1f4e79;
+  text-decoration: underline;
+}
+
+/* ===== 弹窗（明细 / 规则）===== */
+.mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pop {
+  width: 620rpx;
+  max-height: 70vh;
+  overflow-y: auto;
+  background: #ffffff;
+  border-radius: 24rpx;
+  padding: 46rpx 40rpx 40rpx;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.pop-title {
+  font-size: 34rpx;
+  font-weight: bold;
+  color: #333333;
+  text-align: center;
+}
+
+.pop-sub {
+  font-size: 24rpx;
+  color: #999999;
+  text-align: center;
+  margin-top: 10rpx;
+}
+
+.pop-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 2rpx solid #f0f0f0;
+}
+
+.pop-label {
+  font-size: 26rpx;
+  color: #666666;
+  flex: 1;
+  min-width: 0;
+}
+
+.pop-value {
+  font-size: 28rpx;
+  color: #2fae63;
+  font-weight: bold;
+  margin-left: 24rpx;
+  flex-shrink: 0;
+}
+
+.pop-value.total {
+  color: #1f4e79;
+  font-size: 34rpx;
+}
+
+.rule-line {
+  font-size: 26rpx;
+  color: #666666;
+  line-height: 1.7;
+  margin-top: 14rpx;
+}
+
+.pop-btn {
+  margin-top: 36rpx;
+  width: 100%;
+  height: 84rpx;
+  line-height: 84rpx;
+  font-size: 30rpx;
+  color: #ffffff;
+  background: #1f4e79;
+  border-radius: 42rpx;
+}
+
+.pop-btn::after {
+  border: none;
+}
+
+/* ===== 深色模式（只补本页新增元素；.pop-title / .empty-text 已在 app.wxss） ===== */
+.page.dark .tabs {
+  background: #2c2c2e;
+  border-bottom-color: #3a3a3c;
+}
+
+.page.dark .tab {
+  color: #9a9a9c;
+}
+
+.page.dark .tab.on {
+  color: #8ab4e8;
+}
+
+.page.dark .tab.on::after {
+  background: #8ab4e8;
+}
+
+.page.dark .me-card {
+  background: #2c3a49;
+}
+
+.page.dark .me-card.empty-card {
+  background: #2c2c2e;
+}
+
+.page.dark .me-card.empty-card .me-sub {
+  color: #9a9a9c;
+}
+
+.page.dark .rank-item,
+.page.dark .pop {
+  background: #2c2c2e;
+}
+
+.page.dark .rank-item.is-me {
+  border-color: #8ab4e8;
+}
+
+.page.dark .rank-badge {
+  background: #3a3a3c;
+  color: #9a9a9c;
+}
+
+.page.dark .rank-badge.gold { background: #4a3c15; color: #e8c46a; }
+.page.dark .rank-badge.silver { background: #3a3a3c; color: #d0d0d2; }
+.page.dark .rank-badge.bronze { background: #4a3524; color: #d9a06a; }
+
+.page.dark .rank-avatar {
+  background: #3a3a3c;
+}
+
+.page.dark .rank-ph {
+  color: #8ab4e8;
+}
+
+.page.dark .rank-name,
+.page.dark .pop-label,
+.page.dark .rule-line {
+  color: #e5e5e5;
+}
+
+.page.dark .rank-sub,
+.page.dark .rank-unit,
+.page.dark .list-note,
+.page.dark .loading-text,
+.page.dark .pop-sub {
+  color: #9a9a9c;
+}
+
+.page.dark .rank-points,
+.page.dark .rules-link {
+  color: #8ab4e8;
+}
+
+.page.dark .pop-value {
+  color: #7fd19a;
+}
+
+.page.dark .pop-value.total {
+  color: #8ab4e8;
+}
+
+.page.dark .pop-row {
+  border-bottom-color: #3a3a3c;
+}
+
+/* ===== 字体大小（跟随全局设置）===== */
+.page.font-lg .tab { font-size: 33rpx; }
+.page.font-lg .rank-name,
+.page.font-lg .me-name { font-size: 33rpx; }
+.page.font-lg .rank-sub,
+.page.font-lg .me-sub,
+.page.font-lg .pop-label,
+.page.font-lg .pop-sub { font-size: 26rpx; }
+.page.font-lg .rank-points { font-size: 41rpx; }
+.page.font-lg .me-points { font-size: 47rpx; }
+.page.font-lg .pop-value { font-size: 31rpx; }
+.page.font-lg .rule-line,
+.page.font-lg .loading-text,
+.page.font-lg .rules-link { font-size: 29rpx; }
+
+.page.font-xl .tab { font-size: 36rpx; }
+.page.font-xl .rank-name,
+.page.font-xl .me-name { font-size: 36rpx; }
+.page.font-xl .rank-sub,
+.page.font-xl .me-sub,
+.page.font-xl .pop-label,
+.page.font-xl .pop-sub { font-size: 29rpx; }
+.page.font-xl .rank-points { font-size: 44rpx; }
+.page.font-xl .me-points { font-size: 50rpx; }
+.page.font-xl .pop-value { font-size: 34rpx; }
+.page.font-xl .rule-line,
+.page.font-xl .loading-text,
+.page.font-xl .rules-link { font-size: 32rpx; }

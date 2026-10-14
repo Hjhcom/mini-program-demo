@@ -1,0 +1,107 @@
+<!-- pages/ranking/ranking.wxml —— 积分排行榜（玩家榜 / 点位榜） -->
+<view class="page {{dark ? 'dark' : ''}} {{fontScale == 'lg' ? 'font-lg' : fontScale == 'xl' ? 'font-xl' : ''}}">
+
+  <!-- 顶部 Tab -->
+  <view class="tabs">
+    <view class="tab {{tab == 'user' ? 'on' : ''}}" bindtap="onTab" data-tab="user">{{lang.ranking.tabUser}}</view>
+    <view class="tab {{tab == 'point' ? 'on' : ''}}" bindtap="onTab" data-tab="point">{{lang.ranking.tabPoint}}</view>
+  </view>
+
+  <!-- ===== 玩家榜 ===== -->
+  <block wx:if="{{tab == 'user'}}">
+    <!-- 我的排名 -->
+    <view class="me-card" wx:if="{{me}}" bindtap="onMeTap">
+      <view class="me-rank {{me.rankClass}}">{{me.rank}}</view>
+      <view class="me-main">
+        <text class="me-name">{{me.nickname}}{{lang.ranking.meTag}}</text>
+        <text class="me-sub">{{meSub}}</text>
+      </view>
+      <view class="me-right">
+        <text class="me-points">{{me.points}}</text>
+        <text class="me-unit">{{lang.ranking.pointsUnit}}</text>
+      </view>
+    </view>
+    <!-- 没有我的数据（未登录 / 游客 / 还没打过卡） -->
+    <view class="me-card empty-card" wx:elif="{{!loading}}">
+      <text class="me-sub">{{lang.ranking.meEmpty}}</text>
+    </view>
+
+    <!-- 榜单列表 -->
+    <view class="list" wx:if="{{list.length > 0}}">
+      <view class="rank-item {{item.isMe ? 'is-me' : ''}}" wx:for="{{list}}" wx:key="rank"
+            bindtap="onItemTap" data-index="{{index}}">
+        <view class="rank-badge {{item.rankClass}}">{{item.rank}}</view>
+        <image class="rank-avatar" src="{{item.avatarUrl}}" mode="aspectFill" wx:if="{{item.avatarUrl}}" />
+        <view class="rank-avatar rank-ph" wx:else>{{item.initial}}</view>
+        <view class="rank-main">
+          <text class="rank-name">{{item.nickname}}{{item.isMe ? lang.ranking.meTag : ''}}</text>
+          <text class="rank-sub">{{item.subText}}</text>
+        </view>
+        <view class="rank-right">
+          <text class="rank-points">{{item.points}}</text>
+          <text class="rank-unit">{{lang.ranking.pointsUnit}}</text>
+        </view>
+      </view>
+      <view class="list-note" wx:if="{{list.length >= limit}}">{{lang.ranking.limitNote}}</view>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty" wx:elif="{{!loading}}">
+      <text class="empty-text">{{lang.ranking.emptyUser}}</text>
+      <button class="empty-btn" bindtap="goHome">{{lang.ranking.goHome}}</button>
+    </view>
+  </block>
+
+  <!-- ===== 点位榜 ===== -->
+  <block wx:else>
+    <view class="list" wx:if="{{pointList.length > 0}}">
+      <view class="rank-item" wx:for="{{pointList}}" wx:key="rank">
+        <view class="rank-badge {{item.rankClass}}">{{item.rank}}</view>
+        <view class="rank-main">
+          <text class="rank-name">{{item.pointName}}</text>
+          <text class="rank-sub">{{item.subText}}</text>
+        </view>
+        <view class="rank-right">
+          <text class="rank-points">{{item.times}}</text>
+          <text class="rank-unit">{{lang.ranking.timesUnit}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="empty" wx:elif="{{!loading}}">
+      <text class="empty-text">{{lang.ranking.emptyPoint}}</text>
+      <button class="empty-btn" bindtap="goHome">{{lang.ranking.goHome}}</button>
+    </view>
+  </block>
+
+  <!-- 加载中 -->
+  <view class="loading-box" wx:if="{{loading}}">
+    <text class="loading-text">{{lang.ranking.loading}}</text>
+  </view>
+
+  <!-- 底部：积分规则入口 -->
+  <view class="rules-link" bindtap="onRulesTap">{{lang.ranking.rulesBtn}}</view>
+
+  <!-- 积分明细弹窗 -->
+  <view class="mask" wx:if="{{showDetail}}">
+    <view class="pop">
+      <view class="pop-title">{{detail.nickname}}{{detail.isMe ? lang.ranking.meTag : ''}}</view>
+      <view class="pop-sub">{{lang.ranking.detailSub}}</view>
+      <view class="pop-row" wx:for="{{detailRows}}" wx:key="label">
+        <text class="pop-label">{{item.label}}</text>
+        <text class="pop-value {{item.total ? 'total' : ''}}">{{item.value}}</text>
+      </view>
+      <button class="pop-btn" bindtap="closeDetail">{{lang.ranking.close}}</button>
+    </view>
+  </view>
+
+  <!-- 积分规则弹窗 -->
+  <view class="mask" wx:if="{{showRules}}">
+    <view class="pop">
+      <view class="pop-title">{{lang.ranking.rulesTitle}}</view>
+      <view class="rule-line" wx:for="{{rulesRows}}" wx:key="*this">· {{item}}</view>
+      <button class="pop-btn" bindtap="closeRules">{{lang.ranking.close}}</button>
+    </view>
+  </view>
+
+</view>

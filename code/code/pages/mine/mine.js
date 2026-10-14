@@ -140,6 +140,11 @@ Page({
       wx.navigateTo({ url: '/pages/pk/pk' })
       return
     }
+    // 积分排行榜：不需要登录也能看（游客没有云端数据时只显示榜单本身）
+    if (type === 'ranking') {
+      wx.navigateTo({ url: '/pages/ranking/ranking' })
+      return
+    }
     // 设置：跳转设置页（深色模式 / 字体大小 / 显示语言 / 清除缓存）
     if (type === 'settings') {
       wx.navigateTo({ url: '/pages/settings/settings' })

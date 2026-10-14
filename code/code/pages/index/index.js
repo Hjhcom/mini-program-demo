@@ -321,6 +321,11 @@ Page({
     wx.navigateTo({ url: '/pages/records/records' })
   },
 
+  // 跳转到积分排行榜（F-03，不需要登录也能看榜单）
+  goRanking: function () {
+    wx.navigateTo({ url: '/pages/ranking/ranking' })
+  },
+
   // 跳转到打卡任务页（点击底部任务提示条）
   goTask: function () {
     wx.navigateTo({ url: '/pages/task/task' })
