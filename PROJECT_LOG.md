@@ -157,7 +157,16 @@ mini-program-demo/
   - `pages/mine`：功能列表同时保留「打卡任务」与「好友打卡PK」入口；`data-type` 统一为英文标识符（`records` / `task` / `pk` / `settings` / `about`），并删除了重复的旧「设置」项；
   - `pages/index`：保留任务待办提示条与 `taskId` 传参，提示语统一改走 `utils/i18n.js`（采纳 `refreshTip()` 结构，并在其中补上待办任务查询）；
   - `utils/i18n.js`：新增 `mine.task`、`index.tipHasTask` 词条（zh / en 两套）。
-  - ⚠️ 遗留：`pages/task`、`pages/task-create` 的文案仍为硬编码中文，尚未接入 i18n。
+  - ✅ 后续已补：`pages/task`、`pages/task-create` 的文案已全部接入 i18n（见下一条）。
+- 两个任务页接入中英文切换，并清理历史残留的冲突标记：
+  - `utils/i18n.js` 新增 `task`（32 条）、`taskCreate`（26 条）两个词条分区，zh / en 各 58 条，合计 191 条；
+    覆盖两个任务页的 Tab、按钮、空状态、状态徽标（待接受 / 进行中 / 已完成 / 已过期）、任务详情弹窗、接受任务弹窗、发布表单与任务码弹窗。
+  - `pages/task`：`STATUS_MAP` 由「状态 → 中文文案」改为「状态 → 文案键」映射，展示时按当前语言解析；所有 toast / modal / 导航栏标题统一走 `i18n`；
+    「任务码 123456 · 点击复制」因 wxml 无法调用函数，改为在 `decorate()` 中先用 `i18n.format()` 拼好 `codeText`。
+  - `pages/task-create`：有效期选项由「固定中文标签」改为「文案键 + 小时数」结构，`onShow` 时按语言生成标签；表单标题 / 占位符 / 校验提示 / 任务码弹窗全部接入 i18n。
+  - 修复 `project.private.config.json`（仓库根目录）：该文件自早期提交（`3f8056d`）起就带着 Git 冲突标记（`<<<<<<< HEAD` / `>>>>>>> 9b5bc6f...`），早已不是合法 JSON；已清理为合法 JSON（`libVersion` 取 `3.17.3`，保留 `useGlassEaselForWxml: false`）并补上文件末尾换行。
+  - 涉及模块：`utils/i18n.js`、`pages/task`、`pages/task-create`、`project.private.config.json`。
+  - 说明：各页 `json` 中的 `navigationBarTitleText` 保留中文作为默认值（与既有页面一致），运行时由 `wx.setNavigationBarTitle` 按当前语言覆盖。
 
 ## 后续计划
 

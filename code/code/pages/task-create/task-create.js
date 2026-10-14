@@ -1,12 +1,14 @@
 // pages/task-create/task-create.js —— 发布打卡任务
 const app = getApp()
+const i18n = require('../../utils/i18n')
 
 // 有效期选项（用"几小时内有效"替代日期+时间双选择器，简单可靠）
+// label 随语言变化，运行时从 i18n 取
 const DURATIONS = [
-  { label: '1 小时', hours: 1 },
-  { label: '6 小时', hours: 6 },
-  { label: '24 小时', hours: 24 },
-  { label: '3 天', hours: 72 }
+  { key: 'dur1', hours: 1 },
+  { key: 'dur6', hours: 6 },
+  { key: 'dur24', hours: 24 },
+  { key: 'dur72', hours: 72 }
 ]
 
 Page({
@@ -16,13 +18,19 @@ Page({
     points: [],           // 可选打卡点（getPoints）
     pointIndex: -1,       // 选中的下标
     selectedPoint: null,  // 选中的打卡点
-    durations: DURATIONS.map(d => d.label),
+    durations: [],        // 有效期选项文案（按语言填充）
     durationIndex: 2,     // 默认 24 小时
     submitting: false,
     showCode: false,      // 发布成功后显示任务码弹窗
     inviteCode: '',
     dark: false,          // 深色模式（全局设置）
-    fontScale: 'md'       // 字体大小（全局设置）
+    fontScale: 'md',      // 字体大小（全局设置）
+    lang: i18n.zh         // 当前语言文案
+  },
+
+  // 取当前语言文案（逻辑层用；wxml 用 data.lang）
+  getLang: function () {
+    return app.globalData.language === 'en' ? i18n.en : i18n.zh
   },
 
   onLoad: function () {
@@ -30,10 +38,14 @@ Page({
   },
 
   onShow: function () {
+    const lang = this.getLang()
     this.setData({
       dark: app.globalData.darkMode,
-      fontScale: app.globalData.fontScale
+      fontScale: app.globalData.fontScale,
+      lang: lang,
+      durations: DURATIONS.map(d => lang.taskCreate[d.key])
     })
+    wx.setNavigationBarTitle({ title: lang.taskCreate.navTitle })
   },
 
   // 拉取打卡点列表，供用户选择
@@ -46,7 +58,7 @@ Page({
       console.log('可选打卡点：', points.length, '个')
     }).catch(err => {
       console.error('加载打卡点失败：', err)
-      wx.showToast({ title: '打卡点加载失败，请检查 getPoints 云函数', icon: 'none' })
+      wx.showToast({ title: this.getLang().taskCreate.pointsFail, icon: 'none' })
     })
   },
 
@@ -75,15 +87,16 @@ Page({
   // 提交：调 createTask
   onSubmit: function () {
     if (this.data.submitting) return
+    const lang = this.getLang()
 
     const title = this.data.title.trim()
     if (!title) {
-      wx.showToast({ title: '请填写任务标题', icon: 'none' })
+      wx.showToast({ title: lang.taskCreate.titleRequired, icon: 'none' })
       return
     }
     const point = this.data.selectedPoint
     if (!point) {
-      wx.showToast({ title: '请选择一个打卡点', icon: 'none' })
+      wx.showToast({ title: lang.taskCreate.pointRequired, icon: 'none' })
       return
     }
 
@@ -92,7 +105,7 @@ Page({
     const deadline = new Date(Date.now() + hours * 3600 * 1000).toISOString()
 
     this.setData({ submitting: true })
-    wx.showLoading({ title: '发布中…' })
+    wx.showLoading({ title: lang.taskCreate.publishing })
     wx.cloud.callFunction({
       name: 'createTask',
       data: {
@@ -106,7 +119,7 @@ Page({
       this.setData({ submitting: false })
       const r = res.result || {}
       if (r.code !== 0) {
-        wx.showModal({ title: '发布失败', content: r.msg || '请稍后重试', showCancel: false })
+        wx.showModal({ title: lang.taskCreate.publishFail, content: r.msg || lang.taskCreate.retryLater, showCancel: false })
         return
       }
       console.log('任务发布成功，任务码：', r.inviteCode)
@@ -115,7 +128,7 @@ Page({
       wx.hideLoading()
       this.setData({ submitting: false })
       console.error('发布任务失败：', err)
-      wx.showToast({ title: '发布失败，请检查 createTask 云函数', icon: 'none' })
+      wx.showToast({ title: lang.taskCreate.publishFailCloud, icon: 'none' })
     })
   },
 
@@ -123,7 +136,7 @@ Page({
   copyCode: function () {
     wx.setClipboardData({
       data: this.data.inviteCode,
-      success: () => wx.showToast({ title: '任务码已复制', icon: 'success' })
+      success: () => wx.showToast({ title: this.getLang().taskCreate.codeCopied, icon: 'success' })
     })
   },
 
