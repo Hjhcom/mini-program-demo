@@ -1,30 +1,53 @@
 // pages/agreement/agreement.js —— 用户协议 / 隐私政策（?type=user|privacy 切换）
+// 说明：页面标题/更新日期随语言切换；协议正文为正式法律文本，保持中文。
 const app = getApp()
+const i18n = require('../../utils/i18n')
 
 Page({
   data: {
+    docType: 'user',   // user / privacy
     docTitle: '用户协议',
     sections: [],
-    dark: false,     // 深色模式（全局设置）
-    fontScale: 'md'  // 字体大小（全局设置）
+    dark: false,       // 深色模式（全局设置）
+    fontScale: 'md',   // 字体大小（全局设置）
+    lang: i18n.zh      // 当前语言文案
   },
 
   onLoad: function (options) {
     const type = (options && options.type) || 'user'
-    const doc = type === 'privacy' ? PRIVACY : USER_AGREEMENT
-    this.setData({
-      docTitle: doc.title,
-      sections: doc.sections
-    })
-    wx.setNavigationBarTitle({ title: doc.title })
+    this.setData({ docType: type })
+    this.applyDoc()
   },
 
-  // 页面显示：同步全局设置（深色模式 / 字体大小）
+  // 页面显示：同步全局设置 + 刷新文档标题（语言可能已切换）
   onShow: function () {
+    const isEn = app.globalData.language === 'en'
     this.setData({
       dark: app.globalData.darkMode,
-      fontScale: app.globalData.fontScale
+      fontScale: app.globalData.fontScale,
+      lang: isEn ? i18n.en : i18n.zh
     })
+    this.applyTitle()
+  },
+
+  // 按当前文档类型 + 语言生成标题与正文
+  applyDoc: function () {
+    const lang = app.globalData.language === 'en' ? i18n.en : i18n.zh
+    const type = this.data.docType
+    const doc = type === 'privacy' ? PRIVACY : USER_AGREEMENT
+    this.setData({
+      lang: lang,
+      sections: doc.sections
+    })
+    this.applyTitle()
+  },
+
+  // 设置文档标题（随语言切换）
+  applyTitle: function () {
+    const lang = this.data.lang
+    const title = this.data.docType === 'privacy' ? lang.agreement.privacyTitle : lang.agreement.userTitle
+    this.setData({ docTitle: title })
+    wx.setNavigationBarTitle({ title: title })
   }
 })
 

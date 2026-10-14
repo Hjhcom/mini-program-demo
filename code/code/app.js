@@ -3,7 +3,8 @@ App({
   globalData: {
     userInfo: null,   // 当前登录用户（含 source 字段：wechat / phone / guest）
     darkMode: false,  // 深色模式
-    fontScale: 'md'   // 字体大小：md 标准 / lg 大 / xl 特大
+    fontScale: 'md',  // 字体大小：md 标准 / lg 大 / xl 特大
+    language: 'zh'    // 显示语言：zh 中文 / en English
   },
 
   onLaunch: function () {
@@ -20,7 +21,6 @@ App({
     this.restoreUser()
     this.restoreSettings()
   },
-
   // 从本地缓存恢复登录态
   restoreUser: function () {
     try {
@@ -51,13 +51,15 @@ App({
     }
   },
 
-  // 恢复深色模式 / 字体大小设置
+  // 恢复深色模式 / 字体大小 / 语言设置
   restoreSettings: function () {
     try {
       const dark = wx.getStorageSync('darkMode')
       if (typeof dark === 'boolean') this.globalData.darkMode = dark
       const fs = wx.getStorageSync('fontScale')
       if (['md', 'lg', 'xl'].indexOf(fs) > -1) this.globalData.fontScale = fs
+      const lang = wx.getStorageSync('language')
+      if (lang === 'zh' || lang === 'en') this.globalData.language = lang
     } catch (e) {
       console.error('恢复设置失败：', e)
     }
@@ -81,5 +83,58 @@ App({
     } catch (e) {
       console.error('保存字体大小失败：', e)
     }
+  },
+
+  // 设置显示语言（全局生效：zh 中文 / en 英文）
+  setLanguage: function (v) {
+    if (v !== 'zh' && v !== 'en') return
+    this.globalData.language = v
+    try {
+      wx.setStorageSync('language', v)
+    } catch (e) {
+      console.error('保存语言设置失败：', e)
+    }
+    // 同步底部 tabBar 文字
+    this.applyTabBarLang()
+  },
+
+  // 同步底部 tabBar 文字到当前语言（官方 tabBar 文字是静态配置，需用 setTabBarItem 动态设置）
+  applyTabBarLang: function () {
+    if (!wx.setTabBarItem) return
+    const isEn = this.globalData.language === 'en'
+    wx.setTabBarItem({ index: 0, text: isEn ? 'Home' : '首页' })
+    wx.setTabBarItem({ index: 1, text: isEn ? 'Mine' : '我的' })
+  },
+
+  // 处理分享卡片带来的邀请码：登录后自动与邀请人互为好友
+  bindPendingInvite: function () {
+    let invite = ''
+    try {
+      invite = wx.getStorageSync('pendingInvite') || ''
+    } catch (e) {}
+    if (!invite) return
+    try {
+      wx.removeStorageSync('pendingInvite')
+    } catch (e) {}
+    const user = this.globalData.userInfo
+    // 未登录 / 游客 / 自己的邀请码 → 不处理
+    if (!user || user.source === 'guest' || user.inviteCode === invite) return
+
+    wx.cloud.callFunction({
+      name: 'friends',
+      data: { action: 'add', inviteCode: invite }
+    }).then(res => {
+      const r = res.result || {}
+      if (r.code === 0) {
+        wx.showToast({
+          title: r.already ? '你们已是好友，去PK吧' : '已和「' + (r.friend && r.friend.nickname) + '」成为好友，去PK吧',
+          icon: 'none'
+        })
+      } else if (r.msg) {
+        wx.showToast({ title: r.msg, icon: 'none' })
+      }
+    }).catch(err => {
+      console.error('绑定邀请失败：', err)
+    })
   }
 })

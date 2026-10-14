@@ -2,32 +2,39 @@
 <view class="page {{dark ? 'dark' : ''}} {{fontScale == 'lg' ? 'font-lg' : fontScale == 'xl' ? 'font-xl' : ''}}">
 
   <!-- 通用 -->
-  <view class="group-title">通用</view>
+  <view class="group-title">{{lang.settings.general}}</view>
   <view class="cell-group">
     <view class="cell">
-      <text class="cell-label">深色模式</text>
+      <text class="cell-label">{{lang.settings.darkMode}}</text>
       <switch checked="{{dark}}" bindchange="onDarkChange" color="#1f4e79" />
+    </view>
+    <view class="cell">
+      <text class="cell-label">{{lang.settings.language}}</text>
+    </view>
+    <view class="lang-options">
+      <view class="lang-option {{language == 'zh' ? 'active' : ''}}" bindtap="onLanguageSelect" data-lang="zh">{{lang.settings.zh}}</view>
+      <view class="lang-option {{language == 'en' ? 'active' : ''}}" bindtap="onLanguageSelect" data-lang="en">{{lang.settings.en}}</view>
     </view>
   </view>
 
   <!-- 字体大小 -->
-  <view class="group-title">字体大小</view>
+  <view class="group-title">{{lang.settings.fontSize}}</view>
   <view class="cell-group">
     <view class="cell">
-      <text class="cell-label">字体大小</text>
+      <text class="cell-label">{{lang.settings.fontSize}}</text>
     </view>
     <view class="font-options">
-      <view class="font-option {{fontScale == 'md' ? 'active' : ''}}" bindtap="onFontSelect" data-font="md">标准</view>
-      <view class="font-option {{fontScale == 'lg' ? 'active' : ''}}" bindtap="onFontSelect" data-font="lg">大</view>
-      <view class="font-option {{fontScale == 'xl' ? 'active' : ''}}" bindtap="onFontSelect" data-font="xl">特大</view>
+      <view class="font-option {{fontScale == 'md' ? 'active' : ''}}" bindtap="onFontSelect" data-font="md">{{lang.settings.fontMd}}</view>
+      <view class="font-option {{fontScale == 'lg' ? 'active' : ''}}" bindtap="onFontSelect" data-font="lg">{{lang.settings.fontLg}}</view>
+      <view class="font-option {{fontScale == 'xl' ? 'active' : ''}}" bindtap="onFontSelect" data-font="xl">{{lang.settings.fontXl}}</view>
     </view>
   </view>
 
   <!-- 存储 -->
-  <view class="group-title">存储</view>
+  <view class="group-title">{{lang.settings.storage}}</view>
   <view class="cell-group">
     <view class="cell" bindtap="onClearCache">
-      <text class="cell-label">清除缓存</text>
+      <text class="cell-label">{{lang.settings.clearCache}}</text>
       <view class="cell-right">
         <text class="cache-size">{{cacheSize}}</text>
         <text class="cell-arrow">›</text>

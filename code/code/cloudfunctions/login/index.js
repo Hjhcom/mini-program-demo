@@ -3,12 +3,37 @@
 //  - 默认：微信自动识别用户身份（openid），首次登录自动在数据库建档 —— 微信一键登录/静默登录
 //  - 传 phoneCode：手机号验证登录（需企业认证小程序；个人主体拿不到 code）
 //  - 传 profile：完善资料（更新当前 openid 用户的头像昵称）
+//  - 所有云端用户自动生成唯一邀请码 inviteCode（用于好友 PK）
 const cloud = require('wx-server-sdk')
 
 // 初始化云开发：自动使用当前环境
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
 const db = cloud.database()
+
+// 生成唯一 6 位邀请码（大写字母+数字，去掉易混淆字符 0/O/1/I），最多重试 5 次
+async function genInviteCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+  for (let i = 0; i < 5; i++) {
+    let code = ''
+    for (let j = 0; j < 6; j++) {
+      code += chars[Math.floor(Math.random() * chars.length)]
+    }
+    const exist = await db.collection('users').where({ inviteCode: code }).count()
+    if (exist.total === 0) return code
+  }
+  // 兜底：时间戳转 36 进制
+  return 'A' + Date.now().toString(36).toUpperCase().slice(-5)
+}
+
+// 确保用户有邀请码：没有则生成并落库，返回带 inviteCode 的用户对象
+async function ensureInviteCode(user) {
+  if (user.inviteCode) return user
+  const code = await genInviteCode()
+  await db.collection('users').doc(user._id).update({ data: { inviteCode: code } })
+  user.inviteCode = code
+  return user
+}
 
 exports.main = async (event, context) => {
   const { OPENID } = cloud.getWXContext()
@@ -48,13 +73,14 @@ exports.main = async (event, context) => {
         phone: phone,
         nickname: '手机用户' + phone.slice(-4),
         avatarUrl: '',
+        inviteCode: await genInviteCode(),
         totalCheckins: 0,
         createdAt: db.serverDate()
       }
       await db.collection('users').add({ data: newUser })
       return { code: 0, isNew: true, user: newUser }
     }
-    return { code: 0, isNew: false, user: res.data[0] }
+    return { code: 0, isNew: false, user: await ensureInviteCode(res.data[0]) }
   }
 
   // ===== 手机号快速验证登录（getPhoneNumber 动态 code，需企业认证主体）=====
@@ -74,13 +100,14 @@ exports.main = async (event, context) => {
           phone: phone,
           nickname: '手机用户' + phone.slice(-4),
           avatarUrl: '',
+          inviteCode: await genInviteCode(),
           totalCheckins: 0,
           createdAt: db.serverDate()
         }
         await db.collection('users').add({ data: newUser })
         return { code: 0, isNew: true, user: newUser }
       }
-      return { code: 0, isNew: false, user: res.data[0] }
+      return { code: 0, isNew: false, user: await ensureInviteCode(res.data[0]) }
     } catch (e) {
       console.error('手机号登录失败：', e)
       return { code: -1, msg: '手机号登录失败：' + (e.errMsg || e.message) }
@@ -98,6 +125,7 @@ exports.main = async (event, context) => {
       openid: OPENID,
       nickname: '打卡玩家',
       avatarUrl: '',
+      inviteCode: await genInviteCode(),
       totalCheckins: 0,
       createdAt: db.serverDate()
     }
@@ -116,9 +144,9 @@ exports.main = async (event, context) => {
       }
     })
     const after = await users.where({ openid: OPENID }).get()
-    return { code: 0, isNew: false, user: after.data[0] }
+    return { code: 0, isNew: false, user: await ensureInviteCode(after.data[0]) }
   }
 
-  // 老用户：直接返回已存的信息
-  return { code: 0, isNew: false, user: res.data[0] }
+  // 老用户：直接返回已存的信息（补邀请码）
+  return { code: 0, isNew: false, user: await ensureInviteCode(res.data[0]) }
 }

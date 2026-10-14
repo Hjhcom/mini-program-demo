@@ -100,6 +100,75 @@
   background: #ffffff;
 }
 
+/* 我的邀请码卡片 */
+.invite-card {
+  margin: 24rpx;
+  padding: 24rpx 30rpx;
+  background: #ffffff;
+  border-radius: 12rpx;
+  display: flex;
+  align-items: center;
+}
+
+.invite-label {
+  font-size: 26rpx;
+  color: #999999;
+  white-space: nowrap;
+}
+
+.invite-code {
+  flex: 1;
+  margin: 0 16rpx;
+  font-size: 32rpx;
+  color: #1f4e79;
+  font-weight: bold;
+  letter-spacing: 4rpx;
+}
+
+.invite-btn {
+  margin-left: 12rpx;
+  padding: 0 24rpx;
+  height: 56rpx;
+  line-height: 56rpx;
+  font-size: 24rpx;
+  border-radius: 28rpx;
+}
+
+.invite-btn::after {
+  border: none;
+}
+
+.invite-btn.copy {
+  background: #ffffff;
+  color: #1f4e79;
+  border: 2rpx solid #1f4e79;
+}
+
+.invite-btn.share {
+  background: #1f4e79;
+  color: #ffffff;
+}
+
+/* 深色模式 */
+.page.dark .invite-card {
+  background: #2c2c2e;
+}
+
+.page.dark .invite-code {
+  color: #8ab4e8;
+}
+
+.page.dark .invite-btn.copy {
+  background: #2c2c2e;
+  color: #8ab4e8;
+  border-color: #8ab4e8;
+}
+
+.page.dark .invite-btn.share {
+  background: #1f4e79;
+  color: #ffffff;
+}
+
 .cell {
   display: flex;
   align-items: center;

@@ -1,5 +1,6 @@
 // pages/mine/mine.js —— 我的页面：登录引导 / 用户信息 + 功能入口
 const app = getApp()
+const i18n = require('../../utils/i18n')
 
 Page({
   data: {
@@ -7,17 +8,23 @@ Page({
     avatarDisplay: '', // 头像展示链接（云 fileID 转临时 https 链接）
     needProfile: false, // 微信/手机号用户资料不全 → 显示完善入口
     dark: false,        // 深色模式（全局设置）
-    fontScale: 'md'     // 字体大小（全局设置）
+    fontScale: 'md',    // 字体大小（全局设置）
+    lang: i18n.zh       // 当前语言文案
   },
 
   // 每次显示都同步最新的登录态（登录/退出后回到本页会刷新）
   onShow() {
     const user = app.globalData.userInfo
+    const isEn = app.globalData.language === 'en'
     this.setData({
       user,
       dark: app.globalData.darkMode,
-      fontScale: app.globalData.fontScale
+      fontScale: app.globalData.fontScale,
+      lang: isEn ? i18n.en : i18n.zh
     })
+    wx.setNavigationBarTitle({ title: isEn ? 'Mine' : '我的' })
+    // 同步底部 tabBar 文字（tabBar 已渲染，setTabBarItem 才能生效）
+    app.applyTabBarLang()
     console.log('【我的页 onShow】nickname=', user ? user.nickname : null, 'avatarUrl=', user ? user.avatarUrl : null)
 
     // 资料不全（无头像或默认昵称）→ 显示「完善头像昵称」按钮
@@ -48,6 +55,35 @@ Page({
     } else {
       this.setData({ avatarDisplay: '' })
     }
+
+    // 老用户本地缓存可能缺 inviteCode：登录云函数已支持补齐，这里刷新一次
+    if (user && user.source !== 'guest' && !user.inviteCode) {
+      this.refreshUser()
+    }
+  },
+
+  // 刷新用户信息（补齐邀请码等新字段）
+  refreshUser: function () {
+    wx.cloud.callFunction({ name: 'login' }).then(res => {
+      const r = res.result || {}
+      if (r.code === 0 && r.user) {
+        app.setUser(r.user)
+        this.setData({ user: r.user })
+        // 头像云 fileID → 临时链接
+        if (r.user.avatarUrl) {
+          if (r.user.avatarUrl.indexOf('cloud://') === 0) {
+            wx.cloud.getTempFileURL({ fileList: [r.user.avatarUrl] }).then(rr => {
+              const f = rr.fileList && rr.fileList[0]
+              if (f && f.tempFileURL) this.setData({ avatarDisplay: f.tempFileURL })
+            }).catch(() => {})
+          } else {
+            this.setData({ avatarDisplay: r.user.avatarUrl })
+          }
+        }
+      }
+    }).catch(err => {
+      console.error('刷新用户信息失败：', err)
+    })
   },
 
   // 未登录 → 跳转登录方式选择页
@@ -63,10 +99,11 @@ Page({
   // 功能列表项点击
   onItemTap: function (e) {
     const type = e.currentTarget.dataset.type
+    const lang = this.data.lang
     // 我的打卡记录：未登录先登录，已登录跳转记录页
-    if (type === '打卡记录') {
+    if (type === 'records') {
       if (!this.data.user) {
-        wx.showToast({ title: '请先登录', icon: 'none' })
+        wx.showToast({ title: lang.mine.loginFirst, icon: 'none' })
         setTimeout(() => {
           wx.navigateTo({ url: '/pages/login/login' })
         }, 800)
@@ -76,9 +113,9 @@ Page({
       return
     }
     // 打卡任务：未登录先登录，已登录跳转任务页
-    if (type === '打卡任务') {
+    if (type === 'task') {
       if (!this.data.user) {
-        wx.showToast({ title: '请先登录', icon: 'none' })
+        wx.showToast({ title: lang.mine.loginFirst, icon: 'none' })
         setTimeout(() => {
           wx.navigateTo({ url: '/pages/login/login' })
         }, 800)
@@ -87,29 +124,85 @@ Page({
       wx.navigateTo({ url: '/pages/task/task' })
       return
     }
-    // 设置：跳转设置页（深色模式 / 字体大小 / 清除缓存）
-    if (type === '设置') {
+    // 好友 PK：未登录先登录；游客不支持
+    if (type === 'pk') {
+      if (!this.data.user) {
+        wx.showToast({ title: lang.mine.loginFirst, icon: 'none' })
+        setTimeout(() => {
+          wx.navigateTo({ url: '/pages/login/login' })
+        }, 800)
+        return
+      }
+      if (this.data.user.source === 'guest') {
+        wx.showToast({ title: lang.mine.guestNoPk, icon: 'none' })
+        return
+      }
+      wx.navigateTo({ url: '/pages/pk/pk' })
+      return
+    }
+    // 设置：跳转设置页（深色模式 / 字体大小 / 显示语言 / 清除缓存）
+    if (type === 'settings') {
       wx.navigateTo({ url: '/pages/settings/settings' })
       return
     }
     wx.showToast({
-      title: '「' + type + '」功能建设中，敬请期待',
+      title: i18n.format(lang.mine.building, { type: lang.mine.about }),
       icon: 'none'
+    })
+  },
+
+  // 复制我的邀请码
+  copyInvite: function () {
+    const user = this.data.user || {}
+    if (!user.inviteCode) {
+      wx.showToast({ title: this.data.lang.mine.noInviteYet, icon: 'none' })
+      return
+    }
+    wx.setClipboardData({
+      data: user.inviteCode,
+      success: () => wx.showToast({ title: this.data.lang.mine.copied, icon: 'success' })
     })
   },
 
   // 退出登录：清除本地登录态，回到未登录引导状态
   onLogout: function () {
+    const lang = this.data.lang
     wx.showModal({
       title: '提示',
-      content: '确定要退出登录吗？',
+      content: lang.mine.logoutConfirm,
       success: (res) => {
         if (res.confirm) {
           app.clearUser()
           this.setData({ user: null, avatarDisplay: '' })
-          wx.showToast({ title: '已退出登录', icon: 'success' })
+          wx.showToast({ title: lang.mine.logoutDone, icon: 'success' })
         }
       }
     })
+  },
+
+  // 右上角「...」菜单 → 转发给朋友：带我的邀请码，好友点开自动绑定
+  onShareAppMessage: function () {
+    const user = this.data.user || {}
+    const invite = user.inviteCode || ''
+    const title = app.globalData.language === 'en'
+      ? 'Voice Check-in Game - check in with me!'
+      : '声控打卡游戏｜来和我一起声控打卡吧'
+    return {
+      title: title,
+      path: '/pages/index/index' + (invite ? '?invite=' + invite : '')
+    }
+  },
+
+  // 右上角「...」菜单 → 分享到朋友圈
+  onShareTimeline: function () {
+    const user = this.data.user || {}
+    const invite = user.inviteCode || ''
+    const title = app.globalData.language === 'en'
+      ? 'Voice Check-in Game - check in with me!'
+      : '声控打卡游戏｜来和我一起声控打卡吧'
+    return {
+      title: title,
+      query: invite ? 'invite=' + invite : 'from=timeline'
+    }
   }
 })

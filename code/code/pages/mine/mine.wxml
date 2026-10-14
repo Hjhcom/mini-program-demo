@@ -5,8 +5,8 @@
   <view class="user-card" wx:if="{{!user}}">
     <view class="avatar avatar-guest">客</view>
     <view class="user-info">
-      <text class="nickname">未登录</text>
-      <text class="status">登录后记录你的每一次打卡</text>
+      <text class="nickname">{{lang.mine.notLogin}}</text>
+      <text class="status">{{lang.mine.loginHint}}</text>
     </view>
   </view>
 
@@ -18,40 +18,52 @@
     <view class="avatar" wx:else>{{ user.nickname ? user.nickname[0] : '客' }}</view>
     <view class="user-info">
       <text class="nickname">{{ user.nickname }}</text>
-      <text class="status">{{ user.source == 'guest' ? '游客身份，换微信登录可保存记录' : '已登录，欢迎回来' }}</text>
+      <text class="status">{{ user.source == 'guest' ? lang.mine.guestHint : lang.mine.loggedIn }}</text>
     </view>
     <!-- 资料不全：提供完善入口 -->
-    <button class="profile-btn" wx:if="{{needProfile}}" bindtap="goProfile">完善头像昵称</button>
+    <button class="profile-btn" wx:if="{{needProfile}}" bindtap="goProfile">{{lang.mine.profileBtn}}</button>
+  </view>
+
+  <!-- 我的邀请码（仅云端用户；游客本地身份无邀请码） -->
+  <view class="invite-card" wx:if="{{user && user.source != 'guest'}}">
+    <text class="invite-label">{{lang.mine.myInvite}}</text>
+    <text class="invite-code">{{user.inviteCode || '——'}}</text>
+    <button class="invite-btn copy" bindtap="copyInvite">{{lang.mine.copy}}</button>
+    <button class="invite-btn share" open-type="share">{{lang.mine.inviteFriend}}</button>
   </view>
 
   <!-- 功能列表 -->
   <view class="cell-group">
-    <view class="cell" bindtap="onItemTap" data-type="打卡记录">
-      <text class="cell-label">我的打卡记录</text>
+    <view class="cell" bindtap="onItemTap" data-type="records">
+      <text class="cell-label">{{lang.mine.records}}</text>
       <text class="cell-arrow">›</text>
     </view>
-    <view class="cell" bindtap="onItemTap" data-type="打卡任务">
-      <text class="cell-label">打卡任务</text>
+    <view class="cell" bindtap="onItemTap" data-type="task">
+      <text class="cell-label">{{lang.mine.task}}</text>
       <text class="cell-arrow">›</text>
     </view>
-    <view class="cell" bindtap="onItemTap" data-type="设置">
-      <text class="cell-label">设置</text>
+    <view class="cell" bindtap="onItemTap" data-type="pk">
+      <text class="cell-label">{{lang.mine.pk}}</text>
       <text class="cell-arrow">›</text>
     </view>
-    <view class="cell" bindtap="onItemTap" data-type="关于">
-      <text class="cell-label">关于声控打卡游戏</text>
+    <view class="cell" bindtap="onItemTap" data-type="settings">
+      <text class="cell-label">{{lang.mine.settings}}</text>
+      <text class="cell-arrow">›</text>
+    </view>
+    <view class="cell" bindtap="onItemTap" data-type="about">
+      <text class="cell-label">{{lang.mine.about}}</text>
       <text class="cell-arrow">›</text>
     </view>
   </view>
 
   <!-- 未登录：登录按钮（页面下方） -->
   <view class="login-section" wx:if="{{!user}}">
-    <button class="login-btn" bindtap="goLogin">点击登录</button>
+    <button class="login-btn" bindtap="goLogin">{{lang.mine.loginBtn}}</button>
   </view>
 
   <!-- 退出登录（仅登录后显示） -->
   <view class="logout-wrap" wx:if="{{user}}">
-    <button class="logout" bindtap="onLogout">退出登录</button>
+    <button class="logout" bindtap="onLogout">{{lang.mine.logout}}</button>
   </view>
 
 </view>

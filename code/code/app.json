@@ -1,9 +1,11 @@
 {
   "pages": [
+    "pages/splash/splash",
     "pages/index/index",
     "pages/mine/mine",
     "pages/login/login",
     "pages/records/records",
+    "pages/pk/pk",
     "pages/agreement/agreement",
     "pages/settings/settings",
     "pages/task/task",
@@ -39,6 +41,8 @@
       "desc": "用于显示你附近的打卡点位置"
     }
   },
+  "enableShareAppMessage": true,
+  "enableShareTimeline": true,
   "requiredPrivateInfos": [
     "getLocation"
   ],

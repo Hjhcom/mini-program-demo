@@ -1,0 +1,67 @@
+<!-- pages/pk/pk.wxml —— 好友打卡PK：好友列表 + PK 对比弹窗 -->
+<view class="page {{dark ? 'dark' : ''}} {{fontScale == 'lg' ? 'font-lg' : fontScale == 'xl' ? 'font-xl' : ''}}">
+
+  <!-- 邀请入口 -->
+  <view class="invite-banner">
+    <view class="banner-text">
+      <view class="banner-title">{{lang.pk.bannerTitle}}</view>
+      <view class="banner-sub">{{lang.pk.bannerSub}}</view>
+    </view>
+    <button class="banner-btn" open-type="share">{{lang.pk.invite}}</button>
+  </view>
+
+  <!-- 好友列表 -->
+  <view class="friend-list" wx:if="{{friends.length > 0}}">
+    <view class="friend-item" wx:for="{{friends}}" wx:key="openid" bindtap="onFriendTap" data-index="{{index}}">
+      <view class="friend-avatar">{{ item.nickname[0] }}</view>
+      <view class="friend-info">
+        <view class="friend-name">{{item.nickname}}</view>
+        <view class="friend-stats">{{item.statsText}}</view>
+      </view>
+      <text class="friend-arrow">PK ›</text>
+    </view>
+  </view>
+
+  <!-- 空态 -->
+  <view class="empty" wx:else>
+    <view class="empty-text">{{lang.pk.empty}}</view>
+  </view>
+
+  <!-- PK 详情弹窗 -->
+  <view class="mask" wx:if="{{showPk}}">
+    <view class="pk-pop">
+      <view class="pk-title">{{lang.pk.pkTitle}}</view>
+      <view class="vs-row">
+        <view class="vs-side">
+          <view class="vs-avatar">{{ me.nickname[0] }}</view>
+          <view class="vs-name">{{me.nickname}}</view>
+          <view class="vs-num">{{me.total}}</view>
+          <view class="vs-label">{{lang.pk.totalLabel}}</view>
+        </view>
+        <view class="vs-mid">VS</view>
+        <view class="vs-side">
+          <view class="vs-avatar">{{ friend.nickname[0] }}</view>
+          <view class="vs-name">{{friend.nickname}}</view>
+          <view class="vs-num">{{friend.total}}</view>
+          <view class="vs-label">{{lang.pk.totalLabel}}</view>
+        </view>
+      </view>
+
+      <view class="pk-result">{{pkResult}}</view>
+
+      <view class="pk-detail">
+        <view class="pk-row">
+          <text>{{lang.pk.successRow}}</text>
+          <text>{{me.success}} : {{friend.success}}</text>
+        </view>
+        <view class="pk-row">
+          <text>{{lang.pk.lastRow}}</text>
+          <text>{{meLastText}} / {{friendLastText}}</text>
+        </view>
+      </view>
+
+      <button class="pk-close" bindtap="closePk">{{lang.pk.close}}</button>
+    </view>
+  </view>
+
+</view>

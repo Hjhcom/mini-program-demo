@@ -1,20 +1,32 @@
-// pages/settings/settings.js —— 设置页：通用（深色模式 / 字体大小 / 清除缓存）
+// pages/settings/settings.js —— 设置页：通用（深色模式 / 字体大小 / 显示语言 / 清除缓存）
 const app = getApp()
+const i18n = require('../../utils/i18n')
 
 Page({
   data: {
     dark: false,     // 深色模式开关
     fontScale: 'md', // 字体大小：md 标准 / lg 大 / xl 特大
+    language: 'zh',  // 显示语言：zh 中文 / en 英文
+    lang: i18n.zh,   // 当前语言文案
     cacheSize: '0KB' // 本地缓存大小
   },
 
   // 每次显示同步最新设置（设置即时生效）
   onShow: function () {
+    this.applyLang()
+    this.getCacheSize()
+  },
+
+  // 应用当前语言并同步全局设置
+  applyLang: function () {
+    const isEn = app.globalData.language === 'en'
     this.setData({
       dark: app.globalData.darkMode,
-      fontScale: app.globalData.fontScale
+      fontScale: app.globalData.fontScale,
+      language: app.globalData.language,
+      lang: isEn ? i18n.en : i18n.zh
     })
-    this.getCacheSize()
+    wx.setNavigationBarTitle({ title: isEn ? 'Settings' : '设置' })
   },
 
   // 读取本地缓存大小
@@ -41,17 +53,25 @@ Page({
     this.setData({ fontScale: v })
   },
 
+  // 选择显示语言：立即全局生效并持久化
+  onLanguageSelect: function (e) {
+    const v = e.currentTarget.dataset.lang
+    app.setLanguage(v)
+    this.applyLang()
+  },
+
   // 清除缓存：删除本地缓存（保留登录态与设置）
   onClearCache: function () {
+    const lang = this.data.lang
     wx.showModal({
-      title: '清除缓存',
-      content: '将清除本地缓存数据（登录状态与设置会保留），确定吗？',
+      title: lang.settings.cacheTitle,
+      content: lang.settings.cacheConfirm,
       success: (res) => {
         if (!res.confirm) return
         try {
           const info = wx.getStorageInfoSync()
           const keys = info.keys || []
-          const keep = ['userInfo', 'darkMode', 'fontScale']
+          const keep = ['userInfo', 'darkMode', 'fontScale', 'language']
           keys.forEach(k => {
             if (keep.indexOf(k) === -1) wx.removeStorageSync(k)
           })
@@ -59,7 +79,7 @@ Page({
           console.error('清除缓存失败：', e)
         }
         this.getCacheSize()
-        wx.showToast({ title: '缓存已清除', icon: 'success' })
+        wx.showToast({ title: lang.settings.cacheDone, icon: 'success' })
       }
     })
   }
