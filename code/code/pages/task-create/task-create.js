@@ -33,7 +33,9 @@ Page({
     return app.globalData.language === 'en' ? i18n.en : i18n.zh
   },
 
-  onLoad: function () {
+  onLoad: function (options) {
+    // F-05：从「创建打卡点」成功后跳过来时带 pointId，加载完点位自动帮用户选上
+    this._presetPointId = (options && options.pointId) || ''
     this.loadPoints()
   },
 
@@ -56,6 +58,16 @@ Page({
       const points = (res.result && res.result.points) || []
       this.setData({ points: points })
       console.log('可选打卡点：', points.length, '个')
+
+      // F-05：带 pointId 进来时自动选中对应点位（找不到就保持未选状态，让用户自己选）
+      const presetId = this._presetPointId
+      if (presetId) {
+        this._presetPointId = ''
+        const idx = points.findIndex(p => p._id === presetId)
+        if (idx > -1) {
+          this.setData({ pointIndex: idx, selectedPoint: points[idx] })
+        }
+      }
     }).catch(err => {
       console.error('加载打卡点失败：', err)
       wx.showToast({ title: this.getLang().taskCreate.pointsFail, icon: 'none' })

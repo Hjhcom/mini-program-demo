@@ -11,7 +11,8 @@
     "pages/task/task",
     "pages/task-create/task-create",
     "pages/ranking/ranking",
-    "pages/badges/badges"
+    "pages/badges/badges",
+    "pages/point-create/point-create"
   ],
   "window": {
     "navigationBarBackgroundColor": "#1f4e79",
@@ -40,13 +41,14 @@
   },
   "permission": {
     "scope.userLocation": {
-      "desc": "用于显示你附近的打卡点位置"
+      "desc": "用于显示你附近的打卡点、并在创建打卡点时选取位置"
     }
   },
   "enableShareAppMessage": true,
   "enableShareTimeline": true,
   "requiredPrivateInfos": [
-    "getLocation"
+    "getLocation",
+    "chooseLocation"
   ],
   "style": "v2",
   "sitemapLocation": "sitemap.json"

@@ -17,7 +17,8 @@ mini-program-demo/
 │   │   ├── app.js / app.json / app.wxss
 │   │   ├── sitemap.json
 │   │   ├── images/
-│   │   │   └── tabbar/            # tabBar 图标（首页/我的 × 灰色/选中蓝）
+│   │   │   ├── tabbar/            # tabBar 图标（首页/我的 × 灰色/选中蓝）
+│   │   │   └── marker/            # 地图图钉（官方蓝 / 玩家自建橙，F-05）
 │   │   ├── pages/
 │   │   │   ├── splash/            # 启动页（app.json 里的首个页面）
 │   │   │   ├── login/             # 登录方式选择页（微信/手机号/游客）
@@ -27,32 +28,37 @@ mini-program-demo/
 │   │   │   ├── task-create/       # 发布打卡任务页
 │   │   │   ├── ranking/           # 积分排行榜页（玩家榜 / 点位榜）
 │   │   │   ├── badges/            # 成就徽章页（连续打卡 + 8 枚徽章）
+│   │   │   ├── point-create/      # 创建打卡点页（自建点位：名称/咒语/位置/半径）
 │   │   │   ├── pk/                # 好友打卡 PK 页
 │   │   │   ├── records/           # 打卡记录页
 │   │   │   ├── agreement/         # 用户协议 / 隐私政策页
 │   │   │   └── settings/          # 设置页（深色模式/字体大小/清除缓存）
 │   │   ├── utils/
-│   │   │   └── i18n.js            # 中英文语言包（各页面文案统一走这里）
+│   │   │   ├── i18n.js            # 中英文语言包（各页面文案统一走这里）
+│   │   │   └── spell.js           # 咒语归一化与有效长度（F-05）
 │   │   └── cloudfunctions/
 │   │       ├── login/             # 登录云函数（微信/手机号/资料更新）
 │   │       ├── sendCode/          # 短信验证码云函数
 │   │       ├── getRecords/        # 打卡记录查询云函数
-│   │       ├── getPoints/         # 打卡点列表
+│   │       ├── getPoints/         # 打卡点列表（白名单出参 + isMine/isOfficial + 过滤 hidden）
 │   │       ├── getPointUsers/     # 点位打卡玩家展示（人数 + 最近打卡玩家）
 │   │       ├── getRanking/        # 积分排行榜（玩家榜 + 点位热度榜，含 lib/points.js）
 │   │       ├── getBadges/         # 连续打卡 + 成就徽章（含 lib/badges.js，判定 8 枚徽章）
+│   │       ├── createPoint/       # 用户自建打卡点（含 lib/validate.js 校验规则）
+│   │       ├── reportPoint/       # 自建点位举报 + 达阈值自动隐藏（内容安全）
 │   │       ├── createTask/        # 创建打卡任务（生成 6 位任务码）
 │   │       ├── acceptTask/        # 凭任务码接受任务
 │   │       ├── listTasks/         # 查询我发布 / 我接受的任务
 │   │       ├── friends/           # 好友 PK（邀请码加好友 / 好友列表）
-│   │       └── voiceCheckin/      # 声控打卡（支持任务打卡 taskId）
+│   │       └── voiceCheckin/      # 声控打卡（支持任务打卡 taskId，写入 dayKey）
 │   ├── project.config.json
 │   └── project.private.config.json
 ├── docs/                          # 开发文档
 │   └── 下一步功能规划与操作说明.md
 ├── tools/                         # 本地开发脚本（不进小程序包）
 │   ├── test-points.js             # F-03 积分规则单元测试（node tools/test-points.js）
-│   └── test-badges.js             # F-04 连续打卡与徽章单元测试（node tools/test-badges.js）
+│   ├── test-badges.js             # F-04 连续打卡与徽章单元测试（node tools/test-badges.js）
+│   └── test-point-create.js       # F-05 自建点位校验单元测试（node tools/test-point-create.js）
 ├── .gitignore
 ├── README.md
 └── PROJECT_LOG.md                 # 本文件
@@ -236,6 +242,23 @@ mini-program-demo/
   - 注意：`getBadges` 为新函数需「创建并部署：云端安装依赖」（带 `lib/badges.js` 子目录）；`voiceCheckin` 改动过需**重新部署**；需在控制台**新建 `user_badges` 集合**（权限「仅管理端可读写」）并建 **IDX-16**（`openid + badgeId` 唯一索引）。
 - 文档同步（`docs/下一步功能规划与操作说明.md`）：3.0 云函数总览表补 `getBadges` 与 `voiceCheckin` 二次改造并更新状态列；**3.4.1 新增「已落地与设计差异」**（写明上述 4 处调整及理由）+ **3.4.2 新增验收用例 B-01~B-06**；3.9.1 把 `user_badges` 从「可选」改为必需、3.9.2 新增 **IDX-16**（并补唯一索引建不上的处理）、3.9.3 权限表补 `user_badges`、3.9.4 部署清单补 `getBadges` 与 `voiceCheckin`（含「带 `lib/` 的函数上传回执文件数会 +1，属正常」的说明）；6.1 新增 F-04 打勾清单并把本地自测提示扩到两份脚本；3.10 的 `dayKey` 项标记为已完成；第 8 节「马上可以做的 5 件事」按当前进度重写；文末文件索引补 `pages/badges`、`getBadges`、`tools/test-badges.js`；项目结构树补 `pages/splash`（此前遗漏）、`pages/badges`、`getBadges`。
 
+### 2026-10-16
+- 提交并推送 F-04（`c6c7f8e`，17 个文件 / +1394 −20），远程 `main` 与本地一致。
+- 新增**用户自建打卡点**（F-05 / P1，文档 3.5）：
+  - 新增云函数 `createPoint`：校验名称（1~20 字）、咒语（有效长度 2~8）、半径（20~200 米）、经纬度范围，并限「每人最多 10 个点位」与同用户同名查重，通过后写入 `points`（`creatorOpenid` + `creatorNickname` + `hidden:false`）。
+    - **咒语长度按「归一化后的有效长度」算，不按原始字符数**：规则与 `voiceCheckin` 的 `normalize()` 一致（全角转半角 + 去掉空白与常见标点），否则种子数据里的 `明德精工，创新包容`（9 个字符、有效 8）会被自己的规则判成超限。另补一条：归一化后必须至少含一个汉字/字母/数字，挡住 `@#`、`！！` 这类纯符号咒语。
+    - 校验规则整体抽到 `cloudfunctions/createPoint/lib/validate.js`（纯函数，不依赖 `wx-server-sdk`），配套本地单测 `tools/test-point-create.js`（**84 条用例，全部通过**：长度/半径/坐标边界、全角标点归一化、`(0,0)` 无效坐标、人均上限）。
+  - 新增云函数 `reportPoint`（**内容安全**）：举报写入独立集合 `reports`，按「**不同举报人**去重」计数，达到阈值 3 就把 `points.hidden` 置 `true`（同一个人反复举报只算 1 票，这是防刷的关键）。用独立集合而非文档内嵌数组，是为了能对 `pointId + reporterOpenid` 建唯一索引（并发下不重复计票）。
+  - **改造 `getPoints`**：出参改**白名单**，剥掉 `creatorOpenid`（团队隐私约定），改为回传两个布尔值 `isMine` / `isOfficial` 让前端区分图钉颜色与举报入口；同时过滤 `hidden` 点位，并显式 `limit(200)`。
+  - 新增页面 `pages/point-create`：名称 / 咒语（带实时字数与「有效字数」提示）/ 半径四档 / 位置选取。位置做了**双路径**——主路径 `wx.chooseLocation()`（地图拖图钉、能看到地点名），失败自动回退「用当前位置」（只依赖 `wx.getLocation`），因此**即使 `chooseLocation` 接口权限没批下来功能依然可用**。
+  - 地图与首页联动：新增两张 64×64 图钉图标（官方深蓝 / 玩家自建橙色，脚本生成的纯色水滴形）；marker 配 `iconPath` 与 `callout`（点图钉弹点位名）；面板显示点位来源标签、「我的点位」与创建者昵称；**举报入口只对「别人建的玩家点位」显示**；点位变化后按 `_id` 重新对齐当前选中项，避免面板继续显示图上已消失的点位。
+  - 形成闭环：创建成功弹窗可直接「给好友设个任务」，跳 `task-create` 并**预选刚建好的点位**（`?pointId=`）；新建点位回首页时按 `app.globalData.pointsDirty` 标记自动刷新地图。
+  - 顺带清理：首页原先三处各抄一遍的「未登录 → toast + 延时跳登录」抽成 `requireLogin()`（F-05 是第 4 个调用点）。
+  - i18n：新增 `pointCreate` 分区 36 条 × zh/en、`index` 14 条、`mine.pointCreate` 1 条，语言包总量 276 → **327**（脚本核对全部分区 zh/en 键名一致）。
+  - 涉及模块：`cloudfunctions/createPoint`（新建）、`cloudfunctions/reportPoint`（新建）、`cloudfunctions/getPoints`（改造）、`pages/point-create`（新建）、`utils/spell.js`（新建）、`images/marker/*`（新建）、`tools/test-point-create.js`（新建）、`pages/index`、`pages/task-create`、`pages/mine`、`utils/i18n.js`、`app.js`、`app.json`。
+  - 注意：`createPoint` / `reportPoint` 为新函数需「创建并部署」，`getPoints` 改动过需**重新部署**（三者是一套，少传一个自建点位就会显示成官方样式）；需在控制台**新建 `reports` 集合**（权限「所有用户不可读写」）并建 **IDX-17**（`pointId + reporterOpenid` 唯一）、**IDX-18**（`points.creatorOpenid`）；`app.json` 的 `requiredPrivateInfos` 需补 `"chooseLocation"`（已补）。
+- 文档同步（`docs/下一步功能规划与操作说明.md`）：3.0 云函数表补 `createPoint` / `reportPoint` / `getPoints` 改造并更新 F-04 状态；**3.5.1 新增「已落地与设计差异」**（写明上述 5 处取舍及理由）+ **3.5.2 新增验收用例 C-01~C-07**；3.9.1 新增 `reports` 集合并说明 `points` 不用改结构、3.9.2 新增 **IDX-17/IDX-18**（含字段顺序与前缀命中的说明）、3.9.3 权限表补 `reports`、3.9.4 部署清单补三项（共 13 个函数）；3.11 常见报错速查补 5 条（`requiredPrivateInfos` 报错、`chooseLocation` 权限、自建点位显示成官方、举报未就绪、点位被隐藏）；5 排期与展示脚本按 F-05 更新；6.1 新增 F-05 打勾清单；第 8 节重写；文末文件索引补齐。
+
 ## 后续计划
 
 > 待补充：以下为基于当前进度的建议项，请按团队实际安排更新。
@@ -249,7 +272,7 @@ mini-program-demo/
 - [x] 点位打卡用户展示（在地图上查看每个点位打卡成功的用户信息，`getPointUsers`）
 - [x] 积分排行榜与用户积分（玩家积分榜 / 点位热度榜，`getRanking`，积分实时计算不落库）
 - [x] 连续打卡与成就徽章（`getBadges` + `pages/badges`，8 枚徽章懒判定 + `voiceCheckin` 补 `dayKey`）
-- [ ] 用户自建打卡点位
+- [x] 用户自建打卡点位（`createPoint` + `pages/point-create` + 官方/玩家图钉区分 + `reportPoint` 举报与自动隐藏）
 - [ ] 接入真实短信验证码通道（腾讯云 SMS，需企业实名 + 签名审核）
 - [ ] 打卡记录分页加载（下拉加载更多）
 - [ ] 定时触发器：自动将超时任务置为 `expired`

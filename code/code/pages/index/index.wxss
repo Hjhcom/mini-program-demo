@@ -3,12 +3,51 @@
   height: 100vh;
   display: flex;
   flex-direction: column;
+  position: relative; /* F-05：给地图上的图例做定位基准 */
 }
 
 /* 地图占满上部 */
 .map {
   flex: 1;
   width: 100%;
+}
+
+/* ===== F-05 图钉颜色图例（浮在地图左上角）===== */
+.legend {
+  position: absolute;
+  top: 20rpx;
+  left: 20rpx;
+  z-index: 10;
+  display: flex;
+  gap: 20rpx;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 24rpx;
+  padding: 10rpx 20rpx;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+}
+
+.legend-dot {
+  width: 18rpx;
+  height: 18rpx;
+  border-radius: 50%;
+  margin-right: 8rpx;
+}
+
+.dot-official {
+  background: #1f4e79;
+}
+
+.dot-custom {
+  background: #e8842c;
+}
+
+.legend-text {
+  font-size: 22rpx;
+  color: #333333;
 }
 
 /* 待完成任务提示条（在地图与底部面板之间） */
@@ -97,16 +136,67 @@
   margin-bottom: 16rpx;
 }
 
+.point-title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
 .point-name {
   font-size: 32rpx;
   font-weight: bold;
   color: #1f4e79;
+  margin-right: 12rpx;
+}
+
+/* F-05：点位来源标签 */
+.point-tag {
+  flex-shrink: 0;
+  font-size: 20rpx;
+  border-radius: 20rpx;
+  padding: 4rpx 14rpx;
+  line-height: 1.4;
+}
+
+.tag-official {
+  color: #1f4e79;
+  background: #eef3f8;
+}
+
+.tag-mine {
+  color: #0f6e56;
+  background: #e1f5ee;
+}
+
+.tag-player {
+  color: #a8600f;
+  background: #fdf0e2;
 }
 
 .point-spell {
   font-size: 26rpx;
   color: #666;
   margin-top: 6rpx;
+}
+
+.point-creator {
+  font-size: 22rpx;
+  color: #999;
+  margin-top: 6rpx;
+}
+
+/* F-05：举报入口（面板底部右对齐的小字） */
+.report-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16rpx;
+}
+
+.report-link {
+  font-size: 22rpx;
+  color: #999999;
+  padding: 8rpx 12rpx;
+  text-decoration: underline;
 }
 
 /* ===== F-02 打卡玩家 ===== */
@@ -224,12 +314,51 @@
 
 /* ===== 深色模式：点位信息与打卡玩家 =====
    注意 .panel / .tip 的深色样式已在 app.wxss 全局定义，这里不要重复，
-   只补 F-02 新增元素（色板与 app.wxss 保持一致：主文字 #e5e5e5 / 次级 #9a9a9c） */
+   只补 F-02 / F-05 新增元素（色板与 app.wxss 保持一致：主文字 #e5e5e5 / 次级 #9a9a9c） */
 .page.dark .point-name {
   color: #8ab4e8;
 }
 
 .page.dark .point-spell {
+  color: #9a9a9c;
+}
+
+.page.dark .point-creator {
+  color: #77777a;
+}
+
+.page.dark .legend {
+  background: rgba(44, 44, 46, 0.92);
+}
+
+.page.dark .legend-text {
+  color: #e5e5e5;
+}
+
+.page.dark .dot-official {
+  background: #8ab4e8;
+}
+
+.page.dark .dot-custom {
+  background: #f0a55e;
+}
+
+.page.dark .tag-official {
+  color: #8ab4e8;
+  background: #26384a;
+}
+
+.page.dark .tag-mine {
+  color: #6fd0ab;
+  background: #123b30;
+}
+
+.page.dark .tag-player {
+  color: #f0a55e;
+  background: #3d2d1a;
+}
+
+.page.dark .report-link {
   color: #9a9a9c;
 }
 
@@ -265,9 +394,17 @@
 .page.font-lg .users-title { font-size: 29rpx; }
 .page.font-lg .users-empty { font-size: 29rpx; }
 .page.font-lg .avatar-name { font-size: 24rpx; }
+.page.font-lg .point-tag { font-size: 22rpx; }
+.page.font-lg .point-creator { font-size: 24rpx; }
+.page.font-lg .legend-text { font-size: 24rpx; }
+.page.font-lg .report-link { font-size: 24rpx; }
 
 .page.font-xl .point-name { font-size: 38rpx; }
 .page.font-xl .point-spell { font-size: 32rpx; }
 .page.font-xl .users-title { font-size: 32rpx; }
 .page.font-xl .users-empty { font-size: 32rpx; }
 .page.font-xl .avatar-name { font-size: 26rpx; }
+.page.font-xl .point-tag { font-size: 24rpx; }
+.page.font-xl .point-creator { font-size: 26rpx; }
+.page.font-xl .legend-text { font-size: 26rpx; }
+.page.font-xl .report-link { font-size: 26rpx; }

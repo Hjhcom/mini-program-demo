@@ -124,6 +124,18 @@ Page({
       wx.navigateTo({ url: '/pages/task/task' })
       return
     }
+    // F-05：创建打卡点（自建点位挂在个人 openid 下，需先登录）
+    if (type === 'pointCreate') {
+      if (!this.data.user) {
+        wx.showToast({ title: lang.mine.loginFirst, icon: 'none' })
+        setTimeout(() => {
+          wx.navigateTo({ url: '/pages/login/login' })
+        }, 800)
+        return
+      }
+      wx.navigateTo({ url: '/pages/point-create/point-create' })
+      return
+    }
     // 好友 PK：未登录先登录；游客不支持
     if (type === 'pk') {
       if (!this.data.user) {

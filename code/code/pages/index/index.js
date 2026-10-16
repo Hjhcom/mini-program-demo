@@ -16,6 +16,12 @@ function getDistance(lat1, lng1, lat2, lng2) {
 // 录音管理器（页面加载时初始化一次）
 const recorder = wx.getRecorderManager()
 
+// F-05：地图图钉图标 —— 官方点位深蓝、玩家自建橙色（两张 PNG 与同名 wxss 色值保持一致）
+const MARKER_OFFICIAL = '/images/marker/point-official.png'
+const MARKER_CUSTOM = '/images/marker/point-custom.png'
+// 举报原因（key 顺序必须与 index.reportReasons 文案顺序一致，见 onReportTap）
+const REPORT_REASONS = ['fake', 'improper', 'duplicate', 'other']
+
 Page({
   data: {
     // 地图中心点（北京理工大学良乡校区）
@@ -37,6 +43,9 @@ Page({
     recentUsers: [],     // 最近打卡的玩家 [{ nickname, avatarUrl, initial }]
     usersTitle: '',      // 人数文案（带占位符，wxml 不能调函数所以在这里拼好）
     usersLoading: false, // 玩家数据加载中
+    // F-05 自建点位
+    canReport: false,    // 当前选中点位是否可举报（别人建的玩家点位才可举报）
+    reportReasons: [],   // 举报原因文案（按语言填充，顺序与 REPORT_REASONS 对应）
     dark: false,       // 深色模式（全局设置）
     fontScale: 'md',   // 字体大小（全局设置）
     lang: i18n.zh,     // 当前语言文案
@@ -74,13 +83,22 @@ Page({
       isLoggedIn: !!user,
       dark: app.globalData.darkMode,
       fontScale: app.globalData.fontScale,
-      lang: lang
+      lang: lang,
+      // F-05：举报原因文案按语言刷新（顺序固定，与 REPORT_REASONS 一一对应）
+      reportReasons: REPORT_REASONS.map(k => lang.index['report_' + k])
     })
     // 登录后查一下有没有指派给我、还没完成的任务
     if (user) {
       this.loadPendingTask()
     } else {
       this.setData({ pendingTask: null, taskBarDesc: '' })
+    }
+
+    // F-05：自建点位成功、或点位被举报隐藏后回到首页 → 重拉一次点位。
+    // 用 pointsDirty 标记而不是每次都重拉，避免每切一次 Tab 都打一次 getPoints。
+    if (app.globalData.pointsDirty) {
+      app.globalData.pointsDirty = false
+      this.loadPoints()
     }
 
     wx.setNavigationBarTitle({ title: lang.common.appName })
@@ -185,18 +203,54 @@ Page({
     wx.cloud.callFunction({
       name: 'getPoints'
     }).then(res => {
-      const points = res.result.points
+      const points = (res.result && res.result.points) || []
       // 把数据库记录转成地图 marker（id 用下标+1，补宽高）
+      // F-05：官方点位与玩家自建点位用不同颜色的图钉；callout 让点图钉时弹出点位名
       const markers = points.map((p, i) => ({
         id: i + 1,
         longitude: p.longitude,
         latitude: p.latitude,
         title: p.name,
         width: 32,
-        height: 32
+        height: 32,
+        iconPath: p.isOfficial ? MARKER_OFFICIAL : MARKER_CUSTOM,
+        callout: {
+          content: p.name,
+          color: '#ffffff',
+          fontSize: 12,
+          borderRadius: 6,
+          borderWidth: 0,
+          bgColor: p.isOfficial ? '#1f4e79' : '#e8842c',
+          padding: 6,
+          display: 'BYCLICK',
+          textAlign: 'center'
+        }
       }))
       this.setData({ points, markers })
-      console.log('打卡点加载成功', points)
+      console.log('打卡点加载成功', points.length, '个')
+
+      // 点位被重拉过（新建点位 / 举报隐藏）后，之前选中的点位可能已经不在列表里了：
+      // 还在就换成最新数据，不在就清空选中，避免面板继续显示一个图上已经消失的点位。
+      const cur = this.data.selectedPoint
+      if (cur) {
+        const fresh = points.filter(p => p._id === cur._id)[0]
+        if (fresh) {
+          this.setData({
+            selectedPoint: fresh,
+            canReport: !fresh.isMine && !fresh.isOfficial
+          })
+        } else {
+          this.setData({
+            selectedPoint: null,
+            inRange: false,
+            canReport: false,
+            userCount: 0,
+            usersTitle: '',
+            recentUsers: []
+          })
+          this.refreshTip()
+        }
+      }
     }).catch(err => {
       console.error('打卡点加载失败：', err)
       this.setData({ tip: this.data.lang.index.errLoadPoints })
@@ -215,6 +269,8 @@ Page({
     this.setData({
       selectedPoint: p,
       inRange: false,
+      // F-05：只有"别人建的玩家点位"才给举报入口（自己建的可自己删/改，官方点位由管理员维护）
+      canReport: !p.isMine && !p.isOfficial,
       // F-02：先清空上一个点位的玩家数据，避免看到别人的头像
       userCount: 0,
       usersTitle: '',
@@ -260,29 +316,91 @@ Page({
     })
   },
 
+  // 未登录统一处理：提示 + 稍后跳登录页。返回 true 表示「已被拦下，调用方应直接 return」。
+  // （原先这段在 checkIn / onRecordTap / goCreateTask 里各抄了一遍，F-05 又要用第 4 次，抽出来）
+  requireLogin: function () {
+    if (this.data.isLoggedIn) return false
+    wx.showToast({ title: this.data.lang.index.loginFirst, icon: 'none' })
+    setTimeout(() => {
+      wx.navigateTo({ url: '/pages/login/login' })
+    }, 800)
+    return true
+  },
+
   // 选中点位 → 跳发布任务页（F-01 × F-02 联动）
   goCreateTask: function () {
-    if (!this.data.isLoggedIn) {
-      wx.showToast({ title: this.data.lang.index.loginFirst, icon: 'none' })
-      setTimeout(() => {
-        wx.navigateTo({ url: '/pages/login/login' })
-      }, 800)
-      return
-    }
+    if (this.requireLogin()) return
     wx.navigateTo({ url: '/pages/task-create/task-create' })
+  },
+
+  // F-05：跳「创建打卡点」页
+  goCreatePoint: function () {
+    if (this.requireLogin()) return
+    wx.navigateTo({ url: '/pages/point-create/point-create' })
+  },
+
+  // F-05：举报当前选中的玩家自建点位（内容安全）。
+  // 只对「别人建的玩家点位」开放 —— 自己建的没必要举报，官方点位由管理员维护。
+  onReportTap: function () {
+    if (this.requireLogin()) return
+    const p = this.data.selectedPoint
+    if (!p || !this.data.canReport) return
+    const lang = this.data.lang
+    wx.showActionSheet({
+      // reportReasons 在 onShow 里按语言拼好，顺序与 REPORT_REASONS 一一对应
+      itemList: this.data.reportReasons,
+      success: (res) => {
+        const reason = REPORT_REASONS[res.tapIndex]
+        if (reason) this.submitReport(p, reason)
+      },
+      fail: () => {} // 用户取消，不处理
+    })
+  },
+
+  // 提交举报
+  submitReport: function (point, reason) {
+    const lang = this.data.lang
+    wx.showLoading({ title: lang.index.reporting })
+    wx.cloud.callFunction({
+      name: 'reportPoint',
+      data: { pointId: point._id, reason: reason }
+    }).then(res => {
+      wx.hideLoading()
+      const r = res.result || {}
+      if (r.code !== 0) {
+        wx.showToast({ title: r.msg || lang.index.reportFail, icon: 'none' })
+        return
+      }
+      // already = 之前已经举报过（唯一索引挡下的重复举报）
+      wx.showToast({
+        title: r.already ? lang.index.reportAlready : lang.index.reportDone,
+        icon: r.already ? 'none' : 'success'
+      })
+      // 举报数达到阈值 → 后端已把点位隐藏，图上少一个点，重拉一次点位
+      if (r.hidden) {
+        this.setData({
+          selectedPoint: null,
+          inRange: false,
+          canReport: false,
+          userCount: 0,
+          usersTitle: '',
+          recentUsers: []
+        })
+        app.globalData.pointsDirty = true
+        this.loadPoints()
+        this.refreshTip()
+      }
+    }).catch(err => {
+      wx.hideLoading()
+      console.error('举报失败：', err)
+      wx.showToast({ title: lang.index.reportFail, icon: 'none' })
+    })
   },
 
   // 定位打卡：获取当前位置，判断是否在打卡点围栏内（需先登录）
   checkIn: function () {
     const lang = this.data.lang
-    if (!this.data.isLoggedIn) {
-      // 未登录：提示并跳转登录界面
-      wx.showToast({ title: lang.index.loginFirst, icon: 'none' })
-      setTimeout(() => {
-        wx.navigateTo({ url: '/pages/login/login' })
-      }, 800)
-      return
-    }
+    if (this.requireLogin()) return
     const p = this.data.selectedPoint
     if (!p) {
       this.setData({ tip: lang.index.tipSelectPoint })
@@ -333,14 +451,7 @@ Page({
 
   // 说咒语按钮：开始录音 / 停止录音（需先登录）
   onRecordTap: function () {
-    if (!this.data.isLoggedIn) {
-      // 未登录：提示并跳转登录界面
-      wx.showToast({ title: this.data.lang.index.loginFirst, icon: 'none' })
-      setTimeout(() => {
-        wx.navigateTo({ url: '/pages/login/login' })
-      }, 800)
-      return
-    }
+    if (this.requireLogin()) return
     if (this.data.recording) {
       // 正在录音 → 停止
       recorder.stop()

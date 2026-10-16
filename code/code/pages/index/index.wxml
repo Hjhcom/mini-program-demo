@@ -8,6 +8,18 @@
        markers="{{markers}}"
        bindmarkertap="onMarkerTap"></map>
 
+  <!-- F-05：图钉颜色图例（官方 / 玩家自建） -->
+  <view class="legend" wx:if="{{isLoggedIn}}">
+    <view class="legend-item">
+      <view class="legend-dot dot-official"></view>
+      <text class="legend-text">{{lang.index.typeOfficial}}</text>
+    </view>
+    <view class="legend-item">
+      <view class="legend-dot dot-custom"></view>
+      <text class="legend-text">{{lang.index.typePlayer}}</text>
+    </view>
+  </view>
+
   <!-- 待完成任务提示条（指派给我、进行中、未过期） -->
   <view class="task-bar" wx:if="{{pendingTask}}" bindtap="goTask">
     <view class="task-bar-main">
@@ -29,10 +41,19 @@
 
   <!-- 已登录：点位信息 / 打卡玩家 / 提示文字 / 按钮区 -->
   <view class="panel {{selectedPoint ? 'panel-sheet' : ''}}" wx:else>
-    <!-- 选中点位：点位名 + 咒语 -->
+    <!-- 选中点位：点位名 + 类型标签 + 咒语 -->
     <view class="point-head" wx:if="{{selectedPoint}}">
-      <text class="point-name">{{selectedPoint.name}}</text>
+      <view class="point-title-row">
+        <text class="point-name">{{selectedPoint.name}}</text>
+        <!-- F-05：点位来源标签（判断在服务端做成布尔值，前端拿不到 openid） -->
+        <text class="point-tag tag-official" wx:if="{{selectedPoint.isOfficial}}">{{lang.index.typeOfficial}}</text>
+        <text class="point-tag tag-mine" wx:elif="{{selectedPoint.isMine}}">{{lang.index.typeMine}}</text>
+        <text class="point-tag tag-player" wx:else>{{lang.index.typePlayer}}</text>
+      </view>
       <text class="point-spell">{{lang.index.spellLabel}}{{selectedPoint.spell}}</text>
+      <text class="point-creator" wx:if="{{selectedPoint.creatorNickname}}">
+        {{lang.index.creatorPrefix}}{{selectedPoint.creatorNickname}}
+      </text>
     </view>
 
     <!-- F-02：该点位的打卡玩家（人数 + 头像墙） -->
@@ -55,8 +76,14 @@
       <button wx:if="{{inRange}}" class="btn btn-record {{recording ? 'recording' : ''}}"
               bindtap="onRecordTap">{{recording ? lang.index.recording : lang.index.spell}}</button>
       <button wx:if="{{selectedPoint}}" class="btn btn-ghost" bindtap="goCreateTask">{{lang.index.createTaskForFriend}}</button>
+      <button class="btn btn-ghost" bindtap="goCreatePoint">{{lang.index.createPoint}}</button>
       <button class="btn btn-ghost" bindtap="goRanking">{{lang.index.ranking}}</button>
       <button class="btn btn-ghost" bindtap="goRecords">{{lang.index.records}}</button>
+    </view>
+
+    <!-- F-05：举报入口（仅别人创建的玩家点位显示） -->
+    <view class="report-row" wx:if="{{canReport}}">
+      <text class="report-link" bindtap="onReportTap">{{lang.index.report}}</text>
     </view>
   </view>
 </view>

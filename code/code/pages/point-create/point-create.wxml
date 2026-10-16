@@ -1,0 +1,64 @@
+<!-- pages/point-create/point-create.wxml —— 用户自建打卡点（F-05） -->
+<view class="page {{dark ? 'dark' : ''}} {{fontScale == 'lg' ? 'font-lg' : fontScale == 'xl' ? 'font-xl' : ''}}">
+
+  <!-- 1. 点位内容 -->
+  <view class="form-card">
+    <view class="form-label">{{lang.pointCreate.labelName}}<text class="required">*</text></view>
+    <input class="form-input" placeholder="{{lang.pointCreate.namePlaceholder}}" maxlength="20"
+           value="{{name}}" bindinput="onNameInput" />
+    <view class="counter">{{nameLen}}/20</view>
+
+    <view class="form-label">{{lang.pointCreate.labelSpell}}<text class="required">*</text></view>
+    <input class="form-input" placeholder="{{lang.pointCreate.spellPlaceholder}}" maxlength="16"
+           value="{{spell}}" bindinput="onSpellInput" />
+    <view class="counter {{spellLen > spellMax ? 'over' : ''}}">{{spellLen}}/{{spellMax}}</view>
+    <view class="hint">{{lang.pointCreate.spellHint}}</view>
+  </view>
+
+  <!-- 2. 位置 -->
+  <view class="form-card">
+    <view class="form-label">{{lang.pointCreate.labelLocation}}<text class="required">*</text></view>
+
+    <view class="loc-picked" wx:if="{{location}}">
+      <view class="loc-row">
+        <text class="loc-name">{{location.name || lang.pointCreate.unnamedPlace}}</text>
+        <text class="loc-src">{{location.sourceText}}</text>
+      </view>
+      <text class="loc-addr" wx:if="{{location.address}}">{{location.address}}</text>
+      <text class="loc-coord">{{location.latitude}}, {{location.longitude}}</text>
+    </view>
+    <view class="loc-empty" wx:else>{{lang.pointCreate.locEmpty}}</view>
+
+    <view class="loc-btn-row">
+      <button class="loc-btn" bindtap="chooseOnMap">{{lang.pointCreate.pickOnMap}}</button>
+      <button class="loc-btn loc-btn-ghost" bindtap="useCurrentLocation">{{lang.pointCreate.useCurrent}}</button>
+    </view>
+    <view class="hint">{{lang.pointCreate.locHint}}</view>
+  </view>
+
+  <!-- 3. 打卡半径 -->
+  <view class="form-card">
+    <view class="form-label">{{lang.pointCreate.labelRadius}}</view>
+    <view class="radius-row">
+      <view class="radius-option {{radiusIndex == index ? 'on' : ''}}" wx:for="{{radiusOptions}}"
+            wx:key="*this" bindtap="onRadiusTap" data-index="{{index}}">{{item}}{{lang.pointCreate.meterUnit}}</view>
+    </view>
+    <view class="hint">{{lang.pointCreate.radiusHint}}</view>
+  </view>
+
+  <button class="submit-btn" bindtap="onSubmit" disabled="{{submitting}}">{{lang.pointCreate.submit}}</button>
+
+  <!-- 创建成功：引导去给好友设个任务 -->
+  <view class="mask" wx:if="{{showSuccess}}">
+    <view class="succ-pop">
+      <view class="pop-title">{{lang.pointCreate.success}}</view>
+      <view class="pop-name">{{createdPoint.name}}</view>
+      <view class="pop-sub">{{lang.pointCreate.successSub}}</view>
+      <view class="pop-remain" wx:if="{{remain > 0}}">{{lang.pointCreate.remainPrefix}}{{remain}}</view>
+
+      <button class="succ-main" bindtap="goCreateTask">{{lang.pointCreate.goTask}}</button>
+      <button class="succ-ghost" bindtap="closeSuccess">{{lang.pointCreate.backHome}}</button>
+    </view>
+  </view>
+
+</view>

@@ -42,6 +42,10 @@
       <text class="cell-label">{{lang.mine.task}}</text>
       <text class="cell-arrow">›</text>
     </view>
+    <view class="cell" bindtap="onItemTap" data-type="pointCreate">
+      <text class="cell-label">{{lang.mine.pointCreate}}</text>
+      <text class="cell-arrow">›</text>
+    </view>
     <view class="cell" bindtap="onItemTap" data-type="pk">
       <text class="cell-label">{{lang.mine.pk}}</text>
       <text class="cell-arrow">›</text>

@@ -1,0 +1,9 @@
+{
+  "name": "reportPoint",
+  "version": "1.0.0",
+  "description": "自建点位举报：写 reports 集合，按不同举报人去重计数，达阈值自动隐藏点位",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

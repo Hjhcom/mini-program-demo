@@ -1,0 +1,9 @@
+{
+  "name": "createPoint",
+  "version": "1.0.0",
+  "description": "用户自建打卡点：校验名称/咒语/半径/坐标与人均上限后写入 points 集合",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

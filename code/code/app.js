@@ -4,7 +4,10 @@ App({
     userInfo: null,   // 当前登录用户（含 source 字段：wechat / phone / guest）
     darkMode: false,  // 深色模式
     fontScale: 'md',  // 字体大小：md 标准 / lg 大 / xl 特大
-    language: 'zh'    // 显示语言：zh 中文 / en English
+    language: 'zh',   // 显示语言：zh 中文 / en English
+    // F-05：自建打卡点成功后置 true，首页 onShow 看到它就重拉一次点位。
+    // 用这个标记而不是"每次 onShow 都重拉"，是为了避免每次切 Tab 都打一次 getPoints。
+    pointsDirty: false
   },
 
   onLaunch: function () {
