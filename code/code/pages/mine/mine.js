@@ -145,6 +145,18 @@ Page({
       wx.navigateTo({ url: '/pages/ranking/ranking' })
       return
     }
+    // 成就徽章：徽章挂在个人打卡数据上，未登录先去登录
+    if (type === 'badges') {
+      if (!this.data.user) {
+        wx.showToast({ title: lang.mine.loginFirst, icon: 'none' })
+        setTimeout(() => {
+          wx.navigateTo({ url: '/pages/login/login' })
+        }, 800)
+        return
+      }
+      wx.navigateTo({ url: '/pages/badges/badges' })
+      return
+    }
     // 设置：跳转设置页（深色模式 / 字体大小 / 显示语言 / 清除缓存）
     if (type === 'settings') {
       wx.navigateTo({ url: '/pages/settings/settings' })

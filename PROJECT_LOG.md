@@ -19,12 +19,14 @@ mini-program-demo/
 │   │   ├── images/
 │   │   │   └── tabbar/            # tabBar 图标（首页/我的 × 灰色/选中蓝）
 │   │   ├── pages/
+│   │   │   ├── splash/            # 启动页（app.json 里的首个页面）
 │   │   │   ├── login/             # 登录方式选择页（微信/手机号/游客）
 │   │   │   ├── index/             # 首页（地图打卡 + 点位打卡玩家展示）
 │   │   │   ├── mine/              # 我的页
 │   │   │   ├── task/              # 打卡任务页（我发布的 / 我接的）
 │   │   │   ├── task-create/       # 发布打卡任务页
 │   │   │   ├── ranking/           # 积分排行榜页（玩家榜 / 点位榜）
+│   │   │   ├── badges/            # 成就徽章页（连续打卡 + 8 枚徽章）
 │   │   │   ├── pk/                # 好友打卡 PK 页
 │   │   │   ├── records/           # 打卡记录页
 │   │   │   ├── agreement/         # 用户协议 / 隐私政策页
@@ -38,6 +40,7 @@ mini-program-demo/
 │   │       ├── getPoints/         # 打卡点列表
 │   │       ├── getPointUsers/     # 点位打卡玩家展示（人数 + 最近打卡玩家）
 │   │       ├── getRanking/        # 积分排行榜（玩家榜 + 点位热度榜，含 lib/points.js）
+│   │       ├── getBadges/         # 连续打卡 + 成就徽章（含 lib/badges.js，判定 8 枚徽章）
 │   │       ├── createTask/        # 创建打卡任务（生成 6 位任务码）
 │   │       ├── acceptTask/        # 凭任务码接受任务
 │   │       ├── listTasks/         # 查询我发布 / 我接受的任务
@@ -48,7 +51,8 @@ mini-program-demo/
 ├── docs/                          # 开发文档
 │   └── 下一步功能规划与操作说明.md
 ├── tools/                         # 本地开发脚本（不进小程序包）
-│   └── test-points.js             # F-03 积分规则单元测试（node tools/test-points.js）
+│   ├── test-points.js             # F-03 积分规则单元测试（node tools/test-points.js）
+│   └── test-badges.js             # F-04 连续打卡与徽章单元测试（node tools/test-badges.js）
 ├── .gitignore
 ├── README.md
 └── PROJECT_LOG.md                 # 本文件
@@ -215,6 +219,23 @@ mini-program-demo/
   - 涉及模块：`cloudfunctions/getRanking`（新建）、`pages/ranking`（新建）、`pages/index`、`pages/mine`、`utils/i18n.js`、`app.json`、`tools/test-points.js`（新建）、`docs/下一步功能规划与操作说明.md`。
   - 注意：`getRanking` 为新函数需「创建并部署：云端安装依赖」（带 `lib/points.js` 子目录，共 4 个文件）；本功能**不需要新建集合与索引也能跑**（数据量小），索引可在控制台按需补 IDX-14/IDX-15。
 
+### 2026-10-15
+- 新增**连续打卡与成就徽章**（F-04 / P1，文档 3.4）：
+  - 新增云函数 `getBadges`：实时算出「当前连续 / 历史最长连续」打卡天数，判定 8 枚成就徽章（初次打卡 / 百灵鸟 / 马拉松选手 / 探险家 / 一鸣惊人 / 夜猫子 / 任务达人 / 任务发布者），把**新解锁**的补发到 `user_badges` 集合，并回传全部徽章状态与各项进度统计。
+    - **徽章改为「按需懒判定」，没有放在 `voiceCheckin` 里做**（与文档 3.4 的建议不同）：徽章判定要读「该用户全部打卡记录 + 任务统计」，塞进打卡主链路会明显拖慢响应、且任一步失败都可能拖挂打卡。现在改成打卡成功后前端**异步**调一次（有新徽章就弹窗提示），打开徽章页时再调一次（补发「几天没打开 App」期间应得的徽章）。代价是徽章延迟几分钟显示，收益是打卡主链路零风险。
+    - **徽章一律按「历史最长连续 `maxStreak`」判定，不用「当前连续 `curStreak`」**：懒判定下用户可能过几天才打开徽章页，那时当前连续已断成 0，按它判定的话「马拉松选手」永远发不出去。`curStreak` 只用于页面展示，且仅在「最后一天是今天或昨天」时才不为 0。
+    - 统计方式**没有用聚合**，而是「拉该用户最近 1000 条成功记录 + 纯函数计算」：单用户数据量小，换来的是计算逻辑能整体抽到 `lib/badges.js`（不依赖 `wx-server-sdk`）从而**可本地单测**。
+    - **时区**：云函数容器是 UTC，所有「哪一天」的判断统一走 `toDayKey()`（固定按 UTC+8）；`hourOf()` 同样按 +8 取小时用于「夜猫子」判定。
+    - **新旧数据兼容**：`dayKeyOf()` 优先用记录里的 `dayKey`，老数据没有该字段就从 `createTime` 现算。
+    - **`user_badges` 集合未创建时降级**（读写都包了容错）：页面照常显示实时判定结果，只是拿不到获得时间、也不弹「新解锁」，并在页面上提示去建集合；返回值 `persist: false` 表达该状态。
+    - 纯计算部分抽到 `cloudfunctions/getBadges/lib/badges.js`，配套本地单测 `tools/test-badges.js`（**81 条用例，全部通过**：UTC+8 跨日边界、当前连续 vs 历史最长、跨月跨年闰年、8 枚徽章的阈值边界、以及「最长连续已断仍应发徽章」的回归用例）。
+  - 改造 `cloudfunctions/voiceCheckin/index.js`：写入 `records` 时新增 `dayKey` 字段（UTC+8 的 `YYYY-MM-DD`），供连续打卡统计使用，也是将来启用 IDX-03 唯一索引的前提。⚠️ 各云函数目录独立打包、不能互相 require，故换算逻辑就地实现。
+  - 新增页面 `pages/badges/badges`（已注册 `app.json`）：顶部连续打卡卡（当前连续 / 最长连续 / 今日是否已打卡），下方 8 枚徽章网格（已解锁高亮 + 获得日期，未解锁灰显并**显示进度**如「2/3 天」），点徽章弹详情（名称 / 条件 / 状态 / 进度）；支持下拉刷新、深色模式、字体大小、中英文切换（`i18n.badges` 43 条 × zh/en，语言包总量 232 → **276**）。
+  - 入口与联动：「我的」页新增「成就徽章」入口；首页打卡成功后异步查询新解锁徽章，有则弹窗告知（失败静默，不影响打卡结果）。
+  - 涉及模块：`cloudfunctions/getBadges`（新建）、`pages/badges`（新建）、`tools/test-badges.js`（新建）、`cloudfunctions/voiceCheckin`、`pages/index`、`pages/mine`、`utils/i18n.js`、`app.json`、`docs/下一步功能规划与操作说明.md`。
+  - 注意：`getBadges` 为新函数需「创建并部署：云端安装依赖」（带 `lib/badges.js` 子目录）；`voiceCheckin` 改动过需**重新部署**；需在控制台**新建 `user_badges` 集合**（权限「仅管理端可读写」）并建 **IDX-16**（`openid + badgeId` 唯一索引）。
+- 文档同步（`docs/下一步功能规划与操作说明.md`）：3.0 云函数总览表补 `getBadges` 与 `voiceCheckin` 二次改造并更新状态列；**3.4.1 新增「已落地与设计差异」**（写明上述 4 处调整及理由）+ **3.4.2 新增验收用例 B-01~B-06**；3.9.1 把 `user_badges` 从「可选」改为必需、3.9.2 新增 **IDX-16**（并补唯一索引建不上的处理）、3.9.3 权限表补 `user_badges`、3.9.4 部署清单补 `getBadges` 与 `voiceCheckin`（含「带 `lib/` 的函数上传回执文件数会 +1，属正常」的说明）；6.1 新增 F-04 打勾清单并把本地自测提示扩到两份脚本；3.10 的 `dayKey` 项标记为已完成；第 8 节「马上可以做的 5 件事」按当前进度重写；文末文件索引补 `pages/badges`、`getBadges`、`tools/test-badges.js`；项目结构树补 `pages/splash`（此前遗漏）、`pages/badges`、`getBadges`。
+
 ## 后续计划
 
 > 待补充：以下为基于当前进度的建议项，请按团队实际安排更新。
@@ -227,7 +248,7 @@ mini-program-demo/
 - [x] 打卡任务系统（发布任务 / 凭任务码接受 / 任务打卡，`tasks` 集合）
 - [x] 点位打卡用户展示（在地图上查看每个点位打卡成功的用户信息，`getPointUsers`）
 - [x] 积分排行榜与用户积分（玩家积分榜 / 点位热度榜，`getRanking`，积分实时计算不落库）
-- [ ] 连续打卡与成就徽章
+- [x] 连续打卡与成就徽章（`getBadges` + `pages/badges`，8 枚徽章懒判定 + `voiceCheckin` 补 `dayKey`）
 - [ ] 用户自建打卡点位
 - [ ] 接入真实短信验证码通道（腾讯云 SMS，需企业实名 + 签名审核）
 - [ ] 打卡记录分页加载（下拉加载更多）

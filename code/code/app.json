@@ -10,7 +10,8 @@
     "pages/settings/settings",
     "pages/task/task",
     "pages/task-create/task-create",
-    "pages/ranking/ranking"
+    "pages/ranking/ranking",
+    "pages/badges/badges"
   ],
   "window": {
     "navigationBarBackgroundColor": "#1f4e79",

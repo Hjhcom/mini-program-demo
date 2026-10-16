@@ -1,0 +1,80 @@
+<!-- pages/badges/badges.wxml —— 成就徽章（F-04） -->
+<view class="page {{dark ? 'dark' : ''}} {{fontScale == 'lg' ? 'font-lg' : fontScale == 'xl' ? 'font-xl' : ''}}">
+
+  <!-- 未登录：引导登录 -->
+  <view class="login-box" wx:if="{{!loggedIn}}">
+    <text class="login-text">{{lang.badges.loginFirst}}</text>
+    <button class="btn-primary" bindtap="goLogin">{{lang.badges.goLogin}}</button>
+  </view>
+
+  <block wx:else>
+    <!-- 连续打卡 -->
+    <view class="streak-card">
+      <view class="streak-head">
+        <text class="streak-label">{{lang.badges.streakTitle}}</text>
+        <text class="streak-today {{todayDone ? 'on' : ''}}">{{todayDone ? lang.badges.todayDone : lang.badges.todayNot}}</text>
+      </view>
+      <view class="streak-body">
+        <view class="streak-item">
+          <view class="streak-num-line">
+            <text class="streak-num">{{streak.current}}</text>
+            <text class="streak-suffix">{{lang.badges.daysUnit}}</text>
+          </view>
+          <text class="streak-sub">{{lang.badges.streakCur}}</text>
+        </view>
+        <view class="streak-divider"></view>
+        <view class="streak-item">
+          <view class="streak-num-line">
+            <text class="streak-num">{{streak.max}}</text>
+            <text class="streak-suffix">{{lang.badges.daysUnit}}</text>
+          </view>
+          <text class="streak-sub">{{lang.badges.streakMax}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- user_badges 集合还没建：提示一下，不影响浏览 -->
+    <view class="warn-bar" wx:if="{{!persist}}">{{lang.badges.notPersist}}</view>
+
+    <!-- 还没有任何成功打卡 -->
+    <view class="empty-box" wx:if="{{showEmpty}}">
+      <text class="empty-text">{{lang.badges.empty}}</text>
+    </view>
+
+    <!-- 徽章墙 -->
+    <block wx:if="{{!loading}}">
+      <view class="section-title">{{gotTitleText}}</view>
+      <view class="grid">
+        <view class="badge {{item.got ? 'got' : 'locked'}}" wx:for="{{badges}}" wx:key="id"
+              bindtap="onBadgeTap" data-index="{{index}}">
+          <view class="badge-icon">{{item.icon}}</view>
+          <text class="badge-name">{{item.name}}</text>
+          <text class="badge-foot" wx:if="{{item.got}}">{{item.gotAtText}}</text>
+          <text class="badge-foot" wx:elif="{{item.progress}}">{{item.progress}}</text>
+          <text class="badge-foot" wx:else>{{lang.badges.locked}}</text>
+        </view>
+      </view>
+    </block>
+
+    <!-- 去首页打卡 -->
+    <button class="btn-primary btn-home" wx:if="{{showEmpty && !loading}}" bindtap="goHome">{{lang.badges.goHome}}</button>
+
+    <!-- 加载中 -->
+    <view class="loading-box" wx:if="{{loading}}">
+      <text class="loading-text">{{lang.badges.loading}}</text>
+    </view>
+  </block>
+
+  <!-- 徽章详情弹窗 -->
+  <view class="mask" wx:if="{{detail}}">
+    <view class="pop">
+      <view class="pop-icon {{detail.got ? 'got' : 'locked'}}">{{detail.icon}}</view>
+      <view class="pop-title">{{detail.name}}</view>
+      <view class="pop-status {{detail.got ? 'got' : ''}}">{{detail.got ? lang.badges.gotAt + detail.gotAtFull : lang.badges.locked}}</view>
+      <view class="pop-cond">{{detail.cond}}</view>
+      <view class="pop-progress" wx:if="{{!detail.got && detail.progress}}">{{lang.badges.progressPrefix}}{{detail.progress}}</view>
+      <button class="pop-btn" bindtap="closeDetail">{{lang.badges.close}}</button>
+    </view>
+  </view>
+
+</view>

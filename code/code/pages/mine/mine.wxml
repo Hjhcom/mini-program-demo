@@ -50,6 +50,10 @@
       <text class="cell-label">{{lang.mine.ranking}}</text>
       <text class="cell-arrow">›</text>
     </view>
+    <view class="cell" bindtap="onItemTap" data-type="badges">
+      <text class="cell-label">{{lang.mine.badges}}</text>
+      <text class="cell-arrow">›</text>
+    </view>
     <view class="cell" bindtap="onItemTap" data-type="settings">
       <text class="cell-label">{{lang.mine.settings}}</text>
       <text class="cell-arrow">›</text>

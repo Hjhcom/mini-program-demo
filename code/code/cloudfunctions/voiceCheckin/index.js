@@ -188,6 +188,19 @@ exports.main = async (event, context) => {
   const matched = sim >= 0.8 || (got.includes(target) || target.includes(got))
 
   // 5. 写入打卡记录
+  //    dayKey：按 UTC+8 算出的自然日（'YYYY-MM-DD'），供 F-04 连续打卡统计使用，
+  //    也是将来给 records 建「同一用户同一点位同一天唯一」索引的前提。
+  //    ⚠️ 云函数容器时区是 UTC，直接取本地日期会差 8 小时 ——
+  //       北京时间 00:00~08:00 的打卡会被算成前一天，连续打卡天数就会错。
+  //    另外：各云函数目录之间不能互相 require（部署时是各自独立打包的），
+  //    所以这里的换算逻辑只能就地实现，不能引 getBadges/lib/badges.js。
+  const bjNow = new Date(Date.now() + 8 * 3600 * 1000)
+  const bjMonth = bjNow.getUTCMonth() + 1
+  const bjDate = bjNow.getUTCDate()
+  const dayKey = bjNow.getUTCFullYear() + '-' +
+    (bjMonth < 10 ? '0' : '') + bjMonth + '-' +
+    (bjDate < 10 ? '0' : '') + bjDate
+
   const addRes = await db.collection('records').add({
     data: {
       openid: OPENID,
@@ -198,6 +211,7 @@ exports.main = async (event, context) => {
       similarity: Math.round(sim * 100) / 100,
       matched: matched,
       taskId: taskId || null,             // 新增
+      dayKey: dayKey,                     // 新增：F-04 连续打卡统计用
       createTime: db.serverDate()
     }
   })

@@ -404,6 +404,8 @@ Page({
         console.log('打卡成功', r)
         // 任务打卡成功 → 刷新待完成任务（该任务已变成已完成）
         if (taskId) this.loadPendingTask()
+        // 顺便查一下有没有新解锁的成就徽章（F-04）；失败静默，不影响打卡结果
+        this.checkNewBadges()
         // 我刚打卡成功 → 刷新头像墙，让「我」立刻出现在名单里
         if (point && this.data.selectedPoint && this.data.selectedPoint._id === point._id) {
           this.loadPointUsers(point._id)
@@ -416,6 +418,31 @@ Page({
     }).catch(err => {
       console.error('打卡失败：', err)
       this.setData({ tip: i18n.format(lang.index.errCheckin, { msg: err.errMsg || '请检查 voiceCheckin 云函数' }) })
+    })
+  },
+
+  // F-04：打卡成功后查一次有没有新解锁的成就徽章，有就弹窗告知
+  // ⚠️ 徽章判定放在独立云函数里（不在 voiceCheckin 里同步做），就是为了不拖慢打卡主流程 ——
+  //    这里也是「异步、失败静默」：徽章查不到最多不提示，绝不能因此让一次成功的打卡显示成失败。
+  checkNewBadges: function () {
+    wx.cloud.callFunction({
+      name: 'getBadges'
+    }).then(res => {
+      const r = res.result || {}
+      const ids = r.newBadges || []
+      if (r.code !== 0 || ids.length === 0) return
+      const lang = this.data.lang.badges
+      // 徽章名称要从语言包里取，多个之间用顿号（英文用逗号）
+      const sep = app.globalData.language === 'en' ? ', ' : '、'
+      const names = ids.map(id => lang[id] || id).join(sep)
+      wx.showModal({
+        title: lang.newTitle,
+        content: i18n.format(lang.newContent, { names: names }),
+        showCancel: false,
+        confirmText: lang.gotIt
+      })
+    }).catch(err => {
+      console.error('查询新徽章失败（不影响本次打卡）：', err)
     })
   },
 

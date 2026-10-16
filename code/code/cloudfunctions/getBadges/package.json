@@ -1,0 +1,9 @@
+{
+  "name": "getBadges",
+  "version": "1.0.0",
+  "description": "连续打卡统计与成就徽章：实时计算 streak、判定并补发 8 个徽章",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}
