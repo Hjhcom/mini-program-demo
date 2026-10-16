@@ -13,7 +13,7 @@
     </view>
   </view>
 
-  <!-- 记录列表 -->
+  <!-- 记录列表（分页累加：触底加载更多） -->
   <view class="list" wx:if="{{records.length > 0}}">
     <view class="record-item" wx:for="{{records}}" wx:key="_id" bindtap="onItemTap" data-index="{{index}}">
       <view class="status-dot {{item.matched ? 'ok' : 'fail'}}"></view>
@@ -22,6 +22,16 @@
         <text class="record-time">{{item.timeText}}</text>
       </view>
       <view class="record-badge {{item.matched ? 'ok' : 'fail'}}">{{item.matched ? lang.records.okBadge : lang.records.failBadge}}</view>
+    </view>
+
+    <!-- 列表底部的分页状态：加载中 / 上拉加载更多 / 没有更多了 -->
+    <view class="list-footer">
+      <view class="footer-loading" wx:if="{{loadingMore}}">
+        <view class="spinner"></view>
+        <text class="footer-text">{{lang.records.loadingMore}}</text>
+      </view>
+      <text class="footer-text" wx:elif="{{hasMore}}">{{lang.records.pullUpMore}}</text>
+      <text class="footer-text" wx:else>— {{lang.records.noMore}} —</text>
     </view>
   </view>
 

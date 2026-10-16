@@ -37,9 +37,9 @@ mini-program-demo/
 │   │   │   ├── i18n.js            # 中英文语言包（各页面文案统一走这里）
 │   │   │   └── spell.js           # 咒语归一化与有效长度（F-05）
 │   │   └── cloudfunctions/
-│   │       ├── login/             # 登录云函数（微信/手机号/资料更新）
+│   │       ├── login/             # 登录云函数（微信/手机号/资料更新；user 出参走 pickUser() 白名单）
 │   │       ├── sendCode/          # 短信验证码云函数
-│   │       ├── getRecords/        # 打卡记录查询云函数
+│   │       ├── getRecords/        # 打卡记录查询（分页 + successTotal/hasMore + 白名单出参）
 │   │       ├── getPoints/         # 打卡点列表（白名单出参 + isMine/isOfficial + 过滤 hidden）
 │   │       ├── getPointUsers/     # 点位打卡玩家展示（人数 + 最近打卡玩家）
 │   │       ├── getRanking/        # 积分排行榜（玩家榜 + 点位热度榜，含 lib/points.js）
@@ -49,8 +49,8 @@ mini-program-demo/
 │   │       ├── createTask/        # 创建打卡任务（生成 6 位任务码）
 │   │       ├── acceptTask/        # 凭任务码接受任务
 │   │       ├── listTasks/         # 查询我发布 / 我接受的任务
-│   │       ├── friends/           # 好友 PK（邀请码加好友 / 好友列表）
-│   │       └── voiceCheckin/      # 声控打卡（支持任务打卡 taskId，写入 dayKey）
+│   │       ├── friends/           # 好友 PK（出参不下发 openid，PK 用好友记录 _id 作句柄）
+│   │       └── voiceCheckin/      # 声控打卡（判定在 lib/match.js；支持任务打卡 taskId，写入 dayKey）
 │   ├── project.config.json
 │   └── project.private.config.json
 ├── docs/                          # 开发文档
@@ -58,7 +58,10 @@ mini-program-demo/
 ├── tools/                         # 本地开发脚本（不进小程序包）
 │   ├── test-points.js             # F-03 积分规则单元测试（node tools/test-points.js）
 │   ├── test-badges.js             # F-04 连续打卡与徽章单元测试（node tools/test-badges.js）
-│   └── test-point-create.js       # F-05 自建点位校验单元测试（node tools/test-point-create.js）
+│   ├── test-point-create.js       # F-05 自建点位校验单元测试（node tools/test-point-create.js）
+│   ├── test-voice-match.js        # 声控判定单元测试：空结果/单字/阈值边界/互为包含（node tools/test-voice-match.js）
+│   ├── check-i18n.js              # i18n 语言包自检：zh/en 键名、分区条数、空文案（node tools/check-i18n.js）
+│   └── check-sync.js              # 跨目录重复规则自检：normalizeSpell 三处 / 咒语长度上下限 / CHECKIN_POINTS / 判定只在 lib/match.js（node tools/check-sync.js）
 ├── .gitignore
 ├── README.md
 └── PROJECT_LOG.md                 # 本文件
@@ -259,6 +262,66 @@ mini-program-demo/
   - 注意：`createPoint` / `reportPoint` 为新函数需「创建并部署」，`getPoints` 改动过需**重新部署**（三者是一套，少传一个自建点位就会显示成官方样式）；需在控制台**新建 `reports` 集合**（权限「所有用户不可读写」）并建 **IDX-17**（`pointId + reporterOpenid` 唯一）、**IDX-18**（`points.creatorOpenid`）；`app.json` 的 `requiredPrivateInfos` 需补 `"chooseLocation"`（已补）。
 - 文档同步（`docs/下一步功能规划与操作说明.md`）：3.0 云函数表补 `createPoint` / `reportPoint` / `getPoints` 改造并更新 F-04 状态；**3.5.1 新增「已落地与设计差异」**（写明上述 5 处取舍及理由）+ **3.5.2 新增验收用例 C-01~C-07**；3.9.1 新增 `reports` 集合并说明 `points` 不用改结构、3.9.2 新增 **IDX-17/IDX-18**（含字段顺序与前缀命中的说明）、3.9.3 权限表补 `reports`、3.9.4 部署清单补三项（共 13 个函数）；3.11 常见报错速查补 5 条（`requiredPrivateInfos` 报错、`chooseLocation` 权限、自建点位显示成官方、举报未就绪、点位被隐藏）；5 排期与展示脚本按 F-05 更新；6.1 新增 F-05 打勾清单；第 8 节重写；文末文件索引补齐。
 
+- **隐私整改：好友模块不再下发 `openid`**（对应文档 **3.12**）
+  - 起因：同学的 `friends` 云函数有三处把 `openid` 明文回传前端（`action=list` 的每个好友对象、`action=pk` 的 `me`/`friend`、`action=add` 的 `friend.openid`），与团队「云函数对外只给白名单字段」的约定不一致；且 `pages/pk` 为 PK 又把 `f.openid` 传回云函数，形成「前端传 openid」的调用形态。当前没有可直接利用的漏洞（所有云函数的身份都取自 `cloud.getWXContext()`，从不信前端传的身份），但这种形态本身必须掐掉 —— 一旦某处图省事写成 `event.openid || OPENID`，就是任意账号越权的入口。
+  - 改法：不新增字段、不改集合结构，把对外标识换成 **`friends` 集合里关系文档的主键 `_id`（下称 `recordId`）**。客户端无权读 `friends` 集合，拿到 `recordId` 关联不到任何用户信息；`action=pk` 用 `where({ _id: friendRecordId, userOpenid: OPENID })` **一次查询同时完成「取好友」+「校验归属」**，只能 PK 自己的好友。`action=list` 出参每项加 `recordId`，`action=add` 出参加 `recordId`（`add()` 返回值就带 `_id`）。
+  - ⚠️ `action=pk` 取单条用 `where({_id})` 取 `data[0]`，**没有**用 `doc(id).get()` —— 后者记录不存在时会抛异常，走不到「你们还不是好友」的兜底分支。
+  - **顺带整改 `login`**：原先把 `users` 的整份文档（含 `openid`、`phone`）当 `user` 回传，前端还会整份写进 `wx.setStorageSync`。现新增 `pickUser()` 白名单，只回 `nickname` / `avatarUrl` / `inviteCode`（7 处 return 全部包一层）。已逐处核对前端真正读取的字段（`pages/{index,login,mine,pk}`、`app.js`）确实只有这三个 + 前端自己标注的 `source`。
+  - 涉及模块：`cloudfunctions/friends/index.js`、`cloudfunctions/login/index.js`、`pages/pk/pk.js`、`pages/pk/pk.wxml`（`wx:key` 改用 `recordId`）、`docs/下一步功能规划与操作说明.md`。
+  - ⚠️ **接口契约变更**：`action=pk` 的入参名由 `friendOpenid` 改为 `friendRecordId`，`friends` 云函数与前端必须**同时更新**，否则 PK 会提示「缺少好友信息」。需重传 `friends` + `login`（文档 3.9.4 已标为必传）。
+  - 新增验收用例 **P-01~P-03**（文档 3.12.5），其中 P-03 是整改的核心收益验证：把 `recordId` 换成随机串后 PK 只回「你们还不是好友」，**换个 id 探测不到任何人**。
+  - 注：改的是同学的模块（`friends` 云函数与 `pages/pk` 来自 `ca2adc0`），改动处均已就地写注释说明原因，后续与同学合并时注意这两处。
+
+- **F-06 打卡记录分页加载**（P2，对应文档 **3.6**，顺手修了缺陷 P6）
+  - 背景：`getRecords` 云函数本来就支持分页（`event.page`、每页 20、返回 `total`），但 `pages/records` 从不传 `page` → **永远只显示第一页**，记录一多用户就看不到历史。
+  - **改造 `getRecords`**：新增 `successTotal`（成功次数，服务端 `count()` 全量统计）与 `hasMore`（`page * PAGE_SIZE < total`，由服务端算，前端不再用已累加的数组长度自己推）；出参改 `pickRecord()` 白名单，**剥掉 `openid`**（原先直接回传 records 原始文档，含 `openid`，与团队白名单约定不符），顺带把 `matched` 归一成布尔；补 `OPENID` 空值兜底、`page` 做 `Math.max(1, …)`。
+  - **改造 `pages/records`**：`loadRecords(reset, silent)` 并**返回 promise**（便于 `stopPullDownRefresh` 收尾）；新增 `onReachBottom` 触底加载下一页；**额外加了 `onPullDownRefresh` 下拉刷新**（分页列表光有"加载更多"没有"回到顶部重载"，用户看到一半只能退出重进）；`onLoad` 里就取 `lang`（首屏 loading 与错误提示要用，只在 `onShow` 取会闪中文）。
+  - **顺带修缺陷 P6 的核心 bug**：`successCount` 原先是用**当前页**数据统计的（`records.filter(r => r.matched).length`），分页后会变成"已加载页的成功数"、随翻页一路变大。现在统计栏的「总记录 / 打卡成功」两个数字都来自服务端（`total` + `successTotal`），**翻页恒定**。这条值得单独写进报告的"缺陷修复记录"。
+  - UI：`records.wxml` 列表底部加 `.list-footer` 三态（加载中转圈 / 上拉加载更多 / 没有更多了）；`records.wxss` 加 `.spinner`（CSS 圆环 `@keyframes` 旋转）与 `.page.dark` 深色规则（页面私有类，全局 `app.wxss` 里没有）；`records.json` 开 `enablePullDownRefresh` 并设 `onReachBottomDistance: 100`。
+  - i18n：`records` 分区新增 `loading`（原先是硬编码中文 `'加载中…'`，英文模式会露中文）/ `loadingMore` / `pullUpMore` / `noMore` / `loadMoreFail` 五条 × zh/en，语言包 **327 → 332 条**。
+  - 新增 `tools/check-i18n.js`：语言包自检脚本（zh/en 键集合是否一致、每个分区条数、有无空文案），`node tools/check-i18n.js` 一把跑完。**332 条/语言，13 个分区全部 zh/en 对齐**。
+  - 不需要新建索引：分页查询 `where({openid}).orderBy('createTime','desc')` 走的正是既有的 **IDX-02**（`records: openid + createTime 降序`）。
+  - 涉及模块：`cloudfunctions/getRecords/index.js`、`pages/records/{records.js,records.wxml,records.wxss,records.json}`、`utils/i18n.js`、`tools/check-i18n.js`（新建）、`docs/下一步功能规划与操作说明.md`。
+  - ⚠️ `getRecords` 改动过需**重新部署**（文档 3.9.4 已从"不用传"改为必传）；不重传的话前端拿不到 `successTotal`/`hasMore`，记录页「打卡成功」恒为 0、底部一直显示「上拉加载更多」。
+  - 文档同步：**1.3 表 P6 标为已修**；3.0 表加 `getRecords` 改造行；**3.6 重写**（保留原始设计 + 新增 3.6.2 已落地与 5 处设计差异、文件清单、索引说明、分页 `skip` 的局限 + 3.6.3 验收用例 **L-01~L-04**）；3.9.4 部署清单 `getRecords` 改必传；6.1 加 L-01~L-04；第 8 节重写（云函数重传清单 + 单账号可跑的验收范围）；5 排期进度与第 2 节 P2 表的 F-06 状态更新；文末文件索引补 `tools/check-i18n.js` 并把语言包条数改为 332。
+
+### 2026-10-17
+- **打卡结果反馈动效**（F-07 / P2，文档 3.7）：
+  - **成功**：整屏撒花（14 片、每片 `left`/延迟/时长/颜色/尺寸随机，`@keyframes confetti-fall`）+ 居中结果卡（绿色 ✓ 徽章 `result-pop` 放大弹入 + 标题 + 大字 `+10 分` + 「你说的是「…」，相似度 xx%」），2.2s 后自动收起。
+  - **失败**：录音按钮 `.shake` 抖动 0.5s + 屏幕上沿滑入的红色提示条 + 震动。
+  - 三个关键取舍（都写进了代码注释与文档 3.7.2）：① **用纯 CSS keyframes 而不是 `wx.createAnimation`** —— 一次庆祝要驱动「14 片各自不同的 left/延迟/时长/颜色」+ 卡片弹入，用 `createAnimation` 得维护 15 套实例逐帧 export；② **失败提示条放上方**（文档原本写"底部"，但底部正是「说咒语」按钮，失败后用户马上要重录，压住按钮等于挡住最要紧的操作）；③ **两个浮层都 `pointer-events:none`** —— 只负责显示、不接管交互，所以敢铺满整屏且不加关闭按钮。
+  - ⚠️ **浮层是普通 `view` 盖在 `map` 上**：`map` 历史上是原生组件、层级最高（须用 `cover-view`），但基础库 2.7.0(iOS)/2.8.0(Android) 起已支持**同层渲染**，当前客户端都能盖住；若遇极老客户端被遮挡，改 `cover-view` 或把动画限制在面板区域（已记进文档，便于答辩时回答原生组件层级问题）。
+  - **「失败」的定义放宽到三种**：念错 / 任务校验失败（`code !== 0`）/ 请求异常（`catch`）—— 原先只有念错改了 tip，从用户视角三种都是"这次没成"，给同一种强反馈。
+  - 震动 `wx.vibrateShort({type})` 包 `try/catch` + 空 `fail`（低版本与部分 iOS 机型不支持，震动只是锦上添花，不能因为它报错打断打卡）。
+  - 顺带修掉一处**硬编码中文**：`if (r.code !== 0)` 分支里的 `'打卡失败，请重试'` 改为语言包 `failTitleGeneric`（与 F-06 修的 `'加载中…'` 同类问题）。
+  - i18n：`index` 分区新增 7 条 × zh/en（`celebrateTitle` / `celebratePoints` / `celebrateSub` / `failTitle` / `failSub` / `failNoHear` / `failTitleGeneric`），语言包 **332 → 339 条**；「+10」的**数字**放代码常量 `CHECKIN_POINTS`、**单位**放语言包（`+{n} 分` / `+{n} pts`）。
+  - **音效未做**：`wx.createInnerAudioContext` 需要音频文件，仓库没有合适素材。文档原写「动效与音效」，本轮只做动效，代码位置留在 `showCelebrate()`。
+  - **本轮不动任何云函数**（全在前端），所以**没有部署动作**，重新编译小程序即可。
+  - 新增 `tools/check-sync.js`：**跨目录重复规则一致性自检**。项目里有几处「同一套规则必须写两遍」的地方（云函数独立打包、前端 require 不到云函数目录），脚本一次全对：① `normalizeSpell` **三处**（`utils/spell.js` / `createPoint/lib/validate.js` / `voiceCheckin`）结果一致；② `SPELL_MIN`/`SPELL_MAX`/`hasMeaningfulChar` 两端一致；③ `CHECKIN_POINTS`（首页庆祝卡片）== `POINTS.checkin`（`getRanking/lib/points.js`）。
+    - 检查中曾发现一处差异：`voiceCheckin` 的 `normalize` 写的是 `String(s)`，缺 `s == null ? '' : s` 兜底。当时判为「入参恒为字符串、真实路径触发不到，不改」——**当晚抽 `lib/match.js` 时一并补上了**（见下面的 P9 修复），脚本随之删掉"已知差异"断言，改为三处全样本（含 `null`/`undefined`/数字/布尔）完全一致，并新增第 4 节「判定规则只有一处实现」的防回退断言。
+  - 涉及模块：`pages/index/index.js`、`pages/index/index.wxml`、`pages/index/index.wxss`、`utils/i18n.js`、`tools/check-sync.js`（新建）、`docs/下一步功能规划与操作说明.md`。
+  - 文档同步：**3.7 重写**（3.7.1 原始设计 / 3.7.2 已落地与 7 处设计差异 + 文件清单 + `check-sync.js` 说明 / 3.7.3 验收用例 **M-01~M-04**）；第 2 节 P2 表 F-07 标已落地；5 排期进度与展示脚本（新增"现场撒花 + 故意念错演示失败动效"两步）；6.1 加 M-01~M-04；6.4 加"提交前跑 check-i18n + check-sync"；第 8 节重写（标题改 10-17、注明 F-07 不需部署）；文件索引补 `tools/check-sync.js`、语言包条数改 339。
+  - 本地校验：`pages/index/index.js`、`utils/i18n.js` `node --check` 通过；`check-i18n` 339/339、13 个分区全对齐；`check-sync` 全绿；三份单测回归 **25 + 81 + 84 = 190 条全绿**。
+  - **本轮未提交**（含 10-16 晚的 F-06 与隐私整改改动，一并等你在自己机器上 commit & push）。
+
+- **修复 P9：啥也没说也被判「打卡成功」（真机实测发现，P0 级判定缺陷）**
+  - 现象：在打卡点范围内按「说咒语」、**什么都不说**（或只有环境噪音），几秒后停止 → 界面直接显示「打卡成功」。
+  - 根因：`voiceCheckin` 的通过判定是 `sim >= 0.8 || got.includes(target) || target.includes(got)`。**识别结果为空串时 `target.includes('')` 恒为 `true`**（JS 里任何字符串都「包含」空串），于是「互为包含」这条路把空结果放过去了。顺带暴露第二个洞：**只说咒语里的一个字也算过**（`'明德精工'.includes('明')`）——「互为包含」本意是照顾「说了句话里含咒语」和「长咒语只念一段」，但没给较短一方设下限。
+  - 连带影响（比"显示错了"更严重）：这条 `matched: true` 的假记录**真的写进了 `records`**，而 F-03 积分与 F-04 连续打卡/徽章都是**实时从这个集合算**的 → 白送 10 分、白算一天连续打卡、可能白发一枚徽章。
+  - 改法：
+    1. **判定核心抽到同目录 `cloudfunctions/voiceCheckin/lib/match.js`**（`normalize` / `similarity` / `matchSpell` / `REASON`，不 require 任何依赖）。原来这三样都内联在 `index.js` 里，而它 require 了 `wx-server-sdk` → **本地跑不起来、根本没法单测**，这类"规则写错"只能靠真机撞。同 F-03/F-04/F-05 的 `lib/*.js` 范式。
+    2. 识别结果归一化后为空 → `reason = noSpeech`：**不判成功、也不写记录**，返回 `{ code: 0, matched: false, noSpeech: true }`，前端据此显示「没听清」（与「咒语没对上」分开 —— 该做的动作不一样：靠近麦克风 vs 看清咒语）。
+    3. 咒语归一化后为空（老数据可能绕过 F-05 校验存进「纯标点咒语」）→ `reason = invalidSpell` 直接报错。**这条不是多余的**：两侧都为空时 `similarity` 的 `a === b` 分支会返回 **1**，不拦会误判成功。
+    4. 「互为包含」加下限：**较短一方 ≥ 2 个有效字**（`MIN_CONTAIN_LEN`），一条同时堵掉空串与单字。
+    5. 录音只有 44 字节（裸 wav 头、无采样点）时**跳过讯飞**，直接按「没听清」处理 —— 省一次 WebSocket 往返。
+  - `normalize` 同时补上 `s == null ? '' : s` 兜底 → 现在与 `utils/spell.js`、`createPoint/lib/validate.js` **三处逐字一致**（旧版 `String(null)` 会得到字符串 `"null"`）。
+  - ⚠️ 抽 `lib/match.js` 时把标点过滤表里的 **ASCII 直引号**（U+0022/U+0027）凭视觉抄成了中文弯引号（两者行为不同），被 `check-sync` 扩充后的样本逮住并修正；已在 `lib/match.js` 注释里写明"别凭视觉抄、以码点为准"。
+  - 新增 `tools/test-voice-match.js`（**45 条，全部通过**：空/空白/纯标点/null 的回归、只说一个字、相似度 0.8 边界、互为包含两个方向、脏数据咒语、`normalize` 与前端一致）；`check-sync` 样本从 16 扩到 24 条并新增第 4 节防回退断言（谁把判定内联回 index.js 就会红）。
+  - 涉及模块：`cloudfunctions/voiceCheckin/lib/match.js`（新建）、`cloudfunctions/voiceCheckin/index.js`、`pages/index/index.js`、`utils/i18n.js`（339 → **341**）、`tools/test-voice-match.js`（新建）、`tools/check-sync.js`、`docs/下一步功能规划与操作说明.md`。
+  - 注意：`voiceCheckin` 改的是**云函数**，必须重新部署（带 `lib/` 子目录，上传回执文件数比上次多属正常）；**修复前真机留下的假记录要清掉** —— 控制台 `records` 里筛 `matched = true` 且 `similarity = 0` 删除（正常成功相似度不可能是 0），排行榜/连续打卡会自动恢复（都是实时算的）；若徽章页多解锁了，删 `user_badges` 对应记录即可。
+  - 文档同步：1.3 表新增 **P9**；3.0 表加 `voiceCheckin` 第三次改造行；**新增 3.13 节**（3.13.1 现象与根因表 / 3.13.2 五处改法 / 3.13.3 改动清单 / 3.13.4 必须重新部署 / 3.13.5 脏数据清理 / 3.13.6 验收 **V-01~V-04**）；3.9.4 部署清单把 `voiceCheckin` 改成「✅ 必传（第三次）」；6.1 新增 V-01~V-04 与 `test-voice-match` 提示；第 8 节把 `voiceCheckin` 提到重传首位并加脏数据清理提醒；文件索引补 `lib/match.js`、`tools/test-voice-match.js`、语言包条数改 341。
+  - 本地校验：`voiceCheckin/index.js`、`voiceCheckin/lib/match.js`、`pages/index/index.js`、`utils/i18n.js`、`tools/*.js` 全部 `node --check` 通过；`test-voice-match` **45 条全绿**；`check-i18n` **341/341**、13 个分区全对齐；`check-sync` 四节全绿（含三处 `normalize` 24 样本一致）；四份单测回归 **25 + 81 + 84 + 45 = 235 条全绿**。
+
 ## 后续计划
 
 > 待补充：以下为基于当前进度的建议项，请按团队实际安排更新。
@@ -273,8 +336,11 @@ mini-program-demo/
 - [x] 积分排行榜与用户积分（玩家积分榜 / 点位热度榜，`getRanking`，积分实时计算不落库）
 - [x] 连续打卡与成就徽章（`getBadges` + `pages/badges`，8 枚徽章懒判定 + `voiceCheckin` 补 `dayKey`）
 - [x] 用户自建打卡点位（`createPoint` + `pages/point-create` + 官方/玩家图钉区分 + `reportPoint` 举报与自动隐藏）
+- [x] 隐私整改：好友模块与登录出参不下发 `openid`（`friends` 的 PK 改用好友记录 `_id` 作句柄，`login` 加 `pickUser()` 白名单）
 - [ ] 接入真实短信验证码通道（腾讯云 SMS，需企业实名 + 签名审核）
-- [ ] 打卡记录分页加载（下拉加载更多）
+- [x] 打卡记录分页加载（`getRecords` 加 `successTotal`/`hasMore` + 触底加载 + 下拉刷新 + 统计口径改服务端全量）
+- [x] 打卡结果反馈动效（F-07：成功整屏撒花 + 居中结果卡「+10 分」/ 失败按钮抖动 + 顶部红色提示条 + 震动；音效待补）
+- [x] 声控判定缺陷修复（P9：空识别结果不再判成功 + 单字不再判成功，判定抽到 `voiceCheckin/lib/match.js` 并配 45 条单测）
 - [ ] 定时触发器：自动将超时任务置为 `expired`
 - [ ] 云函数敏感配置外置（讯飞 APPID / APIKey / APISecret 改为环境变量并轮换）
 - [ ] 界面样式统一与视觉优化

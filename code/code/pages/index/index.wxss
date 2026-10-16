@@ -408,3 +408,203 @@
 .page.font-xl .point-creator { font-size: 26rpx; }
 .page.font-xl .legend-text { font-size: 26rpx; }
 .page.font-xl .report-link { font-size: 26rpx; }
+
+/* ============================================================
+   F-07 打卡结果反馈动效
+   ⚠️ 这是纯 CSS 动画 + wx:if 的浮层，没有用 wx.createAnimation：
+      庆祝层要同时驱动「14 片撒花 + 一张卡片」四个属性各自不同，用 wx.createAnimation
+      得维护多套 animation 实例、还得手动清除，不如把参数写进 style、动画交给 CSS。
+   ============================================================ */
+
+/* --- 成功：整屏庆祝层 --- */
+.celebrate {
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* 关键：不拦截点击 —— 庆祝的 2.2s 里用户仍能正常操作按钮 */
+  pointer-events: none;
+}
+
+/* 撒花碎片：从屏幕上方飘落 + 旋转，每片的 left / 延迟 / 时长 / 颜色由 wxml 的 style 单独给 */
+.confetti {
+  position: absolute;
+  top: -60rpx;
+  opacity: 0;
+  animation-name: confetti-fall;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+@keyframes confetti-fall {
+  0%   { transform: translateY(0) rotate(0deg); opacity: 0; }
+  10%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { transform: translateY(105vh) rotate(720deg); opacity: 0; }
+}
+
+/* 居中结果卡（徽章放大弹入：先缩到 0.4，弹过 1.06 再落回 1） */
+.result-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 400rpx;
+  padding: 40rpx 50rpx;
+  background: rgba(255, 255, 255, 0.97);
+  border-radius: 28rpx;
+  box-shadow: 0 12rpx 48rpx rgba(0, 0, 0, 0.18);
+  animation: result-pop 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes result-pop {
+  0%   { transform: scale(0.4); opacity: 0; }
+  60%  { transform: scale(1.06); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.result-icon {
+  width: 110rpx;
+  height: 110rpx;
+  border-radius: 50%;
+  background: #1f9d6b;
+  color: #ffffff;
+  font-size: 64rpx;
+  line-height: 110rpx;
+  text-align: center;
+  font-weight: bold;
+}
+
+.result-title {
+  margin-top: 22rpx;
+  font-size: 34rpx;
+  font-weight: bold;
+  color: #1f4e79;
+}
+
+/* 「+10 分」用打卡按钮那套橙红，视觉上把"得分"和"操作"关联起来 */
+.result-points {
+  margin-top: 8rpx;
+  font-size: 52rpx;
+  font-weight: bold;
+  color: #e05a3a;
+}
+
+.result-sub {
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  color: #666666;
+  text-align: center;
+}
+
+/* --- 失败：从上方滑入的提示条 ---
+   放上方而不是底部，是为了不压住录音按钮：失败后用户八成马上要再念一次。 */
+.feedback-bar {
+  position: fixed;
+  top: 100rpx;
+  left: 40rpx;
+  right: 40rpx;
+  z-index: 998;
+  display: flex;
+  align-items: flex-start;
+  padding: 20rpx 26rpx;
+  background: #fdeceb;
+  border: 2rpx solid #f3bdb8;
+  border-radius: 16rpx;
+  box-shadow: 0 8rpx 30rpx rgba(0, 0, 0, 0.12);
+  pointer-events: none;
+  animation: feedback-in 0.28s ease-out both;
+}
+
+@keyframes feedback-in {
+  0%   { transform: translateY(-140rpx); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+.feedback-icon {
+  flex-shrink: 0;
+  width: 40rpx;
+  height: 40rpx;
+  margin-right: 16rpx;
+  border-radius: 50%;
+  background: #d33a31;
+  color: #ffffff;
+  font-size: 24rpx;
+  line-height: 40rpx;
+  text-align: center;
+}
+
+.feedback-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.feedback-title {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #a8271f;
+}
+
+.feedback-sub {
+  margin-top: 4rpx;
+  font-size: 24rpx;
+  color: #b8544c;
+  line-height: 1.45;
+}
+
+/* --- 录音按钮抖动（失败时由 JS 加/摘 .shake 类，见 showFailFeedback） --- */
+.shake {
+  animation: btn-shake 0.5s ease-in-out;
+}
+
+@keyframes btn-shake {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-12rpx) rotate(-2deg); }
+  30% { transform: translateX(12rpx) rotate(2deg); }
+  45% { transform: translateX(-10rpx) rotate(-1.5deg); }
+  60% { transform: translateX(10rpx) rotate(1.5deg); }
+  80% { transform: translateX(-4rpx); }
+}
+
+/* 深色模式（色板与 app.wxss 一致：主文字 #e5e5e5 / 次级 #9a9a9c / 链接 #7fb0dd） */
+.page.dark .result-card {
+  background: rgba(44, 44, 46, 0.97);
+}
+
+.page.dark .result-title {
+  color: #8ab4e8;
+}
+
+.page.dark .result-sub {
+  color: #9a9a9c;
+}
+
+.page.dark .feedback-bar {
+  background: #3d2422;
+  border-color: #6b3a34;
+}
+
+.page.dark .feedback-title {
+  color: #f0938a;
+}
+
+.page.dark .feedback-sub {
+  color: #c98b84;
+}
+
+/* 字体大小 */
+.page.font-lg .result-title { font-size: 38rpx; }
+.page.font-lg .result-sub { font-size: 26rpx; }
+.page.font-lg .feedback-title { font-size: 30rpx; }
+.page.font-lg .feedback-sub { font-size: 26rpx; }
+
+.page.font-xl .result-title { font-size: 42rpx; }
+.page.font-xl .result-sub { font-size: 28rpx; }
+.page.font-xl .feedback-title { font-size: 32rpx; }
+.page.font-xl .feedback-sub { font-size: 28rpx; }

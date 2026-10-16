@@ -54,7 +54,19 @@ const zh = {
     errLocation: '定位失败：{msg}',
     errRecord: '录音失败：{msg}',
     errCheckin: '打卡失败：{msg}',
-    errLogin: '登录失败，请检查云函数'
+    errLogin: '登录失败，请检查云函数',
+    // ===== F-07 打卡结果反馈动效 =====
+    celebrateTitle: '打卡成功',
+    // 「+{n} 分」的 n 由 index.js 的 CHECKIN_POINTS 给（= 积分规则里的打卡基础分 10），
+    // 单位放语言包、数字放代码，这样英文是 "+10 pts"、中文是 "+10 分"，不用改代码
+    celebratePoints: '+{n} 分',
+    celebrateSub: '你说的是「{text}」，相似度 {sim}%',
+    failTitle: '咒语没对上',
+    failSub: '听到的是「{text}」，再试一次',
+    failNoHear: '没听清，请靠近麦克风再说一次',
+    failTitleNoHear: '没听清',
+    tipNoSpeech: '🎤 没听清，请靠近麦克风把咒语念一遍',
+    failTitleGeneric: '打卡没成功'
   },
   mine: {
     notLogin: '未登录',
@@ -136,7 +148,12 @@ const zh = {
     similarity: '相似度',
     none: '无',
     close: '关闭',
-    loadFail: '加载失败，请检查 getRecords 云函数'
+    loading: '加载中…',
+    loadingMore: '正在加载更多…',
+    pullUpMore: '上拉加载更多',
+    noMore: '没有更多了',
+    loadFail: '加载失败，请检查 getRecords 云函数',
+    loadMoreFail: '加载更多失败，请稍后重试'
   },
   pk: {
     bannerTitle: '和好友一起打卡PK',
@@ -412,7 +429,17 @@ const en = {
     errLocation: 'Location failed: {msg}',
     errRecord: 'Recording failed: {msg}',
     errCheckin: 'Check-in failed: {msg}',
-    errLogin: 'Login failed, check the cloud function'
+    errLogin: 'Login failed, check the cloud function',
+    // ===== F-07 check-in result feedback =====
+    celebrateTitle: 'Check-in success',
+    celebratePoints: '+{n} pts',
+    celebrateSub: 'You said "{text}", similarity {sim}%',
+    failTitle: 'Spell mismatch',
+    failSub: 'Heard "{text}", try again',
+    failNoHear: 'No speech detected, try again closer to the mic',
+    failTitleNoHear: 'No speech detected',
+    tipNoSpeech: '🎤 No speech detected, say the spell closer to the mic',
+    failTitleGeneric: 'Check-in failed'
   },
   mine: {
     notLogin: 'Not logged in',
@@ -494,7 +521,12 @@ const en = {
     similarity: 'Similarity',
     none: 'None',
     close: 'Close',
-    loadFail: 'Failed to load, check the getRecords cloud function'
+    loading: 'Loading…',
+    loadingMore: 'Loading more…',
+    pullUpMore: 'Pull up to load more',
+    noMore: 'No more records',
+    loadFail: 'Failed to load, check the getRecords cloud function',
+    loadMoreFail: 'Failed to load more, please try again'
   },
   pk: {
     bannerTitle: 'PK with friends',

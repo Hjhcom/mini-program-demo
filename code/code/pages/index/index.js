@@ -22,6 +22,35 @@ const MARKER_CUSTOM = '/images/marker/point-custom.png'
 // 举报原因（key 顺序必须与 index.reportReasons 文案顺序一致，见 onReportTap）
 const REPORT_REASONS = ['fake', 'improper', 'duplicate', 'other']
 
+// ===== F-07 打卡结果反馈动效 =====
+// 成功打卡的基础积分。⚠️ 这是 cloudfunctions/getRanking/lib/points.js 里 POINTS.checkin 的
+// 前端副本（前端拿不到云函数文件，云函数各自独立打包也不能互相 require）——
+// **改积分规则时两处都要改**，否则庆祝卡片上的「+10 分」会和排行榜算出来的分对不上。
+// 这里只展示「打卡」这一项的基础分；连续打卡奖励（+5×min(n,5)）是另一条规则，另计。
+const CHECKIN_POINTS = 10
+// 撒花碎片色板（与项目主色 + 图钉色一致）
+const CONFETTI_COLORS = ['#e05a3a', '#f0b429', '#1f9d6b', '#1f4e79', '#c2509a', '#3aa8c1']
+const CONFETTI_COUNT = 14
+
+// 生成一批撒花碎片（纯随机、纯函数，不依赖 this 与 wx）
+// left/delay/dur 都随机，是为了每次庆祝的落点都不一样，看起来像"撒"出来的而不是循环播放。
+function buildConfetti() {
+  const list = []
+  for (let i = 0; i < CONFETTI_COUNT; i++) {
+    list.push({
+      id: i,
+      left: Math.round(Math.random() * 92) + 2,                    // 2% ~ 94%
+      delay: Math.round(Math.random() * 600) / 1000,               // 0 ~ 0.6s
+      dur: Math.round(1200 + Math.random() * 700) / 1000,          // 1.2 ~ 1.9s
+      color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+      w: 12 + Math.round(Math.random() * 10),                      // 碎片宽（rpx）
+      h: 20 + Math.round(Math.random() * 12),                      // 碎片高（rpx）
+      round: Math.random() < 0.35                                  // 约 1/3 是圆点
+    })
+  }
+  return list
+}
+
 Page({
   data: {
     // 地图中心点（北京理工大学良乡校区）
@@ -46,6 +75,14 @@ Page({
     // F-05 自建点位
     canReport: false,    // 当前选中点位是否可举报（别人建的玩家点位才可举报）
     reportReasons: [],   // 举报原因文案（按语言填充，顺序与 REPORT_REASONS 对应）
+    // F-07 打卡结果反馈动效
+    celebrate: false,    // 是否显示成功庆祝层（整屏撒花 + 居中结果卡）
+    confetti: [],        // 撒花碎片（每次庆祝重新随机生成）
+    celebrateTitle: '',  // 结果卡标题
+    celebratePoints: '', // 结果卡积分（"+10 分"，在 JS 里拼好）
+    celebrateSub: '',    // 结果卡副标题（"你说的是…相似度…"，在 JS 里拼好）
+    feedback: null,      // 失败提示条 { title, sub }；null = 不显示
+    shake: false,        // 录音按钮是否抖动（失败时置 true，动画结束清掉）
     dark: false,       // 深色模式（全局设置）
     fontScale: 'md',   // 字体大小（全局设置）
     lang: i18n.zh,     // 当前语言文案
@@ -115,6 +152,13 @@ Page({
     this.refreshTip()
     // 处理分享卡片带来的邀请码（好友绑定）
     app.bindPendingInvite()
+  },
+
+  // 页面卸载：清掉 F-07 动效的三个定时器（页面都销毁了还去 setData 会报错刷屏）
+  onUnload: function () {
+    clearTimeout(this._celebrateTimer)
+    clearTimeout(this._feedbackTimer)
+    clearTimeout(this._shakeTimer)
   },
 
   // 按当前状态刷新提示语（语言切换后也会调用）
@@ -449,6 +493,58 @@ Page({
     wx.navigateTo({ url: '/pages/task/task' })
   },
 
+  // ===== F-07 打卡结果反馈动效 =====
+
+  // 震动反馈（失败重一点、成功轻一点）。
+  // 包 try/catch + 空 fail：低版本客户端、部分 iOS 机型不支持 vibrateShort / type 参数，
+  // 直接忽略即可 —— 震动只是锦上添花，绝不能因为它报错打断打卡主流程。
+  vibrate: function (type) {
+    if (!wx.vibrateShort) return
+    try {
+      wx.vibrateShort({ type: type || 'medium', fail: () => {} })
+    } catch (e) {}
+  },
+
+  // 打卡成功：整屏撒花 + 居中结果卡（徽章放大弹入）
+  showCelebrate: function (recognizedText, similarity) {
+    const lang = this.data.lang
+    this.setData({
+      celebrate: true,
+      confetti: buildConfetti(),
+      celebrateTitle: lang.index.celebrateTitle,
+      celebratePoints: i18n.format(lang.index.celebratePoints, { n: CHECKIN_POINTS }),
+      celebrateSub: i18n.format(lang.index.celebrateSub, {
+        text: recognizedText || '',
+        sim: Math.round((similarity || 0) * 100)
+      })
+    })
+    this.vibrate('medium')
+    // 自动收起。庆祝层是 pointer-events:none 的，不会挡住按钮操作，收起只是让它别一直挂在屏幕上。
+    clearTimeout(this._celebrateTimer)
+    this._celebrateTimer = setTimeout(() => {
+      this.setData({ celebrate: false })
+    }, 2200)
+  },
+
+  // 打卡失败：录音按钮抖动 + 顶部提示条 + 震动
+  // title/sub 由调用方给（念错 / 任务校验失败 / 网络异常 三种文案不同）
+  showFailFeedback: function (title, sub) {
+    this.setData({
+      feedback: { title: title, sub: sub || '' },
+      shake: true
+    })
+    this.vibrate('heavy')
+    // 抖动动画 0.5s 一次，600ms 后清类，这样下次失败还能重新触发（类不摘掉动画只播一次）
+    clearTimeout(this._shakeTimer)
+    this._shakeTimer = setTimeout(() => {
+      this.setData({ shake: false })
+    }, 600)
+    clearTimeout(this._feedbackTimer)
+    this._feedbackTimer = setTimeout(() => {
+      this.setData({ feedback: null })
+    }, 2600)
+  },
+
   // 说咒语按钮：开始录音 / 停止录音（需先登录）
   onRecordTap: function () {
     if (this.requireLogin()) return
@@ -502,7 +598,10 @@ Page({
       const r = res.result || {}
       // 任务校验失败（任务不存在 / 状态异常 / 不属于你 / 已超时）时先兜住 msg
       if (r.code !== 0) {
-        this.setData({ tip: '⚠️ ' + (r.msg || '打卡失败，请重试') })
+        const msg = r.msg || lang.index.failTitleGeneric
+        this.setData({ tip: '⚠️ ' + msg })
+        // F-07：这类失败也走一次反馈动效（原则：只要"这次打卡没成"，用户就该被明确告知）
+        this.showFailFeedback(lang.index.failTitleGeneric, r.msg || '')
         return
       }
       if (r.matched) {
@@ -512,6 +611,8 @@ Page({
             sim: Math.round(r.similarity * 100)
           })
         })
+        // F-07：整屏撒花 + 居中结果卡（+10 分）
+        this.showCelebrate(r.recognizedText, r.similarity)
         console.log('打卡成功', r)
         // 任务打卡成功 → 刷新待完成任务（该任务已变成已完成）
         if (taskId) this.loadPendingTask()
@@ -522,13 +623,24 @@ Page({
           this.loadPointUsers(point._id)
         }
       } else {
-        this.setData({
-          tip: i18n.format(lang.index.tipMismatch, { text: r.recognizedText })
-        })
+        // F-07：按钮抖动 + 上方提示条。
+        // 「没听清」（识别结果为空）与「念错了」给两套文案 —— 前者要用户靠近麦克风重念，
+        // 后者要用户看清楚咒语，混成一句用户不知道该改什么。
+        // 云函数在识别为空时返回 noSpeech:true（文档 3.13）；`!heard` 是兼容旧云函数的兜底。
+        const heard = String(r.recognizedText == null ? '' : r.recognizedText).trim()
+        if (r.noSpeech || !heard) {
+          this.setData({ tip: lang.index.tipNoSpeech })
+          this.showFailFeedback(lang.index.failTitleNoHear, lang.index.failNoHear)
+        } else {
+          this.setData({ tip: i18n.format(lang.index.tipMismatch, { text: heard }) })
+          this.showFailFeedback(lang.index.failTitle, i18n.format(lang.index.failSub, { text: heard }))
+        }
       }
     }).catch(err => {
       console.error('打卡失败：', err)
-      this.setData({ tip: i18n.format(lang.index.errCheckin, { msg: err.errMsg || '请检查 voiceCheckin 云函数' }) })
+      const msg = i18n.format(lang.index.errCheckin, { msg: err.errMsg || '请检查 voiceCheckin 云函数' })
+      this.setData({ tip: msg })
+      this.showFailFeedback(lang.index.failTitleGeneric, msg)
     })
   },
 

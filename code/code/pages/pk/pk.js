@@ -71,7 +71,8 @@ Page({
     wx.showLoading({ title: lang.pk.loading })
     wx.cloud.callFunction({
       name: 'friends',
-      data: { action: 'pk', friendOpenid: f.openid }
+      // 传好友关系记录的 _id（recordId），不传 openid：云函数出参从不给 openid
+      data: { action: 'pk', friendRecordId: f.recordId }
     }).then(res => {
       wx.hideLoading()
       const r = res.result || {}

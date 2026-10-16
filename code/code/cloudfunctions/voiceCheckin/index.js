@@ -3,6 +3,11 @@
 const cloud = require('wx-server-sdk')
 const crypto = require('crypto') // Node 内置：签名用
 const WebSocket = require('ws') // WebSocket 客户端（云端安装依赖时自动安装）
+// 判定核心（归一化 + 相似度 + 匹配判定）在同目录 lib/match.js：纯函数、不依赖 wx-server-sdk，
+// 所以能直接 require 出来跑本地单测（node tools/test-voice-match.js）。
+// ⚠️ 云函数各自独立打包，只能 require 自己目录内的文件 —— code/code/utils/spell.js 是**前端**
+//    那份拷贝（两者必须行为一致，由 tools/check-sync.js 兜底比对），云函数 require 不到。
+const { matchSpell, REASON } = require('./lib/match')
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
@@ -35,39 +40,7 @@ function getAuthUrl() {
   )
 }
 
-// 2. 归一化文本：转小写、全角转半角、去掉空格和标点（用于咒语比对）
-function normalize(s) {
-  return String(s)
-    .toLowerCase()
-    .replace(/[\uFF01-\uFF5E]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0))
-    .replace(/[\s，。、！？；：""''（）,.!?;:()\u3000]/g, '')
-}
-
-// 3. 编辑距离相似度（0~1，1 表示完全一样）
-function similarity(a, b) {
-  if (a === b) return 1
-  const m = a.length
-  const n = b.length
-  if (m === 0 || n === 0) return 0
-  const dp = []
-  for (let i = 0; i <= m; i++) {
-    dp[i] = [i]
-    for (let j = 1; j <= n; j++) dp[i][j] = 0
-  }
-  for (let j = 0; j <= n; j++) dp[0][j] = j
-  for (let i = 1; i <= m; i++) {
-    for (let j = 1; j <= n; j++) {
-      dp[i][j] = Math.min(
-        dp[i - 1][j] + 1,
-        dp[i][j - 1] + 1,
-        dp[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)
-      )
-    }
-  }
-  return 1 - dp[m][n] / Math.max(m, n)
-}
-
-// 4. 调用讯飞语音听写：传入音频 Buffer，返回识别文本
+// 2. 调用讯飞语音听写：传入音频 Buffer，返回识别文本（没听清时返回空串）
 function recognize(audioBuffer) {
   return new Promise((resolve, reject) => {
     const ws = new WebSocket(getAuthUrl())
@@ -147,8 +120,6 @@ exports.main = async (event, context) => {
   console.log('录音文件大小(字节)：', audio.length)
   if (audio.length >= 44) {
     console.log('wav参数-采样率：', audio.readUInt32LE(24), '声道：', audio.readUInt16LE(22), '位深：', audio.readUInt16LE(34))
-  } else {
-    console.log('警告：录音文件过小，很可能是空录音（麦克风没录到声音）')
   }
 
   // 2. 读取打卡点（拿咒语）
@@ -179,15 +150,33 @@ exports.main = async (event, context) => {
   }
 
   // 3. 讯飞识别
-  const recognizedText = await recognize(audio)
+  //    只有 44 字节 = 裸 wav 头、一个采样点都没有（麦克风压根没录到声音）。
+  //    这种情况不必去打讯飞（白等一次 WebSocket 往返 + 可能报 10107），
+  //    直接把识别结果当空串，交给下面统一按「没听清」处理。
+  const isSilentWav = audio.length <= 44
+  if (isSilentWav) console.log('录音仅 44 字节文件头（无音频数据），跳过讯飞识别')
+  const recognizedText = isSilentWav ? '' : await recognize(audio)
 
-  // 4. 归一化后比对（相似度 ≥ 0.8 或互为包含 都算通过）
-  const target = normalize(targetSpell)
-  const got = normalize(recognizedText)
-  const sim = similarity(got, target)
-  const matched = sim >= 0.8 || (got.includes(target) || target.includes(got))
+  // 4. 与目标咒语比对（规则见 lib/match.js：相似度 ≥ 0.8，或互为包含且较短一方 ≥ 2 字）
+  const judge = matchSpell(recognizedText, targetSpell)
+  const matched = judge.matched
+  const sim = judge.similarity
 
-  // 5. 写入打卡记录
+  // 5. 「没听清」和「咒语无效」都不是一次可以记录的打卡尝试 → 不写记录，直接返回
+  //    ⚠️ 空识别结果必须在这里就被拦住：JS 里任何字符串都包含空串，
+  //       target.includes(got) 在 got === '' 时恒为 true —— 不拦的话「啥也没说」
+  //       会被判成打卡成功，而且会写进 records（连带影响积分 F-03 / 连续打卡 F-04）。
+  //       常理上"没听清"也不该在记录里留一条 matched:false 的空记录污染列表。
+  if (judge.reason === REASON.NO_SPEECH) {
+    console.log('识别结果为空，按「没听清」处理（不写打卡记录）')
+    return { code: 0, matched: false, noSpeech: true, recognizedText: '', similarity: 0 }
+  }
+  if (judge.reason === REASON.INVALID_SPELL) {
+    console.log('打卡点咒语的归一化结果为空，判为脏数据：', pointId)
+    return { code: -1, msg: '该打卡点的咒语无效，请联系创建者重新设置' }
+  }
+
+  // 6. 写入打卡记录
   //    dayKey：按 UTC+8 算出的自然日（'YYYY-MM-DD'），供 F-04 连续打卡统计使用，
   //    也是将来给 records 建「同一用户同一点位同一天唯一」索引的前提。
   //    ⚠️ 云函数容器时区是 UTC，直接取本地日期会差 8 小时 ——
@@ -208,7 +197,7 @@ exports.main = async (event, context) => {
       pointName: point.name,
       spell: targetSpell,                 // 原来是 point.spell，改成实际比对用的咒语
       recognizedText: recognizedText,
-      similarity: Math.round(sim * 100) / 100,
+      similarity: sim,
       matched: matched,
       taskId: taskId || null,             // 新增
       dayKey: dayKey,                     // 新增：F-04 连续打卡统计用
@@ -231,6 +220,6 @@ exports.main = async (event, context) => {
     code: 0,
     recognizedText: recognizedText,
     matched: matched,
-    similarity: Math.round(sim * 100) / 100
+    similarity: sim
   }
 }

@@ -1,13 +1,16 @@
-// pages/records/records.js —— 我的打卡记录：列表 + 详情
+// pages/records/records.js —— 我的打卡记录：分页列表（触底加载更多 / 下拉刷新）+ 详情
 const app = getApp()
 const i18n = require('../../utils/i18n')
 
 Page({
   data: {
-    records: [],       // 打卡记录列表
-    total: 0,          // 总记录数
-    successCount: 0,   // 成功次数
-    loading: true,
+    records: [],       // 已加载的打卡记录（分页累加）
+    total: 0,          // 总记录数（服务端全量）
+    successCount: 0,   // 成功次数（服务端全量统计，不随翻页变化）
+    page: 0,           // 已加载到第几页
+    hasMore: true,     // 还有没有下一页
+    loading: true,     // 首屏加载中
+    loadingMore: false,// 触底加载下一页中
     showDetail: false, // 是否显示详情弹窗
     detail: null,      // 当前查看的记录
     dark: false,       // 深色模式（全局设置）
@@ -16,7 +19,11 @@ Page({
   },
 
   onLoad: function () {
-    this.loadRecords()
+    // ⚠️ 首屏就要用到 lang（全屏 loading 文案、加载失败提示），不能只在 onShow 里取，
+    //    否则英文模式下首屏会闪出中文文案
+    const isEn = app.globalData.language === 'en'
+    this.setData({ lang: isEn ? i18n.en : i18n.zh })
+    this.loadRecords(true)
   },
 
   // 页面显示：同步全局设置（深色模式 / 字体大小 / 语言）
@@ -30,31 +37,62 @@ Page({
     wx.setNavigationBarTitle({ title: isEn ? 'My Records' : '我的打卡记录' })
   },
 
+  // 触底加载下一页（触发距离在 records.json 的 onReachBottomDistance）
+  onReachBottom: function () {
+    if (!this.data.hasMore || this.data.loadingMore || this.data.loading) return
+    this.loadRecords(false)
+  },
+
+  // 下拉刷新：回到第 1 页重载（records.json 里已开启 enablePullDownRefresh）
+  onPullDownRefresh: function () {
+    // silent = true：下拉刷新自带转圈，不要再叠一个全屏 loading
+    this.loadRecords(true, true).then(() => wx.stopPullDownRefresh())
+  },
+
   // 加载打卡记录（调 getRecords 云函数）
-  loadRecords: function () {
-    wx.showLoading({ title: '加载中…' })
-    wx.cloud.callFunction({
-      name: 'getRecords'
+  //  reset  = true  从第 1 页重载（首屏 / 下拉刷新）；false 追加下一页
+  //  silent = true  不弹全屏 loading（下拉刷新用）
+  //  返回 promise，方便调用方在结束后收尾（如 stopPullDownRefresh）
+  loadRecords: function (reset, silent) {
+    const page = reset ? 1 : this.data.page + 1
+    if (reset) {
+      this.setData({ loading: true })
+      if (!silent) wx.showLoading({ title: this.data.lang.records.loading })
+    } else {
+      // 加载更多只在列表底部显示，避免全屏 loading 遮住已经看到的内容
+      this.setData({ loadingMore: true })
+    }
+
+    return wx.cloud.callFunction({
+      name: 'getRecords',
+      data: { page: page }
     }).then(res => {
       wx.hideLoading()
-      if (res.result.code !== 0) throw new Error(res.result.msg || '加载失败')
-      const list = res.result.records || []
+      const r = res.result || {}
+      if (r.code !== 0) throw new Error(r.msg || '加载失败')
       // 补充展示字段：格式化时间、相似度百分比
-      const records = list.map(item => ({
+      const list = (r.records || []).map(item => ({
         ...item,
         timeText: this.formatTime(item.createTime),
         simText: Math.round((item.similarity || 0) * 100) + '%'
       }))
       this.setData({
-        records: records,
-        total: res.result.total || records.length,
-        successCount: records.filter(r => r.matched).length,
-        loading: false
+        records: reset ? list : this.data.records.concat(list),
+        page: page,
+        total: r.total || 0,
+        successCount: r.successTotal || 0, // 服务端全量统计，翻页不会漂
+        hasMore: r.hasMore === true,
+        loading: false,
+        loadingMore: false
       })
     }).catch(err => {
       wx.hideLoading()
       console.error('加载打卡记录失败：', err)
-      wx.showToast({ title: this.data.lang.records.loadFail, icon: 'none' })
+      this.setData({ loading: false, loadingMore: false })
+      wx.showToast({
+        title: reset ? this.data.lang.records.loadFail : this.data.lang.records.loadMoreFail,
+        icon: 'none'
+      })
     })
   },
 

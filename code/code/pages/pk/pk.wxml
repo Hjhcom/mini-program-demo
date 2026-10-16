@@ -12,7 +12,7 @@
 
   <!-- 好友列表 -->
   <view class="friend-list" wx:if="{{friends.length > 0}}">
-    <view class="friend-item" wx:for="{{friends}}" wx:key="openid" bindtap="onFriendTap" data-index="{{index}}">
+    <view class="friend-item" wx:for="{{friends}}" wx:key="recordId" bindtap="onFriendTap" data-index="{{index}}">
       <view class="friend-avatar">{{ item.nickname[0] }}</view>
       <view class="friend-info">
         <view class="friend-name">{{item.nickname}}</view>

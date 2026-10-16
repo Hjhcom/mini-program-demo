@@ -35,6 +35,19 @@ async function ensureInviteCode(user) {
   return user
 }
 
+// ⚠️ 出参白名单：users 的文档不整份回传（团队约定：云函数对外只给白名单字段）
+//    - openid 是敏感凭据，不出服务端；身份一律取自 getWXContext()，不靠前端传
+//    - phone 是 PII，前端也从不展示，没必要落到 wx.setStorageSync 里
+//    - totalCheckins 恒 0（无累加逻辑），传出去只会被误当数据源
+//    前端实际只读 nickname / avatarUrl / inviteCode（source 由前端登录方式自行标注）
+function pickUser(user) {
+  return {
+    nickname: user.nickname || '打卡玩家',
+    avatarUrl: user.avatarUrl || '',
+    inviteCode: user.inviteCode || ''
+  }
+}
+
 exports.main = async (event, context) => {
   const { OPENID } = cloud.getWXContext()
 
@@ -78,9 +91,9 @@ exports.main = async (event, context) => {
         createdAt: db.serverDate()
       }
       await db.collection('users').add({ data: newUser })
-      return { code: 0, isNew: true, user: newUser }
+      return { code: 0, isNew: true, user: pickUser(newUser) }
     }
-    return { code: 0, isNew: false, user: await ensureInviteCode(res.data[0]) }
+    return { code: 0, isNew: false, user: pickUser(await ensureInviteCode(res.data[0])) }
   }
 
   // ===== 手机号快速验证登录（getPhoneNumber 动态 code，需企业认证主体）=====
@@ -105,9 +118,9 @@ exports.main = async (event, context) => {
           createdAt: db.serverDate()
         }
         await db.collection('users').add({ data: newUser })
-        return { code: 0, isNew: true, user: newUser }
+        return { code: 0, isNew: true, user: pickUser(newUser) }
       }
-      return { code: 0, isNew: false, user: await ensureInviteCode(res.data[0]) }
+      return { code: 0, isNew: false, user: pickUser(await ensureInviteCode(res.data[0])) }
     } catch (e) {
       console.error('手机号登录失败：', e)
       return { code: -1, msg: '手机号登录失败：' + (e.errMsg || e.message) }
@@ -130,7 +143,7 @@ exports.main = async (event, context) => {
       createdAt: db.serverDate()
     }
     await users.add({ data: newUser })
-    return { code: 0, isNew: true, user: newUser }
+    return { code: 0, isNew: true, user: pickUser(newUser) }
   }
 
   // 完善资料：更新当前用户的头像昵称（微信登录弹窗确认后调用）
@@ -144,9 +157,9 @@ exports.main = async (event, context) => {
       }
     })
     const after = await users.where({ openid: OPENID }).get()
-    return { code: 0, isNew: false, user: await ensureInviteCode(after.data[0]) }
+    return { code: 0, isNew: false, user: pickUser(await ensureInviteCode(after.data[0])) }
   }
 
   // 老用户：直接返回已存的信息（补邀请码）
-  return { code: 0, isNew: false, user: await ensureInviteCode(res.data[0]) }
+  return { code: 0, isNew: false, user: pickUser(await ensureInviteCode(res.data[0])) }
 }

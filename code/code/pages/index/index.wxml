@@ -73,7 +73,7 @@
     <view class="tip">{{tip}}</view>
     <view class="btn-row">
       <button class="btn" bindtap="checkIn">{{lang.index.checkIn}}</button>
-      <button wx:if="{{inRange}}" class="btn btn-record {{recording ? 'recording' : ''}}"
+      <button wx:if="{{inRange}}" class="btn btn-record {{recording ? 'recording' : ''}} {{shake ? 'shake' : ''}}"
               bindtap="onRecordTap">{{recording ? lang.index.recording : lang.index.spell}}</button>
       <button wx:if="{{selectedPoint}}" class="btn btn-ghost" bindtap="goCreateTask">{{lang.index.createTaskForFriend}}</button>
       <button class="btn btn-ghost" bindtap="goCreatePoint">{{lang.index.createPoint}}</button>
@@ -84,6 +84,29 @@
     <!-- F-05：举报入口（仅别人创建的玩家点位显示） -->
     <view class="report-row" wx:if="{{canReport}}">
       <text class="report-link" bindtap="onReportTap">{{lang.index.report}}</text>
+    </view>
+  </view>
+
+  <!-- ===== F-07 打卡结果反馈动效 ===== -->
+  <!-- 成功：整屏撒花 + 居中结果卡（徽章放大弹入 + 底部 +10 分）。
+       pointer-events:none 让庆祝层不挡按钮；2.2s 后由 JS 自动收起。 -->
+  <view class="celebrate" wx:if="{{celebrate}}">
+    <view class="confetti" wx:for="{{confetti}}" wx:key="id"
+          style="left:{{item.left}}%;animation-delay:{{item.delay}}s;animation-duration:{{item.dur}}s;background:{{item.color}};width:{{item.w}}rpx;height:{{item.h}}rpx;border-radius:{{item.round ? '50%' : '4rpx'}}"></view>
+    <view class="result-card">
+      <view class="result-icon">✓</view>
+      <text class="result-title">{{celebrateTitle}}</text>
+      <text class="result-points">{{celebratePoints}}</text>
+      <text class="result-sub">{{celebrateSub}}</text>
+    </view>
+  </view>
+
+  <!-- 失败：从上方滑入的红色提示条（念错 / 任务校验失败 / 网络异常都会走到这里） -->
+  <view class="feedback-bar" wx:if="{{feedback}}">
+    <text class="feedback-icon">✕</text>
+    <view class="feedback-text">
+      <text class="feedback-title">{{feedback.title}}</text>
+      <text class="feedback-sub" wx:if="{{feedback.sub}}">{{feedback.sub}}</text>
     </view>
   </view>
 </view>
