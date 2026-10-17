@@ -1,12 +1,23 @@
 <!-- 首页结构：地图 + 底部信息栏 -->
 <view class="page {{dark ? 'dark' : ''}} {{fontScale == 'lg' ? 'font-lg' : fontScale == 'xl' ? 'font-xl' : ''}}">
   <!-- 地图组件：markers 显示打卡点图钉 -->
+  <!-- F-08：show-location 会画出「我的位置」蓝点；id 供 MapContext.moveToLocation 使用 -->
   <map class="map"
+       id="map"
        longitude="{{center.longitude}}"
        latitude="{{center.latitude}}"
        scale="{{scale}}"
        markers="{{markers}}"
+       show-location
        bindmarkertap="onMarkerTap"></map>
+
+  <!-- F-08：地图工具（右上角浮层）—— 回到我的位置 -->
+  <view class="map-tools">
+    <view class="map-tool" bindtap="onLocateTap">
+      <text class="map-tool-icon">◎</text>
+      <text class="map-tool-text">{{lang.index.locate}}</text>
+    </view>
+  </view>
 
   <!-- F-05：图钉颜色图例（官方 / 玩家自建） -->
   <view class="legend" wx:if="{{isLoggedIn}}">
@@ -54,6 +65,10 @@
       <text class="point-creator" wx:if="{{selectedPoint.creatorNickname}}">
         {{lang.index.creatorPrefix}}{{selectedPoint.creatorNickname}}
       </text>
+      <!-- F-08：唤起导航（交给微信内置地图，用户可直接点「导航」） -->
+      <view class="point-actions">
+        <text class="point-navigate" bindtap="onNavigateTap">{{lang.index.navigate}}</text>
+      </view>
     </view>
 
     <!-- F-02：该点位的打卡玩家（人数 + 头像墙） -->
@@ -77,6 +92,7 @@
               bindtap="onRecordTap">{{recording ? lang.index.recording : lang.index.spell}}</button>
       <button wx:if="{{selectedPoint}}" class="btn btn-ghost" bindtap="goCreateTask">{{lang.index.createTaskForFriend}}</button>
       <button class="btn btn-ghost" bindtap="goCreatePoint">{{lang.index.createPoint}}</button>
+      <button class="btn btn-ghost" bindtap="goPointList">{{lang.index.pointList}}</button>
       <button class="btn btn-ghost" bindtap="goRanking">{{lang.index.ranking}}</button>
       <button class="btn btn-ghost" bindtap="goRecords">{{lang.index.records}}</button>
     </view>

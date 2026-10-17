@@ -27,7 +27,14 @@
       <view class="task-meta">🗣 {{lang.task.spellPrefix}}{{item.spell}}</view>
       <view class="task-foot">
         <text class="task-time">{{lang.task.deadlinePrefix}}{{item.deadlineText}}</text>
-        <text class="task-code" wx:if="{{item.canCopyCode}}">{{item.codeText}}</text>
+        <view class="task-foot-right">
+          <text class="task-code" wx:if="{{item.canCopyCode}}">{{item.codeText}}</text>
+          <!-- F-10：把这条任务分享给好友。open-type="share" 才会走到 onShareAppMessage 的 button 分支；
+               catchtap 是拦住冒泡，否则点分享会连带触发卡片的「复制任务码」 -->
+          <button class="share-btn" wx:if="{{item.canCopyCode}}" open-type="share"
+                  catchtap="noop"
+                  data-code="{{item.inviteCode}}" data-title="{{item.title}}">{{lang.task.share}}</button>
+        </view>
       </view>
     </view>
   </view>

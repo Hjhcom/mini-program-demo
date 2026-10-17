@@ -26,6 +26,15 @@ Page({
     return app.globalData.language === 'en' ? i18n.en : i18n.zh
   },
 
+  // F-10：从分享卡片进来时，路径里带 inviteCode（好友把任务分享给你）
+  // 这里只把码存起来，真正处理放到 onShow —— onLoad 时登录态可能还没准备好
+  onLoad: function (options) {
+    const code = options && options.inviteCode
+    if (code && /^\d{6}$/.test(String(code))) {
+      this._pendingCode = String(code)
+    }
+  },
+
   // 每次显示都同步全局设置并刷新列表（从发布页返回时能看到新任务）
   onShow: function () {
     const lang = this.getLang()
@@ -37,6 +46,8 @@ Page({
     })
     wx.setNavigationBarTitle({ title: lang.task.navTitle })
     this.loadTasks()
+    // F-10：分享卡片带进来的任务码，等登录态确定之后才处理（未登录先留着）
+    this.consumePendingCode()
   },
 
   // 下拉刷新（task.json 里已开启 enablePullDownRefresh）
@@ -176,6 +187,57 @@ Page({
       console.error('接受任务失败：', err)
       wx.showToast({ title: lang.task.acceptFailCloud, icon: 'none' })
     })
+  },
+
+  // ===== F-10 分享与邀请 =====
+
+  // 处理分享链接带进来的任务码
+  // 未登录 → 只提示一次（这时弹确认框也接不了），登录后回到本页 onShow 会再走一遍
+  // 已登录 → 弹确认框，确认就调 acceptTask
+  consumePendingCode: function () {
+    const code = this._pendingCode
+    if (!code) return
+    const lang = this.getLang()
+    if (!app.globalData.userInfo) {
+      if (!this._inviteHinted) {
+        this._inviteHinted = true
+        wx.showToast({ title: lang.task.inviteLoginFirst, icon: 'none' })
+      }
+      return
+    }
+    // 处理过就清掉，否则每次 onShow（比如从别的页面返回）都会再弹一次
+    this._pendingCode = ''
+    wx.showModal({
+      title: lang.task.inviteTitle,
+      content: i18n.format(lang.task.inviteContent, { code: code }),
+      success: res => {
+        if (!res.confirm) return
+        this.acceptTask(code)
+      }
+    })
+  },
+
+  // 空方法：只用来 catchtap 挡住冒泡（分享按钮位于可点击的任务卡片里）
+  noop: function () {},
+
+  // 转发
+  //  · 点任务卡片上的「分享给好友」按钮（from === 'button'）→ 分享这一条任务，路径带任务码
+  //  · 右上角「...」菜单 → 分享首页并带我的邀请码（比分享一个空任务页更有拉新价值）
+  onShareAppMessage: function (res) {
+    const lang = this.getLang()
+    const ds = (res && res.target && res.target.dataset) || {}
+    if (res && res.from === 'button' && ds.code) {
+      return {
+        title: i18n.format(lang.task.shareTitle, { name: ds.title || '' }),
+        path: '/pages/task/task?inviteCode=' + ds.code
+      }
+    }
+    const user = app.globalData.userInfo
+    const invite = (user && user.inviteCode) || ''
+    return {
+      title: lang.task.shareDefault,
+      path: '/pages/index/index' + (invite ? '?invite=' + invite : '')
+    }
   },
 
   // 发布新任务 → 跳发布页

@@ -50,6 +50,33 @@
   color: #333333;
 }
 
+/* ===== F-08 地图工具（浮在地图右上角）===== */
+.map-tools {
+  position: absolute;
+  top: 20rpx;
+  right: 20rpx;
+  z-index: 10;
+}
+
+.map-tool {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 24rpx;
+  padding: 10rpx 20rpx;
+}
+
+.map-tool-icon {
+  font-size: 24rpx;
+  color: #1f4e79;
+  margin-right: 6rpx;
+}
+
+.map-tool-text {
+  font-size: 22rpx;
+  color: #333333;
+}
+
 /* 待完成任务提示条（在地图与底部面板之间） */
 .task-bar {
   display: flex;
@@ -183,6 +210,20 @@
   font-size: 22rpx;
   color: #999;
   margin-top: 6rpx;
+}
+
+/* F-08：唤起导航（点位信息里的小胶囊按钮） */
+.point-actions {
+  display: flex;
+  margin-top: 14rpx;
+}
+
+.point-navigate {
+  font-size: 24rpx;
+  color: #1f4e79;
+  border: 2rpx solid #1f4e79;
+  border-radius: 999rpx;
+  padding: 6rpx 20rpx;
 }
 
 /* F-05：举报入口（面板底部右对齐的小字） */
@@ -335,6 +376,24 @@
   color: #e5e5e5;
 }
 
+/* F-08：地图工具与导航胶囊的深色配色（与图例同一套色板） */
+.page.dark .map-tool {
+  background: rgba(44, 44, 46, 0.92);
+}
+
+.page.dark .map-tool-icon {
+  color: #7fb0dd;
+}
+
+.page.dark .map-tool-text {
+  color: #e5e5e5;
+}
+
+.page.dark .point-navigate {
+  color: #7fb0dd;
+  border-color: #7fb0dd;
+}
+
 .page.dark .dot-official {
   background: #8ab4e8;
 }
@@ -398,6 +457,8 @@
 .page.font-lg .point-creator { font-size: 24rpx; }
 .page.font-lg .legend-text { font-size: 24rpx; }
 .page.font-lg .report-link { font-size: 24rpx; }
+.page.font-lg .map-tool-text { font-size: 24rpx; }
+.page.font-lg .point-navigate { font-size: 26rpx; }
 
 .page.font-xl .point-name { font-size: 38rpx; }
 .page.font-xl .point-spell { font-size: 32rpx; }
@@ -408,6 +469,8 @@
 .page.font-xl .point-creator { font-size: 26rpx; }
 .page.font-xl .legend-text { font-size: 26rpx; }
 .page.font-xl .report-link { font-size: 26rpx; }
+.page.font-xl .map-tool-text { font-size: 26rpx; }
+.page.font-xl .point-navigate { font-size: 28rpx; }
 
 /* ============================================================
    F-07 打卡结果反馈动效

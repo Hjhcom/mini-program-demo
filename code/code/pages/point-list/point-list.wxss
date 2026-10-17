@@ -1,0 +1,259 @@
+/* 打卡点列表页样式（色板与全局一致：主色 #1f4e79、官方蓝 / 自建橙） */
+.page {
+  min-height: 100vh;
+  background: #f5f6f7;
+  padding-bottom: 40rpx;
+}
+
+/* ===== 顶部说明条：总数 + 定位状态 ===== */
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 30rpx;
+  background: #ffffff;
+  border-bottom: 2rpx solid #ececee;
+}
+
+.head-total {
+  font-size: 26rpx;
+  color: #666;
+}
+
+.head-hint {
+  display: flex;
+  align-items: center;
+}
+
+.head-hint-text {
+  font-size: 24rpx;
+  color: #c0703a;
+}
+
+.head-retry {
+  font-size: 24rpx;
+  color: #1f4e79;
+  margin-left: 12rpx;
+  border-bottom: 2rpx solid #1f4e79;
+}
+
+/* ===== 分组标题 ===== */
+.section {
+  padding: 24rpx 30rpx 0;
+}
+
+.section-title {
+  display: block;
+  font-size: 24rpx;
+  color: #999;
+  margin-bottom: 16rpx;
+}
+
+/* ===== 点位卡片 ===== */
+.card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ffffff;
+  border-radius: 16rpx;
+  padding: 24rpx 30rpx;
+  margin-bottom: 18rpx;
+}
+
+.card-main {
+  flex: 1;
+  min-width: 0; /* 没它的话下面的 ellipsis 在 flex 里不生效 */
+}
+
+.card-title-row {
+  display: flex;
+  align-items: center;
+}
+
+.card-name {
+  font-size: 30rpx;
+  color: #222;
+  font-weight: 500;
+  margin-right: 12rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-tag {
+  font-size: 20rpx;
+  padding: 2rpx 12rpx;
+  border-radius: 999rpx;
+  flex-shrink: 0;
+}
+
+.tag-official {
+  color: #1f4e79;
+  background: #e8f0f8;
+}
+
+.tag-mine {
+  color: #b5661a;
+  background: #fdf0e2;
+}
+
+.tag-player {
+  color: #7a7a7c;
+  background: #f1f1f3;
+}
+
+.card-spell {
+  display: block;
+  font-size: 24rpx;
+  color: #888;
+  margin-top: 8rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-left: 20rpx;
+  flex-shrink: 0;
+}
+
+.card-dist {
+  font-size: 26rpx;
+  color: #1f4e79;
+  font-weight: 500;
+}
+
+.card-nav {
+  font-size: 22rpx;
+  color: #999;
+  margin-top: 10rpx;
+  border: 2rpx solid #dcdcde;
+  border-radius: 999rpx;
+  padding: 4rpx 14rpx;
+}
+
+/* ===== 加载 / 空状态 ===== */
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 140rpx 60rpx;
+}
+
+.state-text {
+  font-size: 28rpx;
+  color: #999;
+  margin-top: 20rpx;
+}
+
+.state-sub {
+  font-size: 24rpx;
+  color: #bbb;
+  margin-top: 12rpx;
+}
+
+.spinner {
+  width: 44rpx;
+  height: 44rpx;
+  border: 4rpx solid #e0e0e2;
+  border-top-color: #1f4e79;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.foot-tip {
+  text-align: center;
+  font-size: 22rpx;
+  color: #bbb;
+  padding: 20rpx 40rpx 40rpx;
+}
+
+/* ===== 深色模式 ===== */
+.page.dark {
+  background: #111112;
+}
+
+.page.dark .head {
+  background: #1c1c1e;
+  border-bottom-color: #2c2c2e;
+}
+
+.page.dark .head-total {
+  color: #9a9a9c;
+}
+
+.page.dark .head-hint-text {
+  color: #d99a6c;
+}
+
+.page.dark .head-retry {
+  color: #7fb0dd;
+  border-bottom-color: #7fb0dd;
+}
+
+.page.dark .section-title {
+  color: #7a7a7c;
+}
+
+.page.dark .card {
+  background: #1c1c1e;
+}
+
+.page.dark .card-name {
+  color: #e5e5e5;
+}
+
+.page.dark .card-spell {
+  color: #8e8e90;
+}
+
+.page.dark .card-dist {
+  color: #7fb0dd;
+}
+
+.page.dark .card-nav {
+  color: #b0b0b2;
+  border-color: #3a3a3c;
+}
+
+.page.dark .tag-official {
+  color: #8ab4e8;
+  background: #1e2c3a;
+}
+
+.page.dark .tag-mine {
+  color: #e8a86a;
+  background: #3a2a1a;
+}
+
+.page.dark .tag-player {
+  color: #b0b0b2;
+  background: #2c2c2e;
+}
+
+.page.dark .state-text {
+  color: #8e8e90;
+}
+
+.page.dark .state-sub,
+.page.dark .foot-tip {
+  color: #6e6e70;
+}
+
+/* ===== 字号适配 ===== */
+.page.font-lg .card-name { font-size: 33rpx; }
+.page.font-lg .card-spell { font-size: 26rpx; }
+.page.font-lg .card-dist { font-size: 28rpx; }
+.page.font-lg .card-nav { font-size: 24rpx; }
+
+.page.font-xl .card-name { font-size: 36rpx; }
+.page.font-xl .card-spell { font-size: 29rpx; }
+.page.font-xl .card-dist { font-size: 31rpx; }
+.page.font-xl .card-nav { font-size: 26rpx; }

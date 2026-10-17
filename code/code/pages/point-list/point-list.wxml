@@ -1,0 +1,49 @@
+<!-- 打卡点列表（F-09）：附近 500 米内 / 其他；点条目回首页选中该点位 -->
+<view class="page {{dark ? 'dark' : ''}} {{fontScale == 'lg' ? 'font-lg' : fontScale == 'xl' ? 'font-xl' : ''}}">
+
+  <!-- 顶部：总数 + 定位状态 -->
+  <view class="head">
+    <text class="head-total">{{totalText}}</text>
+    <text class="head-hint" wx:if="{{locating}}">{{lang.pointList.locating}}</text>
+    <view class="head-hint" wx:elif="{{!hasLocation}}" bindtap="onRetryLocate">
+      <text class="head-hint-text">{{lang.pointList.locFail}}</text>
+      <text class="head-retry">{{lang.pointList.retryLoc}}</text>
+    </view>
+  </view>
+
+  <!-- 加载中 -->
+  <view class="state" wx:if="{{loading}}">
+    <view class="spinner"></view>
+    <text class="state-text">{{lang.pointList.loading}}</text>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="state" wx:elif="{{total == 0}}">
+    <text class="state-text">{{lang.pointList.empty}}</text>
+    <text class="state-sub">{{lang.pointList.emptySub}}</text>
+  </view>
+
+  <!-- 分组列表：near（≤500 米）/ others -->
+  <block wx:else>
+    <view class="section" wx:for="{{sections}}" wx:for-item="sec" wx:for-index="si" wx:key="key">
+      <text class="section-title">{{sec.title}}</text>
+      <view class="card" wx:for="{{sec.items}}" wx:key="_id"
+            bindtap="onPointTap" data-group="{{sec.key}}" data-index="{{index}}">
+        <view class="card-main">
+          <view class="card-title-row">
+            <text class="card-name">{{item.name}}</text>
+            <text class="card-tag tag-{{item.typeCls}}">{{item.typeText}}</text>
+          </view>
+          <text class="card-spell">{{lang.index.spellLabel}}{{item.spell}}</text>
+        </view>
+        <view class="card-side">
+          <text class="card-dist">{{item.distText}}</text>
+          <!-- catchtap：导航是卡片内的独立操作，不能连带触发"回首页选中" -->
+          <text class="card-nav" catchtap="onNavigateTap"
+                data-group="{{sec.key}}" data-index="{{index}}">{{lang.index.navigate}}</text>
+        </view>
+      </view>
+    </view>
+    <view class="foot-tip">{{lang.pointList.footTip}}</view>
+  </block>
+</view>

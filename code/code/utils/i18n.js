@@ -66,7 +66,13 @@ const zh = {
     failNoHear: '没听清，请靠近麦克风再说一次',
     failTitleNoHear: '没听清',
     tipNoSpeech: '🎤 没听清，请靠近麦克风把咒语念一遍',
-    failTitleGeneric: '打卡没成功'
+    failTitleGeneric: '打卡没成功',
+    // F-08 地图交互 / F-09 点位列表入口
+    locate: '定位',
+    locateFail: '定位失败，请检查定位权限',
+    navigate: '导航',
+    navigateFail: '打开地图失败',
+    pointList: '点位列表'
   },
   mine: {
     notLogin: '未登录',
@@ -208,7 +214,14 @@ const zh = {
     acceptFail: '接受失败',
     codeInvalid: '任务码无效',
     acceptSuccess: '任务已接受',
-    acceptFailCloud: '接受失败，请检查 acceptTask 云函数'
+    acceptFailCloud: '接受失败，请检查 acceptTask 云函数',
+    // F-10 分享与邀请接受
+    share: '分享给好友',
+    shareTitle: '帮我完成「{name}」的声控打卡任务',
+    shareDefault: '声控打卡游戏｜念出咒语就能打卡',
+    inviteTitle: '好友邀请',
+    inviteContent: '任务码 {code}，现在接受这个任务吗？',
+    inviteLoginFirst: '登录后就能接受这个任务'
   },
   taskCreate: {
     navTitle: '发布任务',
@@ -276,6 +289,27 @@ const zh = {
     backHome: '回首页看看',
     pickFailFallback: '地图选点不可用，改用当前位置'
   },
+  // F-09 打卡点列表页（距离单位也放这里：geo.formatDistance 只返回 'm'|'km'，不掺文案）
+  pointList: {
+    navTitle: '打卡点',
+    total: '共 {n} 个打卡点',
+    locating: '正在定位…',
+    locFail: '未获取定位',
+    retryLoc: '重新定位',
+    loading: '加载中…',
+    loadFail: '加载失败，请稍后再试',
+    empty: '还没有打卡点',
+    emptySub: '回首页在地图上创建一个吧',
+    nearby: '附近 500 米内',
+    others: '其他点位',
+    unitM: '米',
+    unitKm: '公里',
+    footTip: '点击点位可回到地图查看',
+    typeOfficial: '官方',
+    typeMine: '我建的',
+    typePlayer: '玩家',
+    navigateFail: '打开地图失败'
+  },
   ranking: {
     navTitle: '排行榜',
     tabUser: '玩家榜',
@@ -307,7 +341,10 @@ const zh = {
     dTaskPub: '发布任务被完成 {n} 次（{unit} 分/次）',
     dStreak: '连续打卡奖励',
     dTotal: '合计',
-    close: '关闭'
+    close: '关闭',
+    // F-10 分享战绩（把原先硬编码在 ranking.js 里的标题迁过来）
+    shareMine: '我在声控打卡拿了 {points} 分（第 {rank} 名），来挑战我',
+    shareDefault: '声控打卡游戏｜来看看谁排第一'
   },
   badges: {
     navTitle: '成就徽章',
@@ -439,7 +476,13 @@ const en = {
     failNoHear: 'No speech detected, try again closer to the mic',
     failTitleNoHear: 'No speech detected',
     tipNoSpeech: '🎤 No speech detected, say the spell closer to the mic',
-    failTitleGeneric: 'Check-in failed'
+    failTitleGeneric: 'Check-in failed',
+    // F-08 map interactions / F-09 spots list
+    locate: 'Locate',
+    locateFail: 'Location failed, check the permission',
+    navigate: 'Directions',
+    navigateFail: 'Cannot open the map',
+    pointList: 'All spots'
   },
   mine: {
     notLogin: 'Not logged in',
@@ -581,7 +624,14 @@ const en = {
     acceptFail: 'Failed to accept',
     codeInvalid: 'Invalid task code',
     acceptSuccess: 'Task accepted',
-    acceptFailCloud: 'Failed to accept, check the acceptTask cloud function'
+    acceptFailCloud: 'Failed to accept, check the acceptTask cloud function',
+    // F-10 sharing & invite accept
+    share: 'Share',
+    shareTitle: 'Help me with "{name}"',
+    shareDefault: 'Voice Check-in Game - check in by saying the spell',
+    inviteTitle: 'Friend invite',
+    inviteContent: 'Task code {code}. Accept this task now?',
+    inviteLoginFirst: 'Log in to accept this task'
   },
   taskCreate: {
     navTitle: 'Create Task',
@@ -649,6 +699,27 @@ const en = {
     backHome: 'Back to home',
     pickFailFallback: 'Map picker unavailable, using your current location'
   },
+  // F-09 spots list
+  pointList: {
+    navTitle: 'Check-in spots',
+    total: '{n} check-in spots',
+    locating: 'Locating…',
+    locFail: 'No location',
+    retryLoc: 'Retry',
+    loading: 'Loading…',
+    loadFail: 'Failed to load, try again later',
+    empty: 'No spots yet',
+    emptySub: 'Go back to the map and create one',
+    nearby: 'Within 500 m',
+    others: 'Other spots',
+    unitM: 'm',
+    unitKm: 'km',
+    footTip: 'Tap a spot to view it on the map',
+    typeOfficial: 'Official',
+    typeMine: 'Mine',
+    typePlayer: 'Player',
+    navigateFail: 'Cannot open the map'
+  },
   ranking: {
     navTitle: 'Leaderboard',
     tabUser: 'Players',
@@ -680,7 +751,10 @@ const en = {
     dTaskPub: 'Your tasks completed by others: {n} ({unit} each)',
     dStreak: 'Streak bonus',
     dTotal: 'Total',
-    close: 'Close'
+    close: 'Close',
+    // F-10 share my score
+    shareMine: 'I scored {points} points (rank {rank}) — beat me!',
+    shareDefault: 'Voice Check-in Game - see who is on top'
   },
   badges: {
     navTitle: 'Achievements',

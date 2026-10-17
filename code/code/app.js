@@ -7,7 +7,11 @@ App({
     language: 'zh',   // 显示语言：zh 中文 / en English
     // F-05：自建打卡点成功后置 true，首页 onShow 看到它就重拉一次点位。
     // 用这个标记而不是"每次 onShow 都重拉"，是为了避免每次切 Tab 都打一次 getPoints。
-    pointsDirty: false
+    pointsDirty: false,
+    // F-09：点位列表页选中某个点位后把 _id 放这里再返回。
+    // 首页是 tabBar 页、没法带 query 跳回来，只能靠 globalData 传这一棒；
+    // 首页 applyPendingPoint() 消费后立刻清空，避免下次进首页又选中一次。
+    pendingPointId: ''
   },
 
   onLaunch: function () {

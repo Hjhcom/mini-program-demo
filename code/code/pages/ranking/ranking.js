@@ -193,15 +193,15 @@ Page({
     wx.switchTab({ url: '/pages/index/index' })
   },
 
-  // 右上角「...」菜单 → 转发给朋友：带我的邀请码，好友点开自动绑定
+  // F-10：分享时带上我的战绩（积分 + 名次）
+  // 「来看看谁排第一」是站在旁观者角度，不如「我拿了 XX 分」有说服力；
+  // 拿不到我的数据（未登录/加载失败）时退回通用文案。
+  // 顺带把原先硬编码的中英文标题迁进语言包（与「状态→文案键」的既有约定一致）。
   onShareAppMessage: function () {
     const user = app.globalData.userInfo
     const invite = (user && user.inviteCode) || ''
-    const title = app.globalData.language === 'en'
-      ? 'Voice Check-in Game - see who is on top!'
-      : '声控打卡游戏｜来看看谁排第一！'
     return {
-      title: title,
+      title: this.shareTitle(),
       path: '/pages/index/index' + (invite ? '?invite=' + invite : '')
     }
   },
@@ -210,12 +210,19 @@ Page({
   onShareTimeline: function () {
     const user = app.globalData.userInfo
     const invite = (user && user.inviteCode) || ''
-    const title = app.globalData.language === 'en'
-      ? 'Voice Check-in Game - leaderboard'
-      : '声控打卡游戏｜积分排行榜'
     return {
-      title: title,
+      title: this.shareTitle(),
       query: invite ? 'invite=' + invite : 'from=timeline'
     }
+  },
+
+  // 拼分享标题：有我的积分就带战绩，没有就用通用文案
+  shareTitle: function () {
+    const L = this.data.lang.ranking
+    const me = this.data.me
+    const hasScore = !!me && typeof me.points === 'number' && typeof me.rank === 'number'
+    return hasScore
+      ? i18n.format(L.shareMine, { points: me.points, rank: me.rank })
+      : L.shareDefault
   }
 })

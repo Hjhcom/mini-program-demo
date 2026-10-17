@@ -130,6 +130,31 @@
   color: #1f4e79;
 }
 
+/* F-10：卡片底部右侧（任务码 + 分享按钮） */
+.task-foot-right {
+  display: flex;
+  align-items: center;
+}
+
+/* F-10：分享按钮 —— button 自带默认边框与内边距，这里全部覆盖成小胶囊 */
+.share-btn {
+  font-size: 22rpx;
+  color: #1f4e79;
+  background: #eef4fa;
+  border: 2rpx solid #cfdfef;
+  border-radius: 999rpx;
+  padding: 0 18rpx;
+  margin: 0 0 0 16rpx;
+  height: 44rpx;
+  min-height: 44rpx;
+  line-height: 40rpx;
+  width: auto;
+}
+
+.share-btn::after {
+  border: none;
+}
+
 /* ===== 空状态 ===== */
 .empty {
   display: flex;
@@ -205,6 +230,12 @@
   color: #7fb0dd;
 }
 
+.page.dark .share-btn {
+  color: #7fb0dd;
+  background: #1e2c3a;
+  border-color: #2f4459;
+}
+
 .page.dark .tab.on {
   background: #3a3a3c;
   color: #7fb0dd;
@@ -224,7 +255,9 @@
 .page.font-lg .task-title { font-size: 36rpx; }
 .page.font-lg .task-meta { font-size: 29rpx; }
 .page.font-lg .tab { font-size: 31rpx; }
+.page.font-lg .share-btn { font-size: 24rpx; }
 
 .page.font-xl .task-title { font-size: 40rpx; }
 .page.font-xl .task-meta { font-size: 32rpx; }
 .page.font-xl .tab { font-size: 34rpx; }
+.page.font-xl .share-btn { font-size: 26rpx; }

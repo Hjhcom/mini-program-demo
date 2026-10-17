@@ -22,20 +22,22 @@ mini-program-demo/
 │   │   ├── pages/
 │   │   │   ├── splash/            # 启动页（app.json 里的首个页面）
 │   │   │   ├── login/             # 登录方式选择页（微信/手机号/游客）
-│   │   │   ├── index/             # 首页（地图打卡 + 点位打卡玩家展示）
+│   │   │   ├── index/             # 首页（地图打卡 + 定位/导航 + 反馈动效 + 点位玩家展示）
 │   │   │   ├── mine/              # 我的页
-│   │   │   ├── task/              # 打卡任务页（我发布的 / 我接的）
+│   │   │   ├── task/              # 打卡任务页（我发布的 / 我接的 + 分享任务 / 接受邀请）
 │   │   │   ├── task-create/       # 发布打卡任务页
 │   │   │   ├── ranking/           # 积分排行榜页（玩家榜 / 点位榜）
 │   │   │   ├── badges/            # 成就徽章页（连续打卡 + 8 枚徽章）
 │   │   │   ├── point-create/      # 创建打卡点页（自建点位：名称/咒语/位置/半径）
+│   │   │   ├── point-list/        # 打卡点列表页（按距离分组：附近 500 米内 / 其他）
 │   │   │   ├── pk/                # 好友打卡 PK 页
 │   │   │   ├── records/           # 打卡记录页
 │   │   │   ├── agreement/         # 用户协议 / 隐私政策页
 │   │   │   └── settings/          # 设置页（深色模式/字体大小/清除缓存）
 │   │   ├── utils/
-│   │   │   ├── i18n.js            # 中英文语言包（各页面文案统一走这里）
-│   │   │   └── spell.js           # 咒语归一化与有效长度（F-05）
+│   │   │   ├── i18n.js            # 中英文语言包（各页面文案统一走这里，14 个分区）
+│   │   │   ├── spell.js           # 咒语归一化与有效长度（F-05）
+│   │   │   └── geo.js             # 距离计算/格式化/分组（F-09，首页与点位列表共用）
 │   │   └── cloudfunctions/
 │   │       ├── login/             # 登录云函数（微信/手机号/资料更新；user 出参走 pickUser() 白名单）
 │   │       ├── sendCode/          # 短信验证码云函数
@@ -60,7 +62,8 @@ mini-program-demo/
 │   ├── test-badges.js             # F-04 连续打卡与徽章单元测试（node tools/test-badges.js）
 │   ├── test-point-create.js       # F-05 自建点位校验单元测试（node tools/test-point-create.js）
 │   ├── test-voice-match.js        # 声控判定单元测试：空结果/单字/阈值边界/互为包含（node tools/test-voice-match.js）
-│   ├── check-i18n.js              # i18n 语言包自检：zh/en 键名、分区条数、空文案（node tools/check-i18n.js）
+│   ├── test-geo.js                # 距离计算与分组单元测试：48 条（node tools/test-geo.js）
+│   ├── check-i18n.js              # i18n 自检：zh/en 键名、分区条数、空文案、wxml 引用的键是否存在（node tools/check-i18n.js）
 │   └── check-sync.js              # 跨目录重复规则自检：normalizeSpell 三处 / 咒语长度上下限 / CHECKIN_POINTS / 判定只在 lib/match.js（node tools/check-sync.js）
 ├── .gitignore
 ├── README.md
@@ -322,6 +325,56 @@ mini-program-demo/
   - 文档同步：1.3 表新增 **P9**；3.0 表加 `voiceCheckin` 第三次改造行；**新增 3.13 节**（3.13.1 现象与根因表 / 3.13.2 五处改法 / 3.13.3 改动清单 / 3.13.4 必须重新部署 / 3.13.5 脏数据清理 / 3.13.6 验收 **V-01~V-04**）；3.9.4 部署清单把 `voiceCheckin` 改成「✅ 必传（第三次）」；6.1 新增 V-01~V-04 与 `test-voice-match` 提示；第 8 节把 `voiceCheckin` 提到重传首位并加脏数据清理提醒；文件索引补 `lib/match.js`、`tools/test-voice-match.js`、语言包条数改 341。
   - 本地校验：`voiceCheckin/index.js`、`voiceCheckin/lib/match.js`、`pages/index/index.js`、`utils/i18n.js`、`tools/*.js` 全部 `node --check` 通过；`test-voice-match` **45 条全绿**；`check-i18n` **341/341**、13 个分区全对齐；`check-sync` 四节全绿（含三处 `normalize` 24 样本一致）；四份单测回归 **25 + 81 + 84 + 45 = 235 条全绿**。
 
+#### 11:10 F-08 / F-09 / F-10 地图交互、点位列表、分享（P2 收尾）
+
+一次做完 3.8 节的三项。**纯前端，不需要部署任何云函数**，重新编译即可。
+
+- **F-08 地图交互**
+  - `<map>` 加 `id="map"` 与 `show-location`（蓝点）；右上角浮层加「定位」按钮 → `wx.getLocation` + `setData(center, scale:16)` + `createMapContext('map').moveToLocation()`（后者只为刷蓝点，失败不影响定位，包了 try/catch）。
+  - 选中点位后面板出现「导航」胶囊 → `wx.openLocation` 交给微信内置地图。⚠️ 用户点内置地图左上角返回也会走 `fail`（`errMsg` 含 `cancel`），已过滤不当错误。
+  - `onMarkerTap` 的选中逻辑抽成 `selectPointAt(index)`，图钉点击与"列表回跳选中"共用。
+- **F-09 点位列表页（`pages/point-list` 四件套）**
+  - **`getDistance` 从 `pages/index/index.js` 抽到 `utils/geo.js`**（文档 3.8 明确要求）：`getDistance` / `NEAR_LIMIT`(500) / `formatDistance` / `hasCoords` / `attachDistance` / `groupByDistance`，并配 **`tools/test-geo.js` 48 条单测**。
+  - 定位 → 算距离 → 分「附近 500 米内 / 其他点位」→ 点条目 `navigateBack` 回首页并选中（首页是 tabBar 页不能带 query，靠 `globalData.pendingPointId` 传一棒，`applyPendingPoint()` 消费后立即清空）。
+  - **定位失败不阻塞列表**：照样列出全部点位，只是不显示距离、不做分组（`distance: null` 一律归「其他」，否则会全被当成"附近"）。
+  - 卡片内也可直接导航（`catchtap` 与"回首页选中"区分开）；支持下拉刷新、深色、字号、中英文。
+- **F-10 分享**
+  - `pages/task`：卡片上加 `open-type="share"` 的「分享给好友」按钮 → `onShareAppMessage` 拿到 `from === 'button'` + `data-code`，分享**具体那条任务**（`path: '/pages/task/task?inviteCode=' + code`）；按钮加 `catchtap="noop"` 挡冒泡，否则会连带触发卡片的「复制任务码」。
+  - **分享进来的任务码等登录态确定再处理**：`onLoad` 只存 `_pendingCode`，`onShow` 的 `consumePendingCode()` 才弹确认框；未登录只 toast 一次（`_inviteHinted` 防重复）且**保留任务码**，登录回来再走一遍；处理完立即清空，避免每次 onShow 重复弹。
+  - `pages/ranking`：分享标题改成「我在声控打卡拿了 X 分（第 N 名）」；顺带把原先硬编码的中英文标题迁进语言包。
+- **抽 geo.js 时单测逮到真 bug**：`formatDistance(null)` 返回「0 米」——`Number(null) === 0` 且 `isFinite(0)` 为真；同一个坑在 `hasCoords` 里也存在（会让「没定位」被当成赤道 `(0,0)`，给所有点位算出荒唐距离）。两处都加了显式 null/空串前置判断，并各留回归用例。
+- **顺带补强 `tools/check-i18n.js`**：新增第 4 节「扫 wxml 里 `lang.<分区>.<键>` 的引用是否存在」—— wxml 写错键名不报错、只渲染空白，只有翻到那页切到那种语言才看得见；当前 14 个 wxml 全部通过。
+- 涉及模块：`utils/geo.js`（新建）、`pages/point-list/`（新建四件套）、`pages/index/{index.js,index.wxml,index.wxss}`、`pages/task/{task.js,task.wxml,task.wxss}`、`pages/ranking/ranking.js`、`app.js`、`app.json`（14 页）、`utils/i18n.js`（341 → **372**，新增 `pointList` 分区 18 条）、`tools/test-geo.js`（新建）、`tools/check-i18n.js`、`docs/下一步功能规划与操作说明.md`。
+- 文档同步：**3.8 重写为 3.8.1 原始设计 / 3.8.2 已落地与 6 处设计决定 / 3.8.3 验收 N-01~N-09**；第 2 节 P2 表 F-08~F-10 标已落地；§5 进度与展示脚本（新增"点导航""分享任务给评委""点位列表"三步）；3.9.4 部署清单加"本轮无云函数改动"；3.11 报错速查补 6 条（定位没反应/无蓝点/导航失败/距离全空/分享落错页/分享按钮冒泡）；6.1 加 N-01~N-09 与本地自测说明（**283 条**）；6.4 把"公共函数已抽到 utils"标为已做；第 8 节重写；文件索引补 `point-list`、`geo.js`、`test-geo.js`。
+- 本地校验：7 个 JS `node --check` 通过、2 个 JSON 解析通过、14 个页面文件齐全；`test-geo` **48 条全绿**；`check-i18n` **372/372**、14 分区对齐、14 个 wxml 引用全在；`check-sync` 四节全绿；五份单测合计 **48 + 25 + 81 + 84 + 45 = 283 条全绿**；另用临时 mock 脚本（不进仓库）验证了分享路径、任务码流转、列表装饰与 pick 共 **25 条**。
+
+#### 11:30 云函数部署状态核对（`getPoints` 重传确认）
+
+用户口头报「`getPoints` 重新传了」，做了一次**基于本地缓存的取证核对**（不靠记忆、不打扰控制台）：
+
+- 上传回执：开发者工具 `WeappLocalData/localstorage_efc7b5286d3888a463756fabc08d04b2.json` → 顶层 `notice.list`（**注意是 `notice.list`，不是 `notice` → `list`**）：
+  - 11:29:55「上传云函数 **getPoints**」`icon=success`，`上传包大小：2.6 KB，文件数量：3`
+  - 11:29:40「更新云函数 getPoints 的云调用权限」成功（说明选的是「上传并部署：云端安装依赖」，会连带下发权限配置）
+- 本地目录对照：`getPoints/` 正好 3 个文件（`index.js` 4156 B + `package.json` 167 B + `config.json` 45 B = 4368 B）→ 原始 4.3 KB 压到 2.6 KB、文件数 3 对得上，**不是漏传或传错目录**；`grep` 确认本地是改造后版本（`isMine`/`isOfficial`/过滤 `hidden`，注释写明"不回传 creatorOpenid"）。
+- 顺带把**整个环境的部署状态一次性核对清楚**：`localstorage_b9faed4cb7c60b89a0fb76913a569870.json` → `tcb.scfMapInEnv`（每个函数带 `modTime` = 最后上传时间），环境 `cloud1-d2gled32od1bdcb02` 共 **14 个函数，全部 `Active`**：
+
+| 最后部署 | 云函数 |
+|---|---|
+| 10-17 11:29 | `getPoints`（F-05 白名单改造） |
+| 10-17 00:47 | `voiceCheckin`（P9 判定修复 3.13） |
+| 10-17 00:07 | `getRecords`（F-06 分页） |
+| 10-16 23:56 | `login` / `friends`（隐私整改 3.12） |
+| 10-16 23:19 / 23:18 | `reportPoint` / `createPoint`（F-05） |
+| 10-16 18:07 | `getBadges`（F-04） |
+| 10-14 23:29 / 23:04 | `getRanking` / `getPointUsers` |
+| 10-14 22:24 | `createTask` / `acceptTask` / `listTasks`（F-01 加固） |
+| 10-14 19:32 | `sendCode`（从未改动） |
+
+⇒ **云端代码与仓库一致，没有任何待部署项**，验收可以不受"云函数没传"干扰地跑。
+
+- 文档同步：`docs/下一步功能规划与操作说明.md` 的 3.0 总览表与 3.9.4 部署清单，把 7 处「🟡 待重新部署 / 待部署」全部改为「✅ 已部署 + 日期」，并注明**判定依据是 `tcb.scfMapInEnv` 的 `modTime`**（可复核，不是凭记忆填的）；3.9.4 的函数计数 13 → **14**；另修掉 3.7.2 里一条已过时的「已知差异」说明（`voiceCheckin` 的 `normalize` 缺 `null` 兜底 —— 3.13 抽 `lib/match.js` 时已补上，三处现在逐字一致，`check-sync` 也升级为 4 组检查 / 24 样本）。
+- 仍未确认（需控制台看）：`reports` 集合是否已建、IDX-17/IDX-18 是否已建 —— 跑 C-05/C-06 举报用例前要先建。
+
 ## 后续计划
 
 > 待补充：以下为基于当前进度的建议项，请按团队实际安排更新。
@@ -341,6 +394,9 @@ mini-program-demo/
 - [x] 打卡记录分页加载（`getRecords` 加 `successTotal`/`hasMore` + 触底加载 + 下拉刷新 + 统计口径改服务端全量）
 - [x] 打卡结果反馈动效（F-07：成功整屏撒花 + 居中结果卡「+10 分」/ 失败按钮抖动 + 顶部红色提示条 + 震动；音效待补）
 - [x] 声控判定缺陷修复（P9：空识别结果不再判成功 + 单字不再判成功，判定抽到 `voiceCheckin/lib/match.js` 并配 45 条单测）
+- [x] 地图交互增强（F-08：`show-location` 蓝点 + 回到我的位置 + 「导航」唤起微信内置地图）
+- [x] 打卡点列表页（F-09：按距离分「附近 500 米内 / 其他」，点条目回首页选中；`getDistance` 抽到 `utils/geo.js` 并配 48 条单测）
+- [x] 分享给好友（F-10：任务卡片分享带任务码、点开可自动接受；排行榜分享带「我拿了 X 分（第 N 名）」）
 - [ ] 定时触发器：自动将超时任务置为 `expired`
 - [ ] 云函数敏感配置外置（讯飞 APPID / APIKey / APISecret 改为环境变量并轮换）
 - [ ] 界面样式统一与视觉优化

@@ -12,7 +12,8 @@
     "pages/task-create/task-create",
     "pages/ranking/ranking",
     "pages/badges/badges",
-    "pages/point-create/point-create"
+    "pages/point-create/point-create",
+    "pages/point-list/point-list"
   ],
   "window": {
     "navigationBarBackgroundColor": "#1f4e79",

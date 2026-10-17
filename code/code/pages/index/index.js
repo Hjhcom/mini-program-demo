@@ -1,17 +1,9 @@
 // 首页逻辑：地图 + 打卡点 + 定位判定 + 录音声控打卡
 const app = getApp()
 const i18n = require('../../utils/i18n')
-
-// 计算两个经纬度之间的距离（米）——球面距离公式
-function getDistance(lat1, lng1, lat2, lng2) {
-  const R = 6371000 // 地球半径（米）
-  const rad = d => d * Math.PI / 180
-  const dLat = rad(lat2 - lat1)
-  const dLng = rad(lng2 - lng1)
-  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(dLng / 2) * Math.sin(dLng / 2)
-  return 2 * R * Math.asin(Math.sqrt(a))
-}
+// F-09：距离计算抽到 utils/geo.js —— 原先这个函数写在本页面里（页面私有），
+// 点位列表页也要按距离排序，复制一份就会出现两份实现、改一处忘一处。
+const geo = require('../../utils/geo.js')
 
 // 录音管理器（页面加载时初始化一次）
 const recorder = wx.getRecorderManager()
@@ -137,6 +129,10 @@ Page({
       app.globalData.pointsDirty = false
       this.loadPoints()
     }
+
+    // F-09：从点位列表选了点位返回 → 选中它。
+    // 若点位还没拉回来（points 为空），applyPendingPoint 会等着，由 loadPoints 成功后再调。
+    this.applyPendingPoint()
 
     wx.setNavigationBarTitle({ title: lang.common.appName })
     // 同步底部 tabBar 文字（tabBar 已渲染，setTabBarItem 才能生效）
@@ -295,6 +291,9 @@ Page({
           this.refreshTip()
         }
       }
+
+      // F-09：点位列表页带过来的选中请求 —— 到这一步才知道那个点位还存不存在
+      this.applyPendingPoint()
     }).catch(err => {
       console.error('打卡点加载失败：', err)
       this.setData({ tip: this.data.lang.index.errLoadPoints })
@@ -304,7 +303,12 @@ Page({
   // 点击地图上的图钉：选中打卡点，显示信息和咒语
   onMarkerTap: function (e) {
     // markerId 是下标+1，倒推回数据库数组下标
-    const index = e.detail.markerId - 1
+    this.selectPointAt(e.detail.markerId - 1)
+  },
+
+  // 按数组下标选中点位
+  // F-09：从点位列表跳回来时也要"选中"，抽成一个方法，图钉点击与列表回跳共用一套逻辑
+  selectPointAt: function (index) {
     const p = this.data.points[index]
     if (!p) return
     // 该点位若正好有指派给我的任务，提示语改说「这里有你的任务」
@@ -325,6 +329,83 @@ Page({
         : i18n.format(this.data.lang.index.tipSelected, { name: p.name, spell: p.spell })
     })
     this.loadPointUsers(p._id)
+  },
+
+  // ===== F-08 地图交互：回到我的位置 / 唤起导航 =====
+
+  // 回到我的位置：重新定位，把地图中心移过去
+  // 说明：map 的 longitude/latitude 绑定在 data.center 上，setData 之后地图就会跟过去；
+  //      再调一次 moveToLocation() 是为了让「蓝点」立刻刷新（部分机型上 show-location
+  //      的蓝点在 setData 后不会马上更新）。它失败不影响定位效果，所以包了 try/catch。
+  onLocateTap: function () {
+    const lang = this.data.lang
+    wx.getLocation({
+      type: 'gcj02',
+      success: res => {
+        this.setData({
+          center: { latitude: res.latitude, longitude: res.longitude },
+          scale: 16
+        })
+        try {
+          wx.createMapContext('map').moveToLocation({
+            latitude: res.latitude,
+            longitude: res.longitude
+          })
+        } catch (e) {
+          console.warn('moveToLocation 不可用（不影响定位效果）：', e)
+        }
+      },
+      fail: err => {
+        console.error('重新定位失败：', err)
+        wx.showToast({ title: lang.index.locateFail, icon: 'none' })
+      }
+    })
+  },
+
+  // 唤起导航：把选中的点位交给微信内置地图，用户可直接点「导航」
+  // 这是成本最低的导航方案 —— 不用申请地图厂商 key，也不用自己算路线规划
+  onNavigateTap: function () {
+    const p = this.data.selectedPoint
+    if (!p) return
+    const lat = Number(p.latitude)
+    const lng = Number(p.longitude)
+    if (!isFinite(lat) || !isFinite(lng)) {
+      wx.showToast({ title: this.data.lang.index.navigateFail, icon: 'none' })
+      return
+    }
+    wx.openLocation({
+      latitude: lat,
+      longitude: lng,
+      name: p.name,
+      scale: 18,
+      fail: err => {
+        // 用户点了左上角返回也会走 fail（errMsg 含 cancel）—— 那不算错误，不弹提示
+        const msg = (err && err.errMsg) || ''
+        if (msg.indexOf('cancel') > -1) return
+        console.error('打开内置地图失败：', err)
+        wx.showToast({ title: this.data.lang.index.navigateFail, icon: 'none' })
+      }
+    })
+  },
+
+  // F-09：点位列表页入口
+  goPointList: function () {
+    wx.navigateTo({ url: '/pages/point-list/point-list' })
+  },
+
+  // F-09：点位列表里选了某个点位 → 列表页把 _id 存在 globalData.pendingPointId 再返回，
+  // 回到首页后自动选中它。onShow 时点位可能还没拉回来（getPoints 是异步的），
+  // 所以 points 为空就先等着，由 loadPoints 成功后再调一次本方法。
+  applyPendingPoint: function () {
+    const id = app.globalData.pendingPointId
+    if (!id) return
+    const points = this.data.points || []
+    if (points.length === 0) return // 等 loadPoints 回来再处理
+    app.globalData.pendingPointId = ''
+    const index = points.findIndex(p => p._id === id)
+    if (index < 0) return // 点位已被举报隐藏或删除 → 静默放弃，不打扰用户
+    this.selectPointAt(index)
+    this.setData({ scale: 16 })
   },
 
   // F-02：拉取该点位「打卡成功」的人数与最近打卡的玩家
@@ -457,7 +538,7 @@ Page({
         // 调试用：打印当前真实 GPS 坐标（校准打卡点后可删）
         console.log('📍 我的当前位置：经度', res.longitude, '纬度', res.latitude,
                     '｜打卡点坐标：经度', p.longitude, '纬度', p.latitude)
-        const dist = getDistance(res.latitude, res.longitude, p.latitude, p.longitude)
+        const dist = geo.getDistance(res.latitude, res.longitude, p.latitude, p.longitude)
         if (dist <= p.radius) {
           this.setData({
             inRange: true,
