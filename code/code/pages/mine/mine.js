@@ -174,6 +174,11 @@ Page({
       wx.navigateTo({ url: '/pages/settings/settings' })
       return
     }
+    // 关于（F-12）：版本 / 团队分工 / AI 使用说明，不需要登录
+    if (type === 'about') {
+      wx.navigateTo({ url: '/pages/about/about' })
+      return
+    }
     wx.showToast({
       title: i18n.format(lang.mine.building, { type: lang.mine.about }),
       icon: 'none'
@@ -197,7 +202,7 @@ Page({
   onLogout: function () {
     const lang = this.data.lang
     wx.showModal({
-      title: '提示',
+      title: lang.mine.tip,
       content: lang.mine.logoutConfirm,
       success: (res) => {
         if (res.confirm) {

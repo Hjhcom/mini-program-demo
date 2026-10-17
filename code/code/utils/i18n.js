@@ -99,7 +99,8 @@ const zh = {
     noInviteYet: '邀请码生成中，请稍后再试',
     logoutConfirm: '确定要退出登录吗？',
     logoutDone: '已退出登录',
-    building: '「{type}」功能建设中，敬请期待'
+    building: '「{type}」功能建设中，敬请期待',
+    tip: '提示'
   },
   login: {
     brandSub: '登录后开启你的打卡之旅',
@@ -411,6 +412,38 @@ const zh = {
     updated: '更新日期：2026 年 10 月 12 日',
     userTitle: '用户协议',
     privacyTitle: '隐私政策'
+  },
+  // F-12 关于页：版本 / 简介 / 技术栈 / 团队分工 / AI 使用说明 / 隐私
+  about: {
+    navTitle: '关于',
+    tagline: '在校园里念出咒语，把打卡变成一场语音小游戏',
+    introTitle: '这是什么',
+    introText: '《声控打卡游戏》是一门课程的小组项目：把传统的「地图打卡」改成「说出咒语才算打卡」。站在打卡点范围内念对咒语才能成功；念错会告诉你听到的是什么、相似度多少，方便立刻重试。除基础打卡外，还做了打卡任务、积分排行榜、连续打卡徽章、自建打卡点与好友 PK。',
+    techTitle: '技术栈',
+    techText: '原生微信小程序（WXML / WXSS / JavaScript）＋ 微信云开发（云函数、云数据库、云存储）＋ 讯飞开放平台实时语音听写（WebSocket）。文本归一化、相似度计算与是否通过全部在云函数内完成，前端不参与判分。',
+    featureTitle: '主要功能',
+    f1: '声控打卡：定位到打卡点范围内念对咒语即成功，相似度 ≥ 80% 判通过',
+    f2: '打卡任务：发布任务生成 6 位邀请码，好友输入即接受，完成后自动置为已完成',
+    f3: '积分与徽章：积分排行榜实时聚合，连续打卡可解锁 8 枚成就徽章',
+    f4: '自建打卡点与点位列表：地图选点创建点位，列表按距离分组并支持一键导航',
+    teamTitle: '团队分工',
+    teamNote: '本项目为课程小组作业，分工与姓名见上；如有调整，以提交的课程文档为准。',
+    roleArch: '整体架构 / 云函数开发',
+    roleFront: '小程序页面与交互',
+    roleCloud: '云数据库设计 / 部署与联调',
+    roleDoc: '测试用例 / 文档与答辩',
+    aiTitle: 'AI 使用说明',
+    aiText: '本项目在开发过程中使用了 AI 编程助手（WorkBuddy / 大模型），特此说明，并已在课程文档中标注：',
+    ai1: '辅助编写部分云函数与页面代码骨架、生成单元测试用例',
+    ai2: '辅助整理技术文档、排查真机调试中的报错',
+    ai3: '辅助设计数据表结构与索引、复核隐私字段是否外泄',
+    aiNote: '所有 AI 产出的代码均经小组成员逐行审阅、本地单元测试（5 份脚本）与真机验证后才合入仓库；判定规则、业务逻辑与界面文案由小组自行确定，AI 不参与需求决策。',
+    privacyTitle: '隐私与数据',
+    privacyText: '录音仅用于当次语音识别，不用于任何训练用途；录音文件保留 7 天后由定时云函数自动删除。云函数对外只返回白名单字段，不下发用户 openid。',
+    contactTitle: '反馈与联系',
+    contactText: '发现问题或有建议，欢迎直接反馈给项目成员，或通过课程群联系小组。',
+    copyright: '© 2026 声控打卡游戏 · 课程小组项目（仅用于教学演示）',
+    versionCopied: '版本号已复制'
   }
 }
 
@@ -509,7 +542,8 @@ const en = {
     noInviteYet: 'Invite code is being generated, try again later',
     logoutConfirm: 'Are you sure to log out?',
     logoutDone: 'Logged out',
-    building: '"{type}" is under construction, stay tuned'
+    building: '"{type}" is under construction, stay tuned',
+    tip: 'Notice'
   },
   login: {
     brandSub: 'Start your check-in journey after login',
@@ -821,6 +855,38 @@ const en = {
     updated: 'Updated: 2026-10-12',
     userTitle: 'User Agreement',
     privacyTitle: 'Privacy Policy'
+  },
+  // F-12 About page: version / intro / tech stack / team / AI disclosure / privacy
+  about: {
+    navTitle: 'About',
+    tagline: 'Say the spell on campus — check-in as a voice mini-game',
+    introTitle: 'What is this',
+    introText: 'Voice Check-in Game is a course group project. It turns the usual "tap to check in" into "say the spell to check in": you must stand inside a spot and say the correct spell. If you miss, the app tells you what it heard and the similarity score so you can retry right away. Beyond basic check-in, it also has tasks, a points leaderboard, streak badges, user-created spots and friend PK.',
+    techTitle: 'Tech stack',
+    techText: 'Native WeChat Mini Program (WXML / WXSS / JavaScript) + WeChat Cloud Development (cloud functions, cloud database, cloud storage) + iFlytek real-time speech recognition over WebSocket. Normalisation, similarity scoring and the pass/fail decision all happen inside cloud functions — the client never judges.',
+    featureTitle: 'Main features',
+    f1: 'Voice check-in: inside a spot, say the spell correctly (similarity ≥ 80%) to check in',
+    f2: 'Check-in tasks: publish a task to get a 6-digit invite code; a friend enters it to accept, and it closes automatically when done',
+    f3: 'Points & badges: live leaderboard by points, plus 8 achievement badges for streaks',
+    f4: 'Custom spots & spot list: create spots by picking on the map; the list groups spots by distance with one-tap navigation',
+    teamTitle: 'Team',
+    teamNote: 'Course group work — roles and names above; if anything changed, the submitted course document prevails.',
+    roleArch: 'Architecture / cloud functions',
+    roleFront: 'Mini Program pages & interactions',
+    roleCloud: 'Database design / deployment & integration',
+    roleDoc: 'Test cases / documentation & presentation',
+    aiTitle: 'AI usage disclosure',
+    aiText: 'This project used an AI coding assistant (WorkBuddy / LLMs) during development. We disclose it here, and it is also marked in the course document:',
+    ai1: 'Helped draft parts of the cloud functions and page skeletons, and generate unit tests',
+    ai2: 'Helped organise technical documentation and debug issues found on real devices',
+    ai3: 'Helped design collections/indexes and review whether private fields leaked',
+    aiNote: 'Every line of AI-generated code was reviewed by team members, covered by local unit tests (5 scripts) and verified on a real device before merging. Rules, business logic and UI copy were decided by the team; AI took no part in requirement decisions.',
+    privacyTitle: 'Privacy & data',
+    privacyText: 'Recordings are used only for the current recognition and never for training. Audio files are kept for 7 days and then deleted automatically by a scheduled cloud function. Cloud functions return whitelisted fields only and never expose user openid.',
+    contactTitle: 'Feedback & contact',
+    contactText: 'Found a bug or have a suggestion? Tell any team member, or reach us through the course group chat.',
+    copyright: '© 2026 Voice Check-in Game · Course group project (for teaching demo only)',
+    versionCopied: 'Version copied'
   }
 }
 

@@ -1,0 +1,87 @@
+<!-- pages/about/about.wxml —— 「关于」页（F-12）：版本 / 简介 / 团队分工 / AI 使用说明 / 隐私 -->
+<view class="page {{dark ? 'dark' : ''}} {{fontScale == 'lg' ? 'font-lg' : fontScale == 'xl' ? 'font-xl' : ''}}">
+
+  <!-- 头部：名称 + 版本（点一下复制版本号，答辩时能直接贴进文档） -->
+  <view class="hero">
+    <view class="logo">🎤</view>
+    <view class="app-name">{{lang.common.appName}}</view>
+    <view class="version" bindtap="copyVersion">v{{version}}</view>
+    <view class="tagline">{{lang.about.tagline}}</view>
+  </view>
+
+  <!-- 项目简介 -->
+  <view class="group-title">{{lang.about.introTitle}}</view>
+  <view class="card">
+    <text class="para">{{lang.about.introText}}</text>
+  </view>
+
+  <!-- 技术栈 -->
+  <view class="group-title">{{lang.about.techTitle}}</view>
+  <view class="card">
+    <text class="para">{{lang.about.techText}}</text>
+  </view>
+
+  <!-- 主要功能 -->
+  <view class="group-title">{{lang.about.featureTitle}}</view>
+  <view class="card">
+    <view class="li">
+      <text class="dot">·</text>
+      <text class="para">{{lang.about.f1}}</text>
+    </view>
+    <view class="li">
+      <text class="dot">·</text>
+      <text class="para">{{lang.about.f2}}</text>
+    </view>
+    <view class="li">
+      <text class="dot">·</text>
+      <text class="para">{{lang.about.f3}}</text>
+    </view>
+    <view class="li">
+      <text class="dot">·</text>
+      <text class="para">{{lang.about.f4}}</text>
+    </view>
+  </view>
+
+  <!-- 团队分工（姓名请在 about.js 的 TEAM 里填） -->
+  <view class="group-title">{{lang.about.teamTitle}}</view>
+  <view class="card">
+    <view class="team-row" wx:for="{{team}}" wx:key="index">
+      <text class="team-who">{{item.who}}</text>
+      <text class="team-job">{{item.job}}</text>
+    </view>
+  </view>
+  <view class="note">{{lang.about.teamNote}}</view>
+
+  <!-- AI 使用说明（课程硬性要求，单独高亮） -->
+  <view class="group-title">{{lang.about.aiTitle}}</view>
+  <view class="card ai-card">
+    <text class="para strong">{{lang.about.aiText}}</text>
+    <view class="li">
+      <text class="dot">·</text>
+      <text class="para">{{lang.about.ai1}}</text>
+    </view>
+    <view class="li">
+      <text class="dot">·</text>
+      <text class="para">{{lang.about.ai2}}</text>
+    </view>
+    <view class="li">
+      <text class="dot">·</text>
+      <text class="para">{{lang.about.ai3}}</text>
+    </view>
+    <text class="para ai-note">{{lang.about.aiNote}}</text>
+  </view>
+
+  <!-- 隐私与数据（与 F-11 录音清理对应） -->
+  <view class="group-title">{{lang.about.privacyTitle}}</view>
+  <view class="card">
+    <text class="para">{{lang.about.privacyText}}</text>
+  </view>
+
+  <!-- 联系与反馈 -->
+  <view class="group-title">{{lang.about.contactTitle}}</view>
+  <view class="card">
+    <text class="para">{{lang.about.contactText}}</text>
+  </view>
+
+  <view class="copyright">{{lang.about.copyright}}</view>
+</view>

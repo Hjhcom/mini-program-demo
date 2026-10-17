@@ -30,12 +30,13 @@ mini-program-demo/
 │   │   │   ├── badges/            # 成就徽章页（连续打卡 + 8 枚徽章）
 │   │   │   ├── point-create/      # 创建打卡点页（自建点位：名称/咒语/位置/半径）
 │   │   │   ├── point-list/        # 打卡点列表页（按距离分组：附近 500 米内 / 其他）
+│   │   │   ├── about/             # 关于页（版本 / 团队分工 / AI 使用说明 / 隐私，F-12）
 │   │   │   ├── pk/                # 好友打卡 PK 页
 │   │   │   ├── records/           # 打卡记录页
 │   │   │   ├── agreement/         # 用户协议 / 隐私政策页
 │   │   │   └── settings/          # 设置页（深色模式/字体大小/清除缓存）
 │   │   ├── utils/
-│   │   │   ├── i18n.js            # 中英文语言包（各页面文案统一走这里，14 个分区）
+│   │   │   ├── i18n.js            # 中英文语言包（各页面文案统一走这里，15 个分区）
 │   │   │   ├── spell.js           # 咒语归一化与有效长度（F-05）
 │   │   │   └── geo.js             # 距离计算/格式化/分组（F-09，首页与点位列表共用）
 │   │   └── cloudfunctions/
@@ -52,7 +53,8 @@ mini-program-demo/
 │   │       ├── acceptTask/        # 凭任务码接受任务
 │   │       ├── listTasks/         # 查询我发布 / 我接受的任务
 │   │       ├── friends/           # 好友 PK（出参不下发 openid，PK 用好友记录 _id 作句柄）
-│   │       └── voiceCheckin/      # 声控打卡（判定在 lib/match.js；支持任务打卡 taskId，写入 dayKey）
+│   │       ├── cleanVoice/        # 录音清理（定时触发器每天 04:00 删 7 天前录音，含 lib/clean.js，F-11）
+│   │       └── voiceCheckin/      # 声控打卡（判定在 lib/match.js；任务打卡 taskId、dayKey、fileID 供清理反查）
 │   ├── project.config.json
 │   └── project.private.config.json
 ├── docs/                          # 开发文档
@@ -63,6 +65,7 @@ mini-program-demo/
 │   ├── test-point-create.js       # F-05 自建点位校验单元测试（node tools/test-point-create.js）
 │   ├── test-voice-match.js        # 声控判定单元测试：空结果/单字/阈值边界/互为包含（node tools/test-voice-match.js）
 │   ├── test-geo.js                # 距离计算与分组单元测试：48 条（node tools/test-geo.js）
+│   ├── test-clean-voice.js        # 录音清理判定单元测试：59 条（保留期边界/脏时间/空 fileID/分批，node tools/test-clean-voice.js）
 │   ├── check-i18n.js              # i18n 自检：zh/en 键名、分区条数、空文案、wxml 引用的键是否存在（node tools/check-i18n.js）
 │   └── check-sync.js              # 跨目录重复规则自检：normalizeSpell 三处 / 咒语长度上下限 / CHECKIN_POINTS / 判定只在 lib/match.js（node tools/check-sync.js）
 ├── .gitignore
@@ -375,6 +378,36 @@ mini-program-demo/
 - 文档同步：`docs/下一步功能规划与操作说明.md` 的 3.0 总览表与 3.9.4 部署清单，把 7 处「🟡 待重新部署 / 待部署」全部改为「✅ 已部署 + 日期」，并注明**判定依据是 `tcb.scfMapInEnv` 的 `modTime`**（可复核，不是凭记忆填的）；3.9.4 的函数计数 13 → **14**；另修掉 3.7.2 里一条已过时的「已知差异」说明（`voiceCheckin` 的 `normalize` 缺 `null` 兜底 —— 3.13 抽 `lib/match.js` 时已补上，三处现在逐字一致，`check-sync` 也升级为 4 组检查 / 24 样本）。
 - 仍未确认（需控制台看）：`reports` 集合是否已建、IDX-17/IDX-18 是否已建 —— 跑 C-05/C-06 举报用例前要先建。
 
+#### 11:55 F-11 录音清理 + F-12 关于页（P2 收尾，F-01~F-12 全部落地）
+
+P2 最后两项。一件改云函数、一件纯前端。
+
+**F-11 录音文件清理（修 P5，`cloudfunctions/cleanVoice` 新增）**
+
+- 难点：**微信云开发的 `wx-server-sdk` 没有列文件的 API**（只有 `uploadFile`/`downloadFile`/`deleteFile`/`getTempFileURL`），"遍历 `voice/` 目录"写不出来。改成「记录 → 文件」反查：`voiceCheckin` 写 `records` 时存一份 `fileID`，`cleanVoice` 查 `createTime` 早于 7 天前、且带 `fileID` 的记录，分批 `deleteFile`，删完把 `fileID` 清成 `''` 当"已处理"标记。
+- 纯逻辑抽到 `lib/clean.js`（`RETENTION_DAYS`/`toMs`/`cutoffOf`/`isExpired`/`pickExpired`/`chunk`，不 require `wx-server-sdk`），配 **`tools/test-clean-voice.js` 59 条**。
+- `config.json` 带 `triggers`：`cleanVoiceDaily` = `0 0 4 * * * *`（**每天** 04:00，原文档写"每月"，改成每天：保留期只有 7 天，且函数幂等、有单次上限，跑得勤更省心）。
+- 三条硬性约束：① `deleteFile` 的 `fileList` 上限 **50**，超了整批失败 → `chunk` 分批；② 单次最多扫 500 条记录，避免撞云函数超时，超出则回 `truncated: true` 留给下次；③ **幂等** —— 文件本就不存在（errMsg 含 not exist/not found）也算成功，重复跑不会报错。
+- 带 `dryRun` 开关：第一次上线可以"只看不删"（控制台「测试」传 `{"dryRun": true}`）。
+- `voiceCheckin` 两处改动：① 记录补 `fileID`；② 新增 `dropFile()`，在「没听清」「咒语无效」两条**不写记录**的分支当场删文件 —— 否则文件不被任何记录引用，`cleanVoice` 反查不到，成为永远清不掉的孤儿。删除失败只打日志，绝不影响打卡结果。
+- **又一次踩 `Number(null) === 0`**（本项目第三次）：若把 `0` 当合法时间戳，`createTime` 缺失的记录会被算成 1970 年 → 立刻判过期 → **删掉用户录音**。`toMs()` 里 `0`/负数一律返回 `null`，单测专门钉了一组。
+- 已知边界：F-11 之前写的记录没有 `fileID`，那些老录音无法自动定位（无列目录 API），只能控制台手工清或留着。文档里写明了。
+
+**F-12 关于页（修 P7，`pages/about` 新增）**
+
+- 结构：头部（图标 + 名称 + 版本徽章 + 简介）→ 这是什么 → 技术栈 → 主要功能 → 团队分工 → **AI 使用说明**（左侧蓝条强调）→ 隐私与数据 → 反馈与联系 → 页脚。
+- AI 使用说明单独成块并强调：这是课程硬性要求（未标注按学术不端 0 分），做成"作品自带声明"，演示时可直接翻给评委看。
+- 团队分工：`about.js` 顶部 `TEAM` 数组 + `jobKey` 映射职责（中英各一份），**姓名用 `（待填写）` 占位不编造**，改名字只改 `who`，人数不同就增删条目 —— 交作业前必须替换，文件头注释里写了。
+- 隐私段落写"录音仅用于当次识别、7 天后自动删除"，与实际实现（F-11）对齐，声明和行为不打架。
+- 版本号做成可点复制（`声控打卡游戏 v1.0.0`），答辩时直接贴文档；常量 `APP_VERSION` 在 `about.js` 顶部。
+- 接入语言/深色/字号三件套；**职责文案要在 JS 里按语言映射**，所以 `onLoad` 就要取 `lang`（与 `pages/badges` 同一个坑）。
+- `pages/mine` 的「关于」cell 从「建设中」toast 改成 `navigateTo`；顺带把退出登录弹窗里硬编码的 `'提示'` 换成语言包 `mine.tip`。
+- i18n 新增 `about` 分区 **29 条**、`mine` +1 → **372 → 402 条 / 15 分区**。
+- 涉及模块：`pages/about/`（新建四件套）、`app.json`（15 页）、`pages/mine/mine.js`、`utils/i18n.js`；云函数侧 `cloudfunctions/cleanVoice/`（新建 4 个文件）、`cloudfunctions/voiceCheckin/index.js`、`tools/test-clean-voice.js`（新建）。
+
+- 文档同步：新增 **3.14（F-11）/ 3.15（F-12）** 三小节结构（原始设计 / 已落地与设计决定 / 验收用例）；3.0 云函数总览加 `cleanVoice`；3.9.4 部署清单加 `cleanVoice`（函数计数 14 → 待部署的第 15 个）+ 触发器确认步骤；3.9.5 重写为"为什么清理要绕 records 一圈"；6.1 加 **Q-01~Q-06 / G-01~G-05** 与本地自测（**342 条**）；§5 进度改成"F-01~F-12 全部落地"；§8 从"重传云函数"改写为"补部署 + 建集合 + 跑验收"；§9 补"作品内已有 AI 声明"；文件索引更新。
+- 本地校验：`cleanVoice` 3 个 JS `node --check` + 2 个 JSON 解析通过；`test-clean-voice` **59 条**；六份单测 **48+25+81+84+45+59 = 342 条**全绿；`check-i18n` **402/402、15 分区、15 个 wxml 引用全在**；`check-sync` 四节全绿；另用临时 mock 脚本验了 about 页渲染/切语言/复制版本/入口跳转共 **13 条**（跑完即删）。
+
 ## 后续计划
 
 > 待补充：以下为基于当前进度的建议项，请按团队实际安排更新。
@@ -397,7 +430,9 @@ mini-program-demo/
 - [x] 地图交互增强（F-08：`show-location` 蓝点 + 回到我的位置 + 「导航」唤起微信内置地图）
 - [x] 打卡点列表页（F-09：按距离分「附近 500 米内 / 其他」，点条目回首页选中；`getDistance` 抽到 `utils/geo.js` 并配 48 条单测）
 - [x] 分享给好友（F-10：任务卡片分享带任务码、点开可自动接受；排行榜分享带「我拿了 X 分（第 N 名）」）
-- [ ] 定时触发器：自动将超时任务置为 `expired`
+- [x] 录音文件清理（F-11：`cleanVoice` + 每天 04:00 定时触发器删 7 天前录音；记录存 `fileID` 供反查，无用录音即时删除）
+- [x] 「关于」页（F-12：版本 / 技术栈 / 团队分工 / **AI 使用说明** / 隐私 / 联系，接语言与深色）
+- [ ] 定时触发器：自动将超时任务置为 `expired`（可与 `cleanVoice` 的触发器配置方式复用）
 - [ ] 云函数敏感配置外置（讯飞 APPID / APIKey / APISecret 改为环境变量并轮换）
 - [ ] 界面样式统一与视觉优化
 

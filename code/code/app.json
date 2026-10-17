@@ -13,7 +13,8 @@
     "pages/ranking/ranking",
     "pages/badges/badges",
     "pages/point-create/point-create",
-    "pages/point-list/point-list"
+    "pages/point-list/point-list",
+    "pages/about/about"
   ],
   "window": {
     "navigationBarBackgroundColor": "#1f4e79",

@@ -105,6 +105,20 @@ function recognize(audioBuffer) {
   })
 }
 
+// 删掉本次上传的录音（F-11）：只有「没听清」「咒语脏数据」这两条**不写记录**的分支才需要，
+// 因为文件不会被任何 records 文档引用 → cleanVoice 反查不到 → 永远清不掉（孤儿文件）。
+// 写了记录的分支一律留给 cleanVoice 按 7 天保留期统一清理。
+// ⚠️ 删除失败绝不能影响打卡结果：包 try/catch，失败只打日志。
+async function dropFile(fileID, why) {
+  if (!fileID) return
+  try {
+    await cloud.deleteFile({ fileList: [fileID] })
+    console.log('已删除无用录音（' + why + '）：', fileID)
+  } catch (e) {
+    console.warn('删除无用录音失败（' + why + '），留给 cleanVoice 兜底：', fileID, e)
+  }
+}
+
 // ========== 云函数主入口 ==========
 exports.main = async (event, context) => {
   const { OPENID } = cloud.getWXContext()
@@ -169,10 +183,12 @@ exports.main = async (event, context) => {
   //       常理上"没听清"也不该在记录里留一条 matched:false 的空记录污染列表。
   if (judge.reason === REASON.NO_SPEECH) {
     console.log('识别结果为空，按「没听清」处理（不写打卡记录）')
+    await dropFile(fileID, '没听清')
     return { code: 0, matched: false, noSpeech: true, recognizedText: '', similarity: 0 }
   }
   if (judge.reason === REASON.INVALID_SPELL) {
     console.log('打卡点咒语的归一化结果为空，判为脏数据：', pointId)
+    await dropFile(fileID, '咒语无效')
     return { code: -1, msg: '该打卡点的咒语无效，请联系创建者重新设置' }
   }
 
@@ -201,6 +217,10 @@ exports.main = async (event, context) => {
       matched: matched,
       taskId: taskId || null,             // 新增
       dayKey: dayKey,                     // 新增：F-04 连续打卡统计用
+      // 新增（F-11）：把云存储句柄留在记录上，供 cleanVoice 定时删录音时反查。
+      // 云开发没有「列目录」API，只能靠记录指回文件；删完 cleanVoice 会把这里清成 ''。
+      // 注意 getRecords 的 pickRecord() 是白名单出参，这个字段不会下发给前端。
+      fileID: fileID || '',
       createTime: db.serverDate()
     }
   })

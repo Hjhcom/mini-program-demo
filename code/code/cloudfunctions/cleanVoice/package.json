@@ -1,0 +1,9 @@
+{
+  "name": "cleanVoice",
+  "version": "1.0.0",
+  "description": "录音文件清理：定时删除 records 里 7 天前的录音（修 P5 存储堆积）",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}
