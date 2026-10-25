@@ -9,7 +9,7 @@
   display: flex;
   justify-content: space-around;
   padding: 40rpx 0;
-  background: #1f4e79;
+  background: #4A90D9;
 }
 
 .stat {
@@ -118,7 +118,7 @@
   height: 26rpx;
   margin-right: 14rpx;
   border: 3rpx solid #dfe3e8;
-  border-top-color: #1f4e79;
+  border-top-color: #4A90D9;
   border-radius: 50%;
   animation: footer-spin 0.8s linear infinite;
 }
@@ -163,7 +163,7 @@
   line-height: 80rpx;
   font-size: 28rpx;
   color: #ffffff;
-  background: #1f4e79;
+  background: #4A90D9;
   border-radius: 40rpx;
 }
 
@@ -249,7 +249,7 @@
   line-height: 84rpx;
   font-size: 30rpx;
   color: #ffffff;
-  background: #1f4e79;
+  background: #4A90D9;
   border-radius: 42rpx;
 }
 

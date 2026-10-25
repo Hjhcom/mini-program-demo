@@ -1,4 +1,4 @@
-/* 登录页样式（风格与全局一致：主色 #1f4e79） */
+/* 登录页样式（风格与全局一致：主色 #4A90D9） */
 .page {
   min-height: 100vh;
   background: #f5f6f7;
@@ -12,7 +12,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: #1f4e79;
+  background: #4A90D9;
 }
 
 .logo {
@@ -22,7 +22,7 @@
   text-align: center;
   border-radius: 32rpx;
   background: #ffffff;
-  color: #1f4e79;
+  color: #4A90D9;
   font-size: 64rpx;
   font-weight: bold;
   margin-bottom: 24rpx;
@@ -76,7 +76,7 @@
 }
 
 .phone {
-  background: #1f4e79;
+  background: #4A90D9;
 }
 
 .guest {
@@ -107,8 +107,8 @@
 }
 
 .checkbox.checked {
-  background: #1f4e79;
-  border-color: #1f4e79;
+  background: #4A90D9;
+  border-color: #4A90D9;
 }
 
 .check-mark {
@@ -122,7 +122,7 @@
 }
 
 .link {
-  color: #1f4e79;
+  color: #4A90D9;
   margin: 0 4rpx;
 }
 
@@ -234,7 +234,7 @@
 }
 
 .confirm {
-  background: #1f4e79;
+  background: #4A90D9;
   color: #ffffff;
 }
 
@@ -267,7 +267,7 @@
   height: 80rpx;
   line-height: 80rpx;
   font-size: 26rpx;
-  color: #1f4e79;
+  color: #4A90D9;
   background: #eaf1f8;
   border-radius: 12rpx;
   padding: 0;

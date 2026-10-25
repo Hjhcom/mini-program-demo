@@ -32,7 +32,7 @@
 .section-h {
   font-size: 30rpx;
   font-weight: bold;
-  color: #1f4e79;
+  color: #4A90D9;
   margin-bottom: 14rpx;
 }
 

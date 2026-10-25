@@ -76,5 +76,18 @@ exports.main = async (event) => {
       // ⚠️ 这里没有 creatorOpenid —— 刻意不回传，别为了图方便加回去
     })
 
+  // 4. 点亮地图：查当前用户成功打卡过哪些点，给每个点加 hasVisited 标记
+  let visitedIds = new Set()
+  if (OPENID && list.length > 0) {
+    const recordsRes = await db.collection('records')
+      .where({ openid: OPENID, matched: true })
+      .field({ pointId: true })
+      .get()
+    visitedIds = new Set(recordsRes.data.map(r => r.pointId))
+  }
+  list.forEach(p => {
+    p.hasVisited = visitedIds.has(p._id)
+  })
+
   return { code: 0, points: list }
 }

@@ -1,4 +1,4 @@
-/* 「关于」页样式（F-12）—— 主色沿用 #1f4e79，卡片式排版 */
+/* 「关于」页样式（F-12）—— 主色沿用 #4A90D9，卡片式排版 */
 .page {
   min-height: 100vh;
   background: #f5f6f7;
@@ -11,7 +11,7 @@
   flex-direction: column;
   align-items: center;
   padding: 56rpx 40rpx 40rpx;
-  background: linear-gradient(180deg, #1f4e79 0%, #2c6ba0 100%);
+  background: linear-gradient(180deg, #4A90D9 0%, #2c6ba0 100%);
 }
 
 .logo {
@@ -73,7 +73,7 @@
 
 .para.strong {
   font-weight: 600;
-  color: #1f4e79;
+  color: #4A90D9;
   margin-bottom: 12rpx;
 }
 
@@ -89,7 +89,7 @@
   width: 24rpx;
   font-size: 28rpx;
   line-height: 1.75;
-  color: #1f4e79;
+  color: #4A90D9;
 }
 
 .li .para {
@@ -131,7 +131,7 @@
 
 /* ===== AI 使用说明：单独强调，避免在报告里被当成"没标注" ===== */
 .ai-card {
-  border-left: 8rpx solid #1f4e79;
+  border-left: 8rpx solid #4A90D9;
   background: #f2f7fc;
 }
 
@@ -157,7 +157,7 @@
 }
 
 .page.dark .hero {
-  background: linear-gradient(180deg, #17395a 0%, #1f4e79 100%);
+  background: linear-gradient(180deg, #17395a 0%, #4A90D9 100%);
 }
 
 .page.dark .group-title {

@@ -240,6 +240,7 @@ exports.main = async (event, context) => {
     code: 0,
     recognizedText: recognizedText,
     matched: matched,
-    similarity: sim
+    similarity: sim,
+    recordId: addRes._id
   }
 }

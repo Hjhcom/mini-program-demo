@@ -1,8 +1,14 @@
 <!-- pages/splash/splash.wxml —— 启动封面：展示 5 秒后自动跳转首页 -->
 <view class="splash">
-  <view class="logo">声</view>
-  <view class="title">声控打卡游戏</view>
-  <view class="subtitle">到点打卡，念出咒语，畅游北理</view>
+  <!-- 背景装饰：1940 水印 -->
+  <text class="bg-watermark">1940</text>
+
+  <view class="logo">
+    <image class="logo-img" src="/images/bit-logo.png" mode="aspectFit" />
+  </view>
+  <view class="title">依声游理</view>
+  <view class="subtitle">德以明理 · 学以精工</view>
+  <view class="desc">到点打卡，念出咒语，畅游北理</view>
 
   <view class="skip" bindtap="onSkip">{{countdown > 0 ? '跳过 ' + countdown + 's' : '进入'}}</view>
 </view>

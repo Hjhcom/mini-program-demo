@@ -408,6 +408,37 @@ P2 最后两项。一件改云函数、一件纯前端。
 - 文档同步：新增 **3.14（F-11）/ 3.15（F-12）** 三小节结构（原始设计 / 已落地与设计决定 / 验收用例）；3.0 云函数总览加 `cleanVoice`；3.9.4 部署清单加 `cleanVoice`（函数计数 14 → 待部署的第 15 个）+ 触发器确认步骤；3.9.5 重写为"为什么清理要绕 records 一圈"；6.1 加 **Q-01~Q-06 / G-01~G-05** 与本地自测（**342 条**）；§5 进度改成"F-01~F-12 全部落地"；§8 从"重传云函数"改写为"补部署 + 建集合 + 跑验收"；§9 补"作品内已有 AI 声明"；文件索引更新。
 - 本地校验：`cleanVoice` 3 个 JS `node --check` + 2 个 JSON 解析通过；`test-clean-voice` **59 条**；六份单测 **48+25+81+84+45+59 = 342 条**全绿；`check-i18n` **402/402、15 分区、15 个 wxml 引用全在**；`check-sync` 四节全绿；另用临时 mock 脚本验了 about 页渲染/切语言/复制版本/入口跳转共 **13 条**（跑完即删）。
 
+
+**F-13 UI 品牌化与视觉升级（清新蓝 + 北理工元素）**
+
+- 全局主色从旧藏蓝 `#1f4e79` 换成清新蓝 `#4A90D9`，强调色橙红 `#e05a3a`，金色 `#d4a017`（点亮用），北理工绿 `#2E7D32`。
+- 首页顶部加蓝绿渐变品牌横幅：左侧北理工圆形校徽，中间标题"依声游理" + 校训"德以明理，学以精工"，右侧 1940 水印。
+- 启动封面（splash）换成校徽 + 依声游理标题，5 秒后自动进首页。
+- 项目正式改名："声控打卡游戏" → "依声游理"（导航栏标题、分享标题、关于页同步改）。
+- 底部功能键重排：主按钮（开始打卡）全宽渐变，次按钮三列宫格，悬浮卡片风格。
+- 多语言适配：品牌条、动态 tab、tabBar 文字全部加中英文映射；修了 `applyTabBarLang` 只映射两个 tab 导致"动态"被覆盖成"我的"的 bug。
+- 涉及模块：`pages/index/index.wxss/wxml`、`pages/splash/`、`app.json`、`app.js`（applyTabBarLang）、`utils/i18n.js`、`images/bit-logo.png`（新增校徽图）。
+
+**F-14 点亮地图（已打卡点金色图钉 + 进度条）**
+
+- 已打卡过的点位在地图上从普通蓝色图钉变成金色图钉，直观展示"哪些点已经打过卡"。
+- 首页左上角加"已点亮 X / 6"进度条，实时显示打卡进度。
+- 后端 `getPoints` 云函数加 `hasVisited` 字段，前端根据这个字段切换 marker 图标。
+- 新增 `images/marker/point-lit.png` 金色图钉图标。
+- 涉及模块：`cloudfunctions/getPoints/index.js`、`pages/index/index.js/wxml/wxss`。
+
+**F-15 动态社交（底部动态 tab + 点赞 + 评论 + 打卡照片）**
+
+- 底部 tabBar 从两个改成三个：首页 / **动态** / 我的，中间是新增的动态 tab。
+- 动态页（`pages/nearby/`）：展示所有人的打卡时间线（头像、昵称、打卡点、咒语、时间），下拉刷新。
+- **点赞**：每条动态右下角 ❤️ 按钮，乐观更新（前端先变，失败回滚）；新建 `likeFeed` 云函数，`records` 集合加 `likes` 数组字段存点赞 openid。
+- **评论**：每条动态 💬 按钮，点了从底部弹出评论面板（评论列表 + 输入框 + 发送）；新建 `getComments`（查评论）和 `addComment`（发评论）两个云函数；新建 `comments` 集合（存 recordId / openid / nickname / content / createTime）。
+- **打卡照片**：打卡成功后（庆祝动效结束 2.2 秒后）弹"拍一张打卡照片？"，选拍照调起相机，拍好自动上传云存储（`checkin-photos/` 目录），然后调 `updateRecordPhoto` 云函数把 `photoFileID` 写回 records 记录；动态里有照片的显示 300rpx 高圆角缩略图。
+- `voiceCheckin` 云函数打卡成功后返回 `recordId`，供前端后续关联照片。
+- `getNearby` 云函数升级：批量查点赞数（`likesCount`/`isLiked`）、评论数（`commentCount`）、照片（`photoFileID`），批量查用户昵称头像。
+- 修了头像/照片云存储 fileID 不能直接给 image 组件当 src 的问题：前端拿到列表后批量调 `wx.cloud.getTempFileURL` 转临时 URL 再显示。
+- 涉及模块：`pages/nearby/`（四件套全改）、`pages/index/index.js`（打卡成功后拍照流程）、`cloudfunctions/nearby.js` 改成 `cloudfunctions/getNearby/`（新建）、`cloudfunctions/likeFeed/`（新建）、`cloudfunctions/updateRecordPhoto/`（新建）、`cloudfunctions/getComments/`（新建）、`cloudfunctions/addComment/`（新建）、`cloudfunctions/voiceCheckin/index.js`（加 recordId 返回）、`app.json`（tabBar 三 tab）、`images/tabbar/feed.png` / `feed-active.png`（新增动态 tab 图标）。
+
 ## 后续计划
 
 > 待补充：以下为基于当前进度的建议项，请按团队实际安排更新。

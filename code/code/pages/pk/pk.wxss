@@ -1,4 +1,4 @@
-/* 好友打卡PK页样式（风格与我的页一致：主色 #1f4e79） */
+/* 好友打卡PK页样式（风格与我的页一致：主色 #4A90D9） */
 .page {
   min-height: 100vh;
   background: #f5f6f7;
@@ -8,7 +8,7 @@
 .invite-banner {
   margin: 24rpx;
   padding: 30rpx;
-  background: #1f4e79;
+  background: #4A90D9;
   border-radius: 12rpx;
   display: flex;
   align-items: center;
@@ -38,7 +38,7 @@
   line-height: 64rpx;
   font-size: 26rpx;
   background: #ffffff;
-  color: #1f4e79;
+  color: #4A90D9;
   border-radius: 32rpx;
 }
 
@@ -62,7 +62,7 @@
   line-height: 88rpx;
   text-align: center;
   border-radius: 50%;
-  background: #1f4e79;
+  background: #4A90D9;
   color: #ffffff;
   font-size: 36rpx;
   font-weight: bold;
@@ -88,7 +88,7 @@
 
 .friend-arrow {
   font-size: 26rpx;
-  color: #1f4e79;
+  color: #4A90D9;
 }
 
 /* 空态 */
@@ -127,7 +127,7 @@
   text-align: center;
   font-size: 34rpx;
   font-weight: bold;
-  color: #1f4e79;
+  color: #4A90D9;
   margin-bottom: 30rpx;
 }
 
@@ -150,7 +150,7 @@
   line-height: 100rpx;
   text-align: center;
   border-radius: 50%;
-  background: #1f4e79;
+  background: #4A90D9;
   color: #ffffff;
   font-size: 40rpx;
   font-weight: bold;
@@ -166,7 +166,7 @@
   margin-top: 8rpx;
   font-size: 48rpx;
   font-weight: bold;
-  color: #1f4e79;
+  color: #4A90D9;
 }
 
 .vs-label {
@@ -205,7 +205,7 @@
 
 .pk-close {
   margin-top: 30rpx;
-  background: #1f4e79;
+  background: #4A90D9;
   color: #ffffff;
   font-size: 30rpx;
   border-radius: 40rpx;

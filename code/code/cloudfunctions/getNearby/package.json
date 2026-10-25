@@ -1,0 +1,9 @@
+{
+  "name": "getNearby",
+  "version": "1.0.0",
+  "description": "附近动态：查询最近的公开打卡记录",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

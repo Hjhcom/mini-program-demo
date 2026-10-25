@@ -11,7 +11,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #1f4e79;
+  background: #4A90D9;
   padding: 20rpx 30rpx;
 }
 
@@ -31,7 +31,7 @@
 
 .tab.on {
   background: #ffffff;
-  color: #1f4e79;
+  color: #4A90D9;
   font-weight: bold;
 }
 
@@ -88,7 +88,7 @@
 
 /* 进行中 */
 .task-badge.accepted {
-  color: #1f4e79;
+  color: #4A90D9;
   background: #e8f0f8;
 }
 
@@ -127,7 +127,7 @@
 
 .task-code {
   font-size: 24rpx;
-  color: #1f4e79;
+  color: #4A90D9;
 }
 
 /* F-10：卡片底部右侧（任务码 + 分享按钮） */
@@ -139,7 +139,7 @@
 /* F-10：分享按钮 —— button 自带默认边框与内边距，这里全部覆盖成小胶囊 */
 .share-btn {
   font-size: 22rpx;
-  color: #1f4e79;
+  color: #4A90D9;
   background: #eef4fa;
   border: 2rpx solid #cfdfef;
   border-radius: 999rpx;
@@ -175,7 +175,7 @@
   line-height: 80rpx;
   font-size: 28rpx;
   color: #ffffff;
-  background: #1f4e79;
+  background: #4A90D9;
   border-radius: 40rpx;
 }
 
@@ -191,7 +191,7 @@
   width: 110rpx;
   height: 110rpx;
   border-radius: 50%;
-  background: #1f4e79;
+  background: #4A90D9;
   color: #ffffff;
   font-size: 56rpx;
   line-height: 104rpx;

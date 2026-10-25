@@ -1,5 +1,14 @@
 <!-- 首页结构：地图 + 底部信息栏 -->
 <view class="page {{dark ? 'dark' : ''}} {{fontScale == 'lg' ? 'font-lg' : fontScale == 'xl' ? 'font-xl' : ''}}">
+  <!-- 北理工品牌横幅 -->
+  <view class="top-brand">
+    <text class="top-brand-logo">🏛️</text>
+    <view class="top-brand-text">
+      <text class="top-brand-title">{{lang.index.brandTitle}}</text>
+      <text class="top-brand-slogan">{{lang.index.brandSlogan}}</text>
+    </view>
+  </view>
+
   <!-- 地图组件：markers 显示打卡点图钉 -->
   <!-- F-08：show-location 会画出「我的位置」蓝点；id 供 MapContext.moveToLocation 使用 -->
   <map class="map"
@@ -8,6 +17,7 @@
        latitude="{{center.latitude}}"
        scale="{{scale}}"
        markers="{{markers}}"
+       language="{{mapLang}}"
        show-location
        bindmarkertap="onMarkerTap"></map>
 
@@ -29,6 +39,14 @@
       <view class="legend-dot dot-custom"></view>
       <text class="legend-text">{{lang.index.typePlayer}}</text>
     </view>
+  </view>
+
+  <!-- 点亮地图进度条 -->
+  <view class="lit-progress" wx:if="{{isLoggedIn && totalCount > 0}}">
+    <view class="lit-progress-bar">
+      <view class="lit-progress-fill" style="width: {{visitedCount / totalCount * 100}}%"></view>
+    </view>
+    <text class="lit-progress-text">已点亮 {{visitedCount}}/{{totalCount}}</text>
   </view>
 
   <!-- 待完成任务提示条（指派给我、进行中、未过期） -->
@@ -90,11 +108,13 @@
       <button class="btn" bindtap="checkIn">{{lang.index.checkIn}}</button>
       <button wx:if="{{inRange}}" class="btn btn-record {{recording ? 'recording' : ''}} {{shake ? 'shake' : ''}}"
               bindtap="onRecordTap">{{recording ? lang.index.recording : lang.index.spell}}</button>
-      <button wx:if="{{selectedPoint}}" class="btn btn-ghost" bindtap="goCreateTask">{{lang.index.createTaskForFriend}}</button>
-      <button class="btn btn-ghost" bindtap="goCreatePoint">{{lang.index.createPoint}}</button>
-      <button class="btn btn-ghost" bindtap="goPointList">{{lang.index.pointList}}</button>
-      <button class="btn btn-ghost" bindtap="goRanking">{{lang.index.ranking}}</button>
-      <button class="btn btn-ghost" bindtap="goRecords">{{lang.index.records}}</button>
+      <view class="btn-ghost-row">
+        <button wx:if="{{selectedPoint}}" class="btn btn-ghost" bindtap="goCreateTask">{{lang.index.createTaskForFriend}}</button>
+        <button class="btn btn-ghost" bindtap="goCreatePoint">{{lang.index.createPoint}}</button>
+        <button class="btn btn-ghost" bindtap="goPointList">{{lang.index.pointList}}</button>
+        <button class="btn btn-ghost" bindtap="goRanking">{{lang.index.ranking}}</button>
+        <button class="btn btn-ghost" bindtap="goRecords">{{lang.index.records}}</button>
+      </view>
     </view>
 
     <!-- F-05：举报入口（仅别人创建的玩家点位显示） -->

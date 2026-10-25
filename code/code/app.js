@@ -110,7 +110,8 @@ App({
     if (!wx.setTabBarItem) return
     const isEn = this.globalData.language === 'en'
     wx.setTabBarItem({ index: 0, text: isEn ? 'Home' : '首页' })
-    wx.setTabBarItem({ index: 1, text: isEn ? 'Mine' : '我的' })
+    wx.setTabBarItem({ index: 1, text: isEn ? 'Feed' : '动态' })
+    wx.setTabBarItem({ index: 2, text: isEn ? 'Mine' : '我的' })
   },
 
   // 处理分享卡片带来的邀请码：登录后自动与邀请人互为好友

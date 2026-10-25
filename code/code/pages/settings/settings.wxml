@@ -6,7 +6,7 @@
   <view class="cell-group">
     <view class="cell">
       <text class="cell-label">{{lang.settings.darkMode}}</text>
-      <switch checked="{{dark}}" bindchange="onDarkChange" color="#1f4e79" />
+      <switch checked="{{dark}}" bindchange="onDarkChange" color="#4A90D9" />
     </view>
     <view class="cell">
       <text class="cell-label">{{lang.settings.language}}</text>

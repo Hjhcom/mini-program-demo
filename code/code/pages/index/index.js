@@ -21,7 +21,7 @@ const REPORT_REASONS = ['fake', 'improper', 'duplicate', 'other']
 // 这里只展示「打卡」这一项的基础分；连续打卡奖励（+5×min(n,5)）是另一条规则，另计。
 const CHECKIN_POINTS = 10
 // 撒花碎片色板（与项目主色 + 图钉色一致）
-const CONFETTI_COLORS = ['#e05a3a', '#f0b429', '#1f9d6b', '#1f4e79', '#c2509a', '#3aa8c1']
+const CONFETTI_COLORS = ['#e05a3a', '#f0b429', '#1f9d6b', '#4A90D9', '#c2509a', '#3aa8c1']
 const CONFETTI_COUNT = 14
 
 // 生成一批撒花碎片（纯随机、纯函数，不依赖 this 与 wx）
@@ -78,6 +78,7 @@ Page({
     dark: false,       // 深色模式（全局设置）
     fontScale: 'md',   // 字体大小（全局设置）
     lang: i18n.zh,     // 当前语言文案
+    mapLang: 'zh',     // 地图语言
     tip: i18n.zh.index.tipLoading
   },
 
@@ -105,6 +106,9 @@ Page({
 
   // 页面显示时同步登录态与全局设置（登录/退出后回来会变化）
   onShow: function () {
+    // 同步地图语言
+    const app = getApp()
+    this.setData({ mapLang: app.globalData.language === 'en' ? 'en' : 'zh' })
     const user = app.globalData.userInfo
     const isEn = app.globalData.language === 'en'
     const lang = isEn ? i18n.en : i18n.zh
@@ -253,20 +257,22 @@ Page({
         title: p.name,
         width: 32,
         height: 32,
-        iconPath: p.isOfficial ? MARKER_OFFICIAL : MARKER_CUSTOM,
+        // 点亮地图：已打卡过的点用绿色图标，未打卡的按官方/自建区分
+        iconPath: p.hasVisited ? MARKER_LIT : (p.isOfficial ? MARKER_OFFICIAL : MARKER_CUSTOM),
         callout: {
           content: p.name,
           color: '#ffffff',
           fontSize: 12,
           borderRadius: 6,
           borderWidth: 0,
-          bgColor: p.isOfficial ? '#1f4e79' : '#e8842c',
+          bgColor: p.hasVisited ? '#d4a017' : (p.isOfficial ? '#4A90D9' : '#e8842c'),
           padding: 6,
           display: 'BYCLICK',
           textAlign: 'center'
         }
       }))
-      this.setData({ points, markers })
+      const visitedCount = points.filter(p => p.hasVisited).length
+      this.setData({ points, markers, visitedCount, totalCount: points.length })
       console.log('打卡点加载成功', points.length, '个')
 
       // 点位被重拉过（新建点位 / 举报隐藏）后，之前选中的点位可能已经不在列表里了：
@@ -569,6 +575,10 @@ Page({
     wx.navigateTo({ url: '/pages/ranking/ranking' })
   },
 
+  goNearby: function () {
+    wx.navigateTo({ url: '/pages/nearby/nearby' })
+  },
+
   // 跳转到打卡任务页（点击底部任务提示条）
   goTask: function () {
     wx.navigateTo({ url: '/pages/task/task' })
@@ -695,6 +705,10 @@ Page({
         // F-07：整屏撒花 + 居中结果卡（+10 分）
         this.showCelebrate(r.recognizedText, r.similarity)
         console.log('打卡成功', r)
+        // 打卡成功 → 问要不要拍一张打卡照片
+        if (r.recordId) {
+          setTimeout(() => this.askPhoto(r.recordId), 2200)
+        }
         // 任务打卡成功 → 刷新待完成任务（该任务已变成已完成）
         if (taskId) this.loadPendingTask()
         // 顺便查一下有没有新解锁的成就徽章（F-04）；失败静默，不影响打卡结果
@@ -773,6 +787,52 @@ Page({
     return {
       title: title,
       query: invite ? 'invite=' + invite : 'from=timeline'
+    }
+  },
+
+  // 打卡照片：问要不要拍一张
+  askPhoto(recordId) {
+    wx.showActionSheet({
+      itemList: ['拍一张打卡照片', '不用了'],
+      success: (res) => {
+        if (res.tapIndex === 0) {
+          this.takePhoto(recordId)
+        }
+      }
+    })
+  },
+
+  // 拍照并上传
+  async takePhoto(recordId) {
+    try {
+      const res = await wx.chooseMedia({
+        count: 1,
+        mediaType: ['image'],
+        sourceType: ['camera'],
+        sizeType: ['compressed']
+      })
+      const tempFilePath = res.tempFiles[0].tempFilePath
+
+      wx.showLoading({ title: '上传中...' })
+
+      // 上传到云存储
+      const uploadRes = await wx.cloud.uploadFile({
+        cloudPath: 'checkin-photos/' + Date.now() + '-' + Math.random().toString(36).slice(2, 8) + '.jpg',
+        filePath: tempFilePath
+      })
+
+      // 更新到记录
+      await wx.cloud.callFunction({
+        name: 'updateRecordPhoto',
+        data: { recordId, photoFileID: uploadRes.fileID }
+      })
+
+      wx.hideLoading()
+      wx.showToast({ title: '照片已保存', icon: 'success' })
+    } catch (e) {
+      wx.hideLoading()
+      console.error('拍照失败：', e)
+      // 用户取消了不提示
     }
   }
 })

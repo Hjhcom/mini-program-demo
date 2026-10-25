@@ -14,16 +14,17 @@
     "pages/badges/badges",
     "pages/point-create/point-create",
     "pages/point-list/point-list",
-    "pages/about/about"
+    "pages/about/about",
+    "pages/nearby/nearby"
   ],
   "window": {
-    "navigationBarBackgroundColor": "#1f4e79",
-    "navigationBarTitleText": "声控打卡游戏",
+    "navigationBarBackgroundColor": "#4A90D9",
+    "navigationBarTitleText": "依声游理",
     "navigationBarTextStyle": "white"
   },
   "tabBar": {
     "color": "#999999",
-    "selectedColor": "#1f4e79",
+    "selectedColor": "#4A90D9",
     "backgroundColor": "#ffffff",
     "borderStyle": "black",
     "list": [
@@ -32,6 +33,12 @@
         "text": "首页",
         "iconPath": "images/tabbar/home.png",
         "selectedIconPath": "images/tabbar/home-active.png"
+      },
+      {
+        "pagePath": "pages/nearby/nearby",
+        "text": "动态",
+        "iconPath": "images/tabbar/feed.png",
+        "selectedIconPath": "images/tabbar/feed-active.png"
       },
       {
         "pagePath": "pages/mine/mine",
@@ -46,8 +53,6 @@
       "desc": "用于显示你附近的打卡点、并在创建打卡点时选取位置"
     }
   },
-  "enableShareAppMessage": true,
-  "enableShareTimeline": true,
   "requiredPrivateInfos": [
     "getLocation",
     "chooseLocation"

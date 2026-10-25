@@ -3,6 +3,7 @@
 
   <!-- 未登录：登录引导卡片（按钮在下方区域） -->
   <view class="user-card" wx:if="{{!user}}">
+    <text class="card-watermark">1940</text>
     <view class="avatar avatar-guest">客</view>
     <view class="user-info">
       <text class="nickname">{{lang.mine.notLogin}}</text>
@@ -12,6 +13,7 @@
 
   <!-- 已登录：用户卡片 -->
   <view class="user-card" wx:else>
+    <text class="card-watermark">1940</text>
     <view class="avatar" wx:if="{{user.avatarUrl}}">
       <image class="avatar-img" src="{{avatarDisplay}}" mode="aspectFill" />
     </view>

@@ -53,7 +53,7 @@
 }
 
 .point-item.on {
-  border-color: #1f4e79;
+  border-color: #4A90D9;
   background: #eef3f8;
 }
 
@@ -79,7 +79,7 @@
   flex-shrink: 0;
   margin-left: 20rpx;
   font-size: 32rpx;
-  color: #1f4e79;
+  color: #4A90D9;
   font-weight: bold;
 }
 
@@ -106,7 +106,7 @@
 }
 
 .duration-option.on {
-  background: #1f4e79;
+  background: #4A90D9;
   color: #ffffff;
 }
 
@@ -118,7 +118,7 @@
   line-height: 88rpx;
   font-size: 32rpx;
   color: #ffffff;
-  background: #1f4e79;
+  background: #4A90D9;
   border-radius: 44rpx;
 }
 
@@ -174,7 +174,7 @@
 .code-big {
   font-size: 76rpx;
   font-weight: bold;
-  color: #1f4e79;
+  color: #4A90D9;
   letter-spacing: 12rpx;
   margin: 40rpx 0;
   font-family: Menlo, Consolas, monospace;
@@ -186,7 +186,7 @@
   line-height: 84rpx;
   font-size: 30rpx;
   color: #ffffff;
-  background: #1f4e79;
+  background: #4A90D9;
   border-radius: 42rpx;
 }
 
@@ -243,7 +243,7 @@
 }
 
 .page.dark .duration-option.on {
-  background: #1f4e79;
+  background: #4A90D9;
   color: #ffffff;
 }
 

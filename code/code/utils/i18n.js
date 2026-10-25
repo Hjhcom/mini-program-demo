@@ -7,6 +7,9 @@ const zh = {
     appName: '声控打卡游戏'
   },
   index: {
+    brandTitle: '北京理工大学 · 声控打卡',
+    brandSlogan: '德以明理，学以精工',
+    nearby: '附近动态',
     checkIn: '定位打卡',
     records: '📋 记录',
     spell: '🎤 说咒语',
@@ -452,6 +455,9 @@ const en = {
     appName: 'Voice Check-in Game'
   },
   index: {
+    brandTitle: 'BIT · Voice Check-in',
+    brandSlogan: 'Integrity in mind, excellence in practice',
+    nearby: 'Nearby',
     checkIn: 'Check in',
     records: '📋 Records',
     spell: '🎤 Say the spell',
@@ -843,7 +849,7 @@ const en = {
     fontLg: 'Large',
     fontXl: 'Extra large',
     language: 'Language',
-    zh: '中文',
+    zh: 'Chinese',
     en: 'English',
     storage: 'Storage',
     clearCache: 'Clear cache',

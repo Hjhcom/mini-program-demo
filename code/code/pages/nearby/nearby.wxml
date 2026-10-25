@@ -1,0 +1,80 @@
+<!--pages/nearby/nearby.wxml —— 动态-->
+<view class="page">
+  <!-- 加载中 -->
+  <view class="loading" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty" wx:elif="{{isEmpty}}">
+    <text class="empty-icon">📍</text>
+    <text class="empty-text">还没有打卡动态</text>
+    <text class="empty-sub">成为第一个打卡的人吧</text>
+  </view>
+
+  <!-- 动态列表 -->
+  <view class="feed" wx:else>
+    <view class="feed-item" wx:for="{{list}}" wx:key="_id">
+      <!-- 头像 -->
+      <view class="avatar" wx:if="{{item.avatarUrl}}">
+        <image class="avatar-img" src="{{item.avatarUrl}}" mode="aspectFill" />
+      </view>
+      <view class="avatar avatar-ph" wx:else>{{item.nickname[0]}}</view>
+
+      <!-- 内容 -->
+      <view class="feed-content">
+        <view class="feed-head">
+          <text class="feed-name">{{item.nickname}}</text>
+          <text class="feed-time">{{item.timeText}}</text>
+        </view>
+        <view class="feed-text">
+          打卡了 <text class="feed-point">{{item.pointName}}</text>
+        </view>
+        <view class="feed-spell" wx:if="{{item.spell}}">
+          念了咒语「{{item.spell}}」
+        </view>
+        <image class="feed-photo" wx:if="{{item.photoFileID}}" src="{{item.photoFileID}}" mode="aspectFill" />
+
+        <!-- 操作按钮 -->
+        <view class="feed-actions">
+          <view class="like-btn {{item.isLiked ? 'liked' : ''}}" data-id="{{item._id}}" bindtap="onLikeTap">
+            <text class="like-icon">{{item.isLiked ? '❤️' : '🤍'}}</text>
+            <text class="like-count">{{item.likesCount}}</text>
+          </view>
+          <view class="comment-btn" data-id="{{item._id}}" bindtap="onCommentTap">
+            <text class="comment-icon">💬</text>
+            <text class="comment-count">{{item.commentCount}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 评论弹层 -->
+  <view class="comment-mask" wx:if="{{showCommentPanel}}" bindtap="closeCommentPanel"></view>
+  <view class="comment-panel {{showCommentPanel ? 'show' : ''}}">
+    <view class="comment-panel-head">
+      <text class="comment-panel-title">评论</text>
+      <text class="comment-panel-close" bindtap="closeCommentPanel">✕</text>
+    </view>
+    <scroll-view class="comment-list" scroll-y>
+      <view class="comment-empty" wx:if="{{commentList.length === 0}}">
+        还没有评论，来抢沙发
+      </view>
+      <view class="comment-item" wx:for="{{commentList}}" wx:key="_id">
+        <view class="comment-avatar" wx:if="{{item.avatarUrl}}">
+          <image class="comment-avatar-img" src="{{item.avatarUrl}}" mode="aspectFill" />
+        </view>
+        <view class="comment-avatar comment-avatar-ph" wx:else>{{item.nickname[0]}}</view>
+        <view class="comment-body">
+          <text class="comment-name">{{item.nickname}}</text>
+          <text class="comment-text">{{item.content}}</text>
+        </view>
+      </view>
+    </scroll-view>
+    <view class="comment-input-bar">
+      <input class="comment-input" placeholder="说点什么..." value="{{commentText}}" bindinput="onCommentInput" confirm-type="send" bindconfirm="onSendComment" />
+      <view class="comment-send-btn" bindtap="onSendComment">发送</view>
+    </view>
+  </view>
+</view>

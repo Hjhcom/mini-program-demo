@@ -1,4 +1,4 @@
-/* 成就徽章页样式（主色 #1f4e79，卡片圆角 16rpx，与 ranking / records 保持一致）
+/* 成就徽章页样式（主色 #4A90D9，卡片圆角 16rpx，与 ranking / records 保持一致）
    注意：.empty-text / .pop-title 的样式（含深色）已在 app.wxss 全局定义，这里不重复定义。 */
 .page {
   min-height: 100vh;
@@ -14,7 +14,7 @@
   line-height: 84rpx;
   font-size: 30rpx;
   color: #ffffff;
-  background: #1f4e79;
+  background: #4A90D9;
   border-radius: 42rpx;
 }
 
@@ -46,7 +46,7 @@
 .streak-card {
   margin: 24rpx 30rpx 0;
   padding: 28rpx 34rpx 30rpx;
-  background: #1f4e79;
+  background: #4A90D9;
   border-radius: 16rpx;
 }
 
@@ -264,7 +264,7 @@
 
 .pop-progress {
   font-size: 25rpx;
-  color: #1f4e79;
+  color: #4A90D9;
   margin-top: 14rpx;
 }
 
@@ -275,7 +275,7 @@
   line-height: 84rpx;
   font-size: 30rpx;
   color: #ffffff;
-  background: #1f4e79;
+  background: #4A90D9;
   border-radius: 42rpx;
 }
 

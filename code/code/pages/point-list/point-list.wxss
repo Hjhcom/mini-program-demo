@@ -1,4 +1,4 @@
-/* 打卡点列表页样式（色板与全局一致：主色 #1f4e79、官方蓝 / 自建橙） */
+/* 打卡点列表页样式（色板与全局一致：主色 #4A90D9、官方蓝 / 自建橙） */
 .page {
   min-height: 100vh;
   background: #f5f6f7;
@@ -32,9 +32,9 @@
 
 .head-retry {
   font-size: 24rpx;
-  color: #1f4e79;
+  color: #4A90D9;
   margin-left: 12rpx;
-  border-bottom: 2rpx solid #1f4e79;
+  border-bottom: 2rpx solid #4A90D9;
 }
 
 /* ===== 分组标题 ===== */
@@ -88,7 +88,7 @@
 }
 
 .tag-official {
-  color: #1f4e79;
+  color: #4A90D9;
   background: #e8f0f8;
 }
 
@@ -122,7 +122,7 @@
 
 .card-dist {
   font-size: 26rpx;
-  color: #1f4e79;
+  color: #4A90D9;
   font-weight: 500;
 }
 
@@ -159,7 +159,7 @@
   width: 44rpx;
   height: 44rpx;
   border: 4rpx solid #e0e0e2;
-  border-top-color: #1f4e79;
+  border-top-color: #4A90D9;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
