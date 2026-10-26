@@ -7,6 +7,50 @@
   padding-bottom: 120rpx;
 }
 
+/* 顶部 tab 切换 */
+.feed-tabs {
+  display: flex;
+  background: #ffffff;
+  border-radius: 40rpx;
+  padding: 6rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+}
+.feed-tab {
+  flex: 1;
+  text-align: center;
+  height: 64rpx;
+  line-height: 64rpx;
+  font-size: 28rpx;
+  color: #666;
+  border-radius: 36rpx;
+  transition: all 0.2s;
+}
+.feed-tab.active {
+  background: #4A90D9;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+/* 发动态入口条 */
+.publish-entry {
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border-radius: 20rpx;
+  padding: 24rpx 28rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+}
+.publish-icon {
+  font-size: 32rpx;
+  margin-right: 16rpx;
+}
+.publish-text {
+  font-size: 28rpx;
+  color: #999;
+}
+
 /* 加载中 */
 .loading {
   text-align: center;
@@ -101,6 +145,15 @@
 .feed-time {
   font-size: 22rpx;
   color: #999;
+}
+
+.feed-del {
+  margin-left: 16rpx;
+  font-size: 22rpx;
+  color: #e64340;
+  padding: 4rpx 14rpx;
+  border-radius: 20rpx;
+  background: #fff0f0;
 }
 
 .feed-text {

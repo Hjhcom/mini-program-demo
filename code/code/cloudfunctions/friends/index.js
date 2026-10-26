@@ -118,6 +118,21 @@ exports.main = async (event, context) => {
         data: { userOpenid: friend.openid, friendOpenid: OPENID, createdAt: db.serverDate() }
       })
 
+      // 给对方写好友通知
+      try {
+        await db.collection('notifications').add({
+          data: {
+            toOpenid: friend.openid,
+            fromOpenid: OPENID,
+            type: 'friend',
+            read: false,
+            createTime: db.serverDate()
+          }
+        })
+      } catch (e) {
+        console.error('写好友通知失败：', e)
+      }
+
       return { code: 0, already: false, friend: { recordId: mine._id, nickname: friend.nickname } }
     }
 

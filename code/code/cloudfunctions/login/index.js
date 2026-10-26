@@ -44,7 +44,9 @@ function pickUser(user) {
   return {
     nickname: user.nickname || '打卡玩家',
     avatarUrl: user.avatarUrl || '',
-    inviteCode: user.inviteCode || ''
+    inviteCode: user.inviteCode || '',
+    gender: user.gender || '',
+    region: Array.isArray(user.region) ? user.region : []
   }
 }
 
@@ -149,13 +151,21 @@ exports.main = async (event, context) => {
   // 完善资料：更新当前用户的头像昵称（微信登录弹窗确认后调用）
   if (event.profile) {
     const p = event.profile
-    await users.where({ openid: OPENID }).update({
-      data: {
-        nickname: (p.nickname || '打卡玩家').toString().slice(0, 20),
-        avatarUrl: p.avatarUrl || '',
-        updatedAt: db.serverDate()
-      }
-    })
+    const update = {
+      nickname: (p.nickname || '打卡玩家').toString().slice(0, 20),
+      avatarUrl: p.avatarUrl || '',
+      updatedAt: db.serverDate()
+    }
+    // 性别 / 地区可选：传了才更新；性别限定枚举值
+    if (p.gender !== undefined) {
+      update.gender = ['male', 'female', 'secret'].indexOf(p.gender) >= 0 ? p.gender : ''
+    }
+    if (p.region !== undefined) {
+      update.region = Array.isArray(p.region) && p.region.length === 3
+        ? p.region.map(t => String(t).slice(0, 20))
+        : []
+    }
+    await users.where({ openid: OPENID }).update({ data: update })
     const after = await users.where({ openid: OPENID }).get()
     return { code: 0, isNew: false, user: pickUser(await ensureInviteCode(after.data[0])) }
   }

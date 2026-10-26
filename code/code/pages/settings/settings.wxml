@@ -1,6 +1,15 @@
 <!-- pages/settings/settings.wxml —— 设置页 -->
 <view class="page {{dark ? 'dark' : ''}} {{fontScale == 'lg' ? 'font-lg' : fontScale == 'xl' ? 'font-xl' : ''}}">
 
+  <!-- 账号 -->
+  <view class="group-title">{{lang.settings.account}}</view>
+  <view class="cell-group">
+    <view class="cell" bindtap="onGoProfile">
+      <text class="cell-label">{{lang.settings.profile}}</text>
+      <text class="cell-arrow">›</text>
+    </view>
+  </view>
+
   <!-- 通用 -->
   <view class="group-title">{{lang.settings.general}}</view>
   <view class="cell-group">

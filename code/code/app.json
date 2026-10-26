@@ -15,7 +15,10 @@
     "pages/point-create/point-create",
     "pages/point-list/point-list",
     "pages/about/about",
-    "pages/nearby/nearby"
+    "pages/nearby/nearby",
+    "pages/profile/profile",
+    "pages/feed-publish/feed-publish",
+    "pages/notifications/notifications"
   ],
   "window": {
     "navigationBarBackgroundColor": "#4A90D9",
@@ -39,6 +42,12 @@
         "text": "动态",
         "iconPath": "images/tabbar/feed.png",
         "selectedIconPath": "images/tabbar/feed-active.png"
+      },
+      {
+        "pagePath": "pages/notifications/notifications",
+        "text": "消息",
+        "iconPath": "images/tabbar/message.png",
+        "selectedIconPath": "images/tabbar/message-active.png"
       },
       {
         "pagePath": "pages/mine/mine",

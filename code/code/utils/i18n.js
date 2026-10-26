@@ -396,6 +396,8 @@ const zh = {
     pgSim: '最高相似度 {n}%'
   },
   settings: {
+    account: '账号',
+    profile: '个人资料',
     general: '通用',
     darkMode: '深色模式',
     fontSize: '字体大小',
@@ -410,6 +412,28 @@ const zh = {
     cacheTitle: '清除缓存',
     cacheConfirm: '将清除本地缓存数据（登录状态与设置会保留），确定吗？',
     cacheDone: '缓存已清除'
+  },
+  profile: {
+    avatarLabel: '头像',
+    avatarTip: '点击更换头像',
+    nicknameLabel: '昵称',
+    nickPlaceholder: '请输入昵称',
+    save: '保存',
+    saving: '保存中…',
+    saveDone: '资料已更新',
+    saveFail: '保存失败，请重试',
+    nickErr: '请输入昵称',
+    avatarFail: '头像上传失败',
+    loginFirst: '请先登录后再完善资料',
+    guestTip: '游客身份暂不支持修改资料，登录后可使用',
+    goLogin: '去登录',
+    genderLabel: '性别',
+    genderPlaceholder: '未选择',
+    regionLabel: '地区',
+    regionPlaceholder: '未选择',
+    edit: '编辑资料',
+    cancel: '取消',
+    changeAvatar: '点击头像更换'
   },
   agreement: {
     updated: '更新日期：2026 年 10 月 12 日',
@@ -842,6 +866,8 @@ const en = {
     pgSim: 'Best similarity {n}%'
   },
   settings: {
+    account: 'Account',
+    profile: 'Profile',
     general: 'General',
     darkMode: 'Dark mode',
     fontSize: 'Font size',
@@ -856,6 +882,28 @@ const en = {
     cacheTitle: 'Clear cache',
     cacheConfirm: 'This will clear local cache (login and settings are kept). Continue?',
     cacheDone: 'Cache cleared'
+  },
+  profile: {
+    avatarLabel: 'Avatar',
+    avatarTip: 'Tap to change',
+    nicknameLabel: 'Nickname',
+    nickPlaceholder: 'Enter your nickname',
+    save: 'Save',
+    saving: 'Saving…',
+    saveDone: 'Profile updated',
+    saveFail: 'Save failed, please retry',
+    nickErr: 'Please enter a nickname',
+    avatarFail: 'Avatar upload failed',
+    loginFirst: 'Please log in to complete your profile',
+    guestTip: 'Guest accounts cannot edit profile. Log in to continue.',
+    goLogin: 'Log in',
+    genderLabel: 'Gender',
+    genderPlaceholder: 'Not set',
+    regionLabel: 'Region',
+    regionPlaceholder: 'Not set',
+    edit: 'Edit',
+    cancel: 'Cancel',
+    changeAvatar: 'Tap avatar to change'
   },
   agreement: {
     updated: 'Updated: 2026-10-12',

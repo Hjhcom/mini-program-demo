@@ -1,5 +1,5 @@
 // 云函数：addComment 发表评论
-// 传入 recordId 和 content，添加一条评论
+// 传入 recordId 和 content，添加一条评论；评论别人时给对方写通知
 const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
@@ -16,25 +16,43 @@ exports.main = async (event) => {
   if (text.length > 100) return { code: -1, msg: '评论不能超过100字' }
 
   try {
-    // 确认这条动态存在
     const recordRes = await db.collection('records').doc(recordId).get()
     if (!recordRes.data) return { code: -1, msg: '动态不存在' }
+    const record = recordRes.data
 
-    // 获取当前用户昵称
     const userRes = await db.collection('users').where({ openid: OPENID }).get()
-    const nickname = userRes.data[0] ? userRes.data[0].nickname : '打卡玩家'
-    const avatarUrl = userRes.data[0] ? (userRes.data[0].avatarUrl || '') : ''
+    const me = userRes.data[0] || {}
+    const nickname = me.nickname || '打卡玩家'
 
     await db.collection('comments').add({
       data: {
         recordId,
         openid: OPENID,
         nickname,
-        avatarUrl,
+        avatarUrl: me.avatarUrl || '',
         content: text,
         createTime: db.serverDate()
       }
     })
+
+    // 给动态主人写评论通知（不能是自己给自己评论）
+    if (record.openid && record.openid !== OPENID) {
+      try {
+        await db.collection('notifications').add({
+          data: {
+            toOpenid: record.openid,
+            fromOpenid: OPENID,
+            type: 'comment',
+            recordId: recordId,
+            text: text,
+            read: false,
+            createTime: db.serverDate()
+          }
+        })
+      } catch (e) {
+        console.error('写评论通知失败：', e)
+      }
+    }
 
     return { code: 0 }
   } catch (e) {

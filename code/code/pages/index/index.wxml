@@ -145,4 +145,60 @@
       <text class="feedback-sub" wx:if="{{feedback.sub}}">{{feedback.sub}}</text>
     </view>
   </view>
+
+  <!-- 首次进入欢迎引导浮层 -->
+  <view class="guide-mask" wx:if="{{showGuide}}">
+    <view class="guide-sheet">
+      <swiper class="guide-swiper" current="{{guideIndex}}" bindchange="onGuideChange">
+        <swiper-item>
+          <view class="guide-page">
+            <text class="guide-emoji">🗺️</text>
+            <text class="guide-title">找到打卡点</text>
+            <text class="guide-desc">地图上的图钉就是打卡点，走到附近才能解锁打卡</text>
+          </view>
+        </swiper-item>
+        <swiper-item>
+          <view class="guide-page">
+            <text class="guide-emoji">🎤</text>
+            <text class="guide-title">念出咒语</text>
+            <text class="guide-desc">对着手机念出该点的咒语，语音识别相似度 ≥ 80% 才算成功</text>
+          </view>
+        </swiper-item>
+        <swiper-item>
+          <view class="guide-page">
+            <text class="guide-emoji">👥</text>
+            <text class="guide-title">和好友一起玩</text>
+            <text class="guide-desc">打卡自动生成动态，点赞评论、互相 PK，点亮校园地图</text>
+          </view>
+        </swiper-item>
+      </swiper>
+
+      <view class="guide-dots">
+        <view class="guide-dot {{guideIndex == 0 ? 'active' : ''}}"></view>
+        <view class="guide-dot {{guideIndex == 1 ? 'active' : ''}}"></view>
+        <view class="guide-dot {{guideIndex == 2 ? 'active' : ''}}"></view>
+      </view>
+
+      <button class="guide-btn" bindtap="onGuideNext">
+        {{guideIndex < 2 ? '下一步' : '开始探索'}}
+      </button>
+    </view>
+  </view>
+
+  <!-- 开启打卡之旅欢迎屏（校园插画背景） -->
+  <view class="welcome-mask" wx:if="{{showWelcome}}">
+    <image class="welcome-bg" src="/images/welcome-bg.jpg" mode="aspectFill" />
+    <view class="welcome-shade"></view>
+
+    <view class="welcome-inner">
+      <text class="welcome-title">依声游理</text>
+      <text class="welcome-slogan">德以明理 · 学以精工</text>
+      <text class="welcome-sub">到点打卡，念出咒语，畅游北理</text>
+      <button class="welcome-btn" bindtap="onEnterTap">
+        <text class="welcome-btn-text">开启打卡之旅</text>
+        <text class="welcome-btn-arrow">›</text>
+      </button>
+    </view>
+  </view>
+
 </view>

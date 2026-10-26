@@ -79,7 +79,11 @@ Page({
     fontScale: 'md',   // 字体大小（全局设置）
     lang: i18n.zh,     // 当前语言文案
     mapLang: 'zh',     // 地图语言
-    tip: i18n.zh.index.tipLoading
+    tip: i18n.zh.index.tipLoading,
+    // 首次进入的欢迎引导浮层
+    showGuide: false,
+    guideIndex: 0,
+    showWelcome: false
   },
 
   // 页面加载：初始化登录态 + 拉取打卡点 + 初始化录音
@@ -90,6 +94,9 @@ Page({
         wx.setStorageSync('pendingInvite', options.invite)
       } catch (e) {}
     }
+
+    // 先停在「开启打卡之旅」欢迎屏，等用户点按钮才进地图
+    this.setData({ showWelcome: true })
 
     this.initUser()
     this.loadPoints()
@@ -788,6 +795,32 @@ Page({
       title: title,
       query: invite ? 'invite=' + invite : 'from=timeline'
     }
+  },
+
+  // ===== 欢迎引导浮层 =====
+  onGuideChange(e) {
+    this.setData({ guideIndex: e.detail.current })
+  },
+  onGuideNext() {
+    if (this.data.guideIndex < 2) {
+      this.setData({ guideIndex: this.data.guideIndex + 1 })
+    } else {
+      this.closeGuide()
+    }
+  },
+  closeGuide() {
+    try { wx.setStorageSync('guideShown', true) } catch (e) {}
+    this.setData({ showGuide: false, guideIndex: 0 })
+  },
+
+  // 欢迎屏「开启打卡之旅」按钮：新玩家进引导，老玩家直接进地图
+  onEnterTap() {
+    this.setData({ showWelcome: false })
+    try {
+      if (!wx.getStorageSync('guideShown')) {
+        this.setData({ showGuide: true })
+      }
+    } catch (e) {}
   },
 
   // 打卡照片：问要不要拍一张

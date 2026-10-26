@@ -234,6 +234,57 @@ mini-program-demo/
   - 涉及模块：`cloudfunctions/getRanking`（新建）、`pages/ranking`（新建）、`pages/index`、`pages/mine`、`utils/i18n.js`、`app.json`、`tools/test-points.js`（新建）、`docs/下一步功能规划与操作说明.md`。
   - 注意：`getRanking` 为新函数需「创建并部署：云端安装依赖」（带 `lib/points.js` 子目录，共 4 个文件）；本功能**不需要新建集合与索引也能跑**（数据量小），索引可在控制台按需补 IDX-14/IDX-15。
 
+### 2026-10-26
+
+- **tabBar 图标尺寸统一**
+  - 动态 tab 的 feed 图标原图被压扁、看起来比其他三个小。把 `images/tabbar/feed.png` 与 `feed-active.png` 重生成与首页/消息/我的同尺寸（81×81 选中态、64×64 灰色态）的方形气泡，四个 tab 视觉重量一致。
+  - 涉及模块：`images/tabbar/`。
+
+- **设置页新增「个人资料」完善页**（`pages/profile/` 新建四件套）
+  - 从「我的 → 设置 → 个人资料」进入；展示并可编辑头像（`wx.chooseMedia` 选图上传云存储 `avatars/`）、昵称、**性别**（男/女/保密 picker 选择，不手输）、**地区**（省/市 picker 选择，不手输）。
+  - 头像原圆形显示有空白椭圆裁切问题，改为 `mode="aspectFill"` + 固定宽高 200rpx + 圆形 `border-radius: 50%`，填满不出现空白边。
+  - 保存调 `login` 云函数（已有资料更新分支）写回 `users` 集合；我的页头像/昵称同步刷新。
+  - 涉及模块：`pages/profile/`（新建）、`pages/settings/settings.wxml/js`、`pages/mine/mine.js/wxml`、`app.json`（注册新页）。
+
+- **动态页升级**（`pages/nearby/`）
+  - 顶部加「附近 / 关注」双 Tab：附近 tab 调 `getNearby` 拉所有人打卡动态；关注 tab 调 `getNearby` 带 `feedType=following` 只看好友。
+  - 动态支持图文发布：右下角悬浮「+」发心情（文字 + 可选图片），调新建云函数 `publishFeed` 写入 `feeds` 集合（与打卡 records 同源展示）。
+  - 自己发的动态长按/右上角出现「删除」按钮，调新建云函数 `deleteRecord` 软删（`deleted: true`），并删云存储照片。
+  - 点击动态里的照片全屏预览（`wx.previewImage`）。
+  - 云函数 `getNearby` 升级：返回 `feedType`（checkin/mood）、`type`、`content`、`isMine` 字段；批量查点赞/评论/照片；关注 tab 走好友关系过滤。
+  - 涉及模块：`pages/nearby/`（wxml/wxss/js 大改）、`cloudfunctions/getNearby/`、`cloudfunctions/publishFeed/`（新建）、`cloudfunctions/deleteRecord/`（新建）。
+
+- **新增第四个 tab「消息」**（`pages/notifications/` 新建四件套）
+  - 底部 tabBar 从三个改成四个：首页 / 动态 / **消息** / 我的。
+  - 消息页分类展示：收到的点赞、收到的评论、好友请求通知；未读红点角标。
+  - 新建云函数 `getNotifications`：按 openid 查 `notifications` 集合，时间倒序、未读优先；支持「全部已读」。
+  - 点赞/评论/加好友时同步写通知：
+    - `likeFeed` 云函数：点赞非自己的动态时给作者写一条 `{type:'like'}` 通知；
+    - `addComment` 云函数：评论非自己的动态时给作者写一条 `{type:'comment'}` 通知；
+    - `friends` 云函数 `action=add`：双向各写一条 `{type:'friend'}` 通知。
+  - 新增 tab 图标 `images/tabbar/notifications.png` / `notifications-active.png`。
+  - 涉及模块：`pages/notifications/`（新建）、`app.json`（tabBar 四 tab）、`cloudfunctions/getNotifications/`（新建）、`cloudfunctions/likeFeed/`、`cloudfunctions/addComment/`、`cloudfunctions/friends/`、`images/tabbar/notifications*.png`。
+
+- **首页欢迎屏迭代（「开启打卡之旅」）**
+  - 起因：首页一打开就是地图打卡界面，新玩家进来太突兀。
+  - 先加首次进入 3 页 swiper 引导浮层（🗺️ 找打卡点 / 🎤 念咒语 / 👥 社交玩法），底部圆点指示器，新玩家只弹一次（`wx.setStorageSync('guideShown', true)`）。
+  - 再加「开启打卡之旅」欢迎屏：冷启动进首页先停在品牌欢迎屏，**用户主动点按钮**才进入下一步——新玩家点完进引导浮层，老玩家点完直接进地图（不自动播放、不直接露地图）。
+  - 欢迎屏视觉迭代三版：
+    1. 纯品牌蓝 `#4A90D9` 平涂 + 白字 + 白按钮；
+    2. 渐变深蓝 + BIT 校徽圆形 + 校训 + 白胶囊按钮（用户反馈"太难看"）；
+    3. **最终版**：从网上搜北京理工大学良乡校区甘棠园湖景实拍（教学楼 + 湖面倒影），用 `image_edit` 转成扁平矢量插画风格（蓝绿色调、几何块面、水平色带倒影），存为 `images/welcome-bg.jpg`（1536×2730），全屏做背景，底部叠 `linear-gradient(180deg, transparent → rgba(10,30,65,0.85))` 遮罩保证白字可读，去掉校徽圆形。
+  - 交互逻辑：`onLoad` 设 `showWelcome: true`；`onEnterTap()` 关 welcome，按 `guideShown` 判断是否再弹引导；`closeGuide()` 只关引导、不重复 welcome。
+  - 涉及模块：`pages/index/index.wxml/wxss/js`、`images/welcome-bg.jpg`（新增）。
+
+- **云函数部署清单（需在开发者工具「上传并部署：云端安装依赖」）**
+  - 新建：`publishFeed`、`deleteRecord`、`getNotifications`
+  - 改造：`getNearby`（feedType/type/content/isMine）、`likeFeed`（点赞通知）、`addComment`（评论通知）、`friends`（加好友通知）
+  - 数据库需在控制台新建 `feeds`、`notifications` 两个集合（权限「所有用户不可读写」，一律走云函数）。
+
+- 注意事项：
+  - `guideShown` 是本地 storage，老用户首次看新版欢迎屏时引导不会自动弹（storage 里已有 true），想预览引导效果需在开发者工具 Storage 里删掉该键。
+  - `images/welcome-bg.jpg` 约 100KB 左右，已在小程序包体积限制内；如需再压可用 Pillow quality=80。
+
 ### 2026-10-15
 - 新增**连续打卡与成就徽章**（F-04 / P1，文档 3.4）：
   - 新增云函数 `getBadges`：实时算出「当前连续 / 历史最长连续」打卡天数，判定 8 枚成就徽章（初次打卡 / 百灵鸟 / 马拉松选手 / 探险家 / 一鸣惊人 / 夜猫子 / 任务达人 / 任务发布者），把**新解锁**的补发到 `user_badges` 集合，并回传全部徽章状态与各项进度统计。

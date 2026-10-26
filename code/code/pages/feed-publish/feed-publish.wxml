@@ -1,0 +1,24 @@
+<!-- pages/feed-publish/feed-publish.wxml -->
+<view class="page">
+  <!-- 文字输入 -->
+  <textarea class="content-input" placeholder="分享此刻的心情..." maxlength="200"
+            value="{{content}}" bindinput="onInput" auto-focus />
+  <view class="word-count">{{content.length}}/200</view>
+
+  <!-- 选图区 -->
+  <view class="photo-section">
+    <view class="photo-preview" wx:if="{{photoPath}}">
+      <image class="photo-img" src="{{photoPath}}" mode="aspectFill" />
+      <view class="photo-remove" bindtap="onRemovePhoto">✕</view>
+    </view>
+    <view class="photo-add" wx:else bindtap="onChoosePhoto">
+      <text class="photo-add-icon">+</text>
+      <text class="photo-add-text">添加图片</text>
+    </view>
+  </view>
+
+  <!-- 发布按钮 -->
+  <button class="publish-btn" loading="{{publishing}}" disabled="{{publishing}}" bindtap="onPublish">
+    {{publishing ? '发布中...' : '发布'}}
+  </button>
+</view>

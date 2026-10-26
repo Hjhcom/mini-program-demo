@@ -1,6 +1,8 @@
-// 云函数：getNearby 附近动态
-// 作用：查询最近的成功打卡记录（所有人），带用户昵称头像，按时间倒序
-// 出参白名单：不回传 openid，只给前端展示需要的字段
+// 云函数：getNearby 动态列表
+// 作用：
+//  - feedType=nearby（默认）：所有人最近的成功打卡记录，按时间倒序
+//  - feedType=friends：只看好友 + 自己的动态
+// 出参白名单：不回传 openid，只给前端展示需要的字段；isMine 标识是否为本人动态
 const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
@@ -9,10 +11,25 @@ const PAGE_SIZE = 20
 
 exports.main = async (event) => {
   const { OPENID } = cloud.getWXContext()
+  const feedType = event.feedType === 'friends' ? 'friends' : 'nearby'
+
   try {
-    // 1. 查最近的成功打卡记录
-    const res = await db.collection('records')
-      .where({ matched: true })
+    let query = db.collection('records').where({ matched: true })
+
+    // 关注 tab：只看好友 + 自己
+    if (feedType === 'friends') {
+      if (!OPENID) return { code: 0, list: [] }
+      const friendRes = await db.collection('friends')
+        .where({ userOpenid: OPENID })
+        .limit(200)
+        .get()
+      const openids = friendRes.data.map(f => f.friendOpenid)
+      openids.push(OPENID) // 自己也看得到自己的动态
+      query = query.where({ openid: db.command.in(openids) })
+    }
+
+    // 1. 查记录
+    const res = await query
       .orderBy('createTime', 'desc')
       .limit(PAGE_SIZE)
       .get()
@@ -21,7 +38,7 @@ exports.main = async (event) => {
       return { code: 0, list: [] }
     }
 
-    // 2. 收集所有 openid，批量查用户昵称头像
+    // 2. 批量查用户昵称头像
     const openids = [...new Set(res.data.map(r => r.openid))]
     const userRes = await db.collection('users')
       .where({ openid: db.command.in(openids) })
@@ -36,7 +53,7 @@ exports.main = async (event) => {
       }
     })
 
-    // 3. 批量查每条动态的评论数
+    // 3. 批量查评论数
     const recordIds = res.data.map(r => r._id)
     let commentMap = {}
     try {
@@ -48,15 +65,18 @@ exports.main = async (event) => {
         commentMap[c.recordId] = (commentMap[c.recordId] || 0) + 1
       })
     } catch (e) {
-      // comments 集合不存在时评论数都是0
+      // comments 集合不存在时评论数都是 0
     }
 
     // 4. 组装出参
     const list = res.data.map(r => {
       const u = userMap[r.openid] || { nickname: '打卡玩家', avatarUrl: '' }
       const likes = r.likes || []
+      const type = r.type || 'checkin'
       return {
         _id: r._id,
+        type: type,
+        content: r.content || '',
         pointName: r.pointName,
         spell: r.spell,
         createTime: r.createTime,
@@ -64,6 +84,7 @@ exports.main = async (event) => {
         avatarUrl: u.avatarUrl,
         likesCount: likes.length,
         isLiked: OPENID ? likes.includes(OPENID) : false,
+        isMine: OPENID ? r.openid === OPENID : false,
         photoFileID: r.photoFileID || '',
         commentCount: commentMap[r._id] || 0
       }
@@ -71,7 +92,7 @@ exports.main = async (event) => {
 
     return { code: 0, list }
   } catch (e) {
-    console.error('查询附近动态失败：', e)
+    console.error('查询动态失败：', e)
     return { code: -1, msg: '查询失败：' + (e.errMsg || e.message) }
   }
 }

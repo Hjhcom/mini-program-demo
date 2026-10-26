@@ -1,5 +1,17 @@
 <!--pages/nearby/nearby.wxml —— 动态-->
 <view class="page">
+  <!-- 顶部 tab：附近 / 关注 -->
+  <view class="feed-tabs">
+    <view class="feed-tab {{feedType == 'nearby' ? 'active' : ''}}" bindtap="switchTab" data-type="nearby">附近</view>
+    <view class="feed-tab {{feedType == 'friends' ? 'active' : ''}}" bindtap="switchTab" data-type="friends">关注</view>
+  </view>
+
+  <!-- 发动态入口 -->
+  <view class="publish-entry" bindtap="goPublish">
+    <text class="publish-icon">✏️</text>
+    <text class="publish-text">分享此刻的心情...</text>
+  </view>
+
   <!-- 加载中 -->
   <view class="loading" wx:if="{{loading}}">
     <text>加载中...</text>
@@ -8,8 +20,8 @@
   <!-- 空状态 -->
   <view class="empty" wx:elif="{{isEmpty}}">
     <text class="empty-icon">📍</text>
-    <text class="empty-text">还没有打卡动态</text>
-    <text class="empty-sub">成为第一个打卡的人吧</text>
+    <text class="empty-text">{{feedType == 'friends' ? '还没有关注的动态' : '还没有打卡动态'}}</text>
+    <text class="empty-sub">{{feedType == 'friends' ? '去「我的」添加好友后，他们的打卡会出现在这里' : '成为第一个打卡的人吧'}}</text>
   </view>
 
   <!-- 动态列表 -->
@@ -26,14 +38,24 @@
         <view class="feed-head">
           <text class="feed-name">{{item.nickname}}</text>
           <text class="feed-time">{{item.timeText}}</text>
+          <!-- 自己的动态：删除按钮 -->
+          <text wx:if="{{item.isMine}}" class="feed-del" data-id="{{item._id}}" bindtap="onDeleteTap">删除</text>
         </view>
-        <view class="feed-text">
-          打卡了 <text class="feed-point">{{item.pointName}}</text>
-        </view>
-        <view class="feed-spell" wx:if="{{item.spell}}">
-          念了咒语「{{item.spell}}」
-        </view>
-        <image class="feed-photo" wx:if="{{item.photoFileID}}" src="{{item.photoFileID}}" mode="aspectFill" />
+
+        <!-- 文字心情：直接展示内容 -->
+        <view class="feed-text" wx:if="{{item.type == 'text'}}">{{item.content}}</view>
+
+        <!-- 打卡记录：展示打卡点 + 咒语 -->
+        <block wx:else>
+          <view class="feed-text">
+            打卡了 <text class="feed-point">{{item.pointName}}</text>
+          </view>
+          <view class="feed-spell" wx:if="{{item.spell}}">
+            念了咒语「{{item.spell}}」
+          </view>
+        </block>
+
+        <image class="feed-photo" wx:if="{{item.photoFileID}}" src="{{item.photoFileID}}" mode="aspectFill" data-src="{{item.photoFileID}}" bindtap="onPhotoPreview" />
 
         <!-- 操作按钮 -->
         <view class="feed-actions">

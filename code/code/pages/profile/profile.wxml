@@ -1,0 +1,76 @@
+<!-- pages/profile/profile.wxml —— 个人资料（查看态 / 编辑态） -->
+<view class="page {{dark ? 'dark' : ''}} {{fontScale == 'lg' ? 'font-lg' : fontScale == 'xl' ? 'font-xl' : ''}}">
+
+  <!-- 未登录：引导去登录 -->
+  <view class="empty" wx:if="{{!user}}">
+    <view class="empty-icon">人</view>
+    <view class="empty-text">{{lang.profile.loginFirst}}</view>
+    <button class="empty-btn" bindtap="goLogin">{{lang.profile.goLogin}}</button>
+  </view>
+
+  <!-- 游客：本地身份没有云端档案，不能改 -->
+  <view class="empty" wx:elif="{{user.source == 'guest'}}">
+    <view class="empty-icon">客</view>
+    <view class="empty-text">{{lang.profile.guestTip}}</view>
+  </view>
+
+  <block wx:else>
+    <!-- 头像区：居中圆形 -->
+    <view class="head">
+      <!-- 查看态：纯展示 -->
+      <view wx:if="{{!editing}}" class="avatar-circle avatar-view">
+        <image wx:if="{{avatarPreview}}" class="avatar-img" src="{{avatarPreview}}" mode="aspectFill" />
+        <view wx:else class="avatar-fallback">{{user.nickname ? user.nickname[0] : '?'}}</view>
+      </view>
+      <!-- 编辑态：button 触发 chooseAvatar -->
+      <button wx:else class="avatar-circle avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+        <image wx:if="{{avatarPreview}}" class="avatar-img" src="{{avatarPreview}}" mode="aspectFill" />
+        <view wx:else class="avatar-fallback">{{user.nickname ? user.nickname[0] : '?'}}</view>
+      </button>
+      <view wx:if="{{editing}}" class="head-tip">{{lang.profile.changeAvatar}}</view>
+    </view>
+
+    <!-- 昵称 -->
+    <view class="group-title">{{lang.profile.nicknameLabel}}</view>
+    <view class="card">
+      <input wx:if="{{editing}}" class="field-input" type="nickname"
+             placeholder="{{lang.profile.nickPlaceholder}}" value="{{nickname}}"
+             bindinput="onNicknameInput" />
+      <view wx:else class="field-value {{nickname ? '' : 'placeholder'}}">{{nickname || lang.profile.nickPlaceholder}}</view>
+    </view>
+
+    <!-- 性别 -->
+    <view class="group-title">{{lang.profile.genderLabel}}</view>
+    <view class="card">
+      <picker wx:if="{{editing}}" mode="selector" range="{{genderOptions}}" bindchange="onGenderChange">
+        <view class="picker-row">
+          <text class="field-value {{genderDisplay ? '' : 'placeholder'}}">{{genderDisplay || lang.profile.genderPlaceholder}}</text>
+          <text class="picker-arrow">›</text>
+        </view>
+      </picker>
+      <view wx:else class="field-value {{genderDisplay ? '' : 'placeholder'}}">{{genderDisplay || lang.profile.genderPlaceholder}}</view>
+    </view>
+
+    <!-- 地区 -->
+    <view class="group-title">{{lang.profile.regionLabel}}</view>
+    <view class="card">
+      <picker wx:if="{{editing}}" mode="region" bindchange="onRegionChange" value="{{region}}">
+        <view class="picker-row">
+          <text class="field-value {{regionDisplay ? '' : 'placeholder'}}">{{regionDisplay || lang.profile.regionPlaceholder}}</text>
+          <text class="picker-arrow">›</text>
+        </view>
+      </picker>
+      <view wx:else class="field-value {{regionDisplay ? '' : 'placeholder'}}">{{regionDisplay || lang.profile.regionPlaceholder}}</view>
+    </view>
+
+    <!-- 操作按钮 -->
+    <button wx:if="{{!editing}}" class="primary-btn" bindtap="startEdit">{{lang.profile.edit}}</button>
+    <block wx:else>
+      <button class="primary-btn" loading="{{saving}}" disabled="{{saving}}" bindtap="onSave">
+        {{saving ? lang.profile.saving : lang.profile.save}}
+      </button>
+      <button class="ghost-btn" bindtap="cancelEdit">{{lang.profile.cancel}}</button>
+    </block>
+  </block>
+
+</view>

@@ -53,6 +53,11 @@ Page({
     this.setData({ fontScale: v })
   },
 
+  // 个人资料：跳转资料完善/编辑页
+  onGoProfile: function () {
+    wx.navigateTo({ url: '/pages/profile/profile' })
+  },
+
   // 选择显示语言：立即全局生效并持久化
   onLanguageSelect: function (e) {
     const v = e.currentTarget.dataset.lang

@@ -1,5 +1,5 @@
 // 云函数：likeFeed 点赞/取消点赞动态
-// 传入 recordId，切换点赞状态
+// 传入 recordId，切换点赞状态；点赞别人时给对方写一条通知
 const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
@@ -13,27 +13,39 @@ exports.main = async (event) => {
   if (!recordId) return { code: -1, msg: '缺少动态ID' }
 
   try {
-    // 查这条记录
     const res = await db.collection('records').doc(recordId).get()
     if (!res.data) return { code: -1, msg: '动态不存在' }
 
     const record = res.data
     const likes = record.likes || []
-
-    // 判断当前用户有没有点赞过
     const liked = likes.includes(OPENID)
 
     if (liked) {
-      // 取消点赞
       await db.collection('records').doc(recordId).update({
         data: { likes: _.pull(OPENID) }
       })
       return { code: 0, liked: false, likesCount: likes.length - 1 }
     } else {
-      // 点赞
       await db.collection('records').doc(recordId).update({
         data: { likes: _.push(OPENID) }
       })
+      // 给动态主人写点赞通知（不能是自己给自己点赞）
+      if (record.openid && record.openid !== OPENID) {
+        try {
+          await db.collection('notifications').add({
+            data: {
+              toOpenid: record.openid,
+              fromOpenid: OPENID,
+              type: 'like',
+              recordId: recordId,
+              read: false,
+              createTime: db.serverDate()
+            }
+          })
+        } catch (e) {
+          console.error('写点赞通知失败：', e)
+        }
+      }
       return { code: 0, liked: true, likesCount: likes.length + 1 }
     }
   } catch (e) {

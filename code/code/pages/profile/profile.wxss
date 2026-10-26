@@ -1,0 +1,170 @@
+/* 个人资料页样式 */
+.page {
+  min-height: 100vh;
+  background: #f5f6f7;
+}
+
+.group-title {
+  font-size: 26rpx;
+  color: #999999;
+  padding: 30rpx 40rpx 14rpx;
+}
+
+.card {
+  background: #ffffff;
+  padding: 28rpx 40rpx;
+}
+
+/* ===== 头像区（居中正圆） ===== */
+.head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 50rpx 0 20rpx;
+}
+
+/* 正圆头像：view 和 button 共用同一套尺寸 */
+.avatar-circle {
+  width: 160rpx;
+  height: 160rpx;
+  min-width: 160rpx;
+  min-height: 160rpx;
+  border-radius: 50%;
+  background: #eef3fa;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  padding: 0;
+  margin: 0;
+  border: none;
+}
+
+/* button 版本：彻底干掉微信 button 默认样式 */
+.avatar-btn {
+  line-height: normal;
+}
+.avatar-btn::after {
+  display: none;
+}
+
+.avatar-img {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 50%;
+  /* aspectFill 已在 wxml 设定，这里保险再设一次 */
+}
+
+.avatar-fallback {
+  font-size: 56rpx;
+  color: #4A90D9;
+}
+
+.head-tip {
+  margin-top: 18rpx;
+  font-size: 26rpx;
+  color: #999999;
+}
+
+/* ===== 字段（查看 / 编辑共用） ===== */
+.field-input {
+  font-size: 30rpx;
+  color: #333333;
+  height: 56rpx;
+}
+
+.field-value {
+  font-size: 30rpx;
+  color: #333333;
+  min-height: 56rpx;
+  line-height: 56rpx;
+}
+.field-value.placeholder {
+  color: #bbbbbb;
+}
+
+/* picker 行（编辑态性别/地区） */
+.picker-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 56rpx;
+}
+.picker-arrow {
+  font-size: 36rpx;
+  color: #cccccc;
+}
+
+/* ===== 按钮 ===== */
+.primary-btn {
+  margin: 60rpx 40rpx 0;
+  height: 88rpx;
+  line-height: 88rpx;
+  background: #4A90D9;
+  color: #ffffff;
+  font-size: 30rpx;
+  border-radius: 44rpx;
+}
+.primary-btn::after { border: none; }
+.primary-btn[disabled] { opacity: 0.7; }
+
+.ghost-btn {
+  margin: 24rpx 40rpx 0;
+  height: 88rpx;
+  line-height: 88rpx;
+  background: #ffffff;
+  color: #666666;
+  font-size: 30rpx;
+  border-radius: 44rpx;
+  border: 2rpx solid #dddddd;
+}
+.ghost-btn::after { border: none; }
+
+/* ===== 空状态（未登录/游客） ===== */
+.empty {
+  padding: 160rpx 60rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.empty-icon {
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: 50%;
+  background: #eef3fa;
+  color: #4A90D9;
+  font-size: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 30rpx;
+}
+.empty-text {
+  font-size: 28rpx;
+  color: #666666;
+  text-align: center;
+  margin-bottom: 40rpx;
+}
+.empty-btn {
+  background: #4A90D9;
+  color: #ffffff;
+  font-size: 28rpx;
+  border-radius: 40rpx;
+  padding: 0 60rpx;
+  height: 72rpx;
+  line-height: 72rpx;
+}
+.empty-btn::after { border: none; }
+
+/* ===== 深色模式 ===== */
+.page.dark { background: #1c1c1e; }
+.page.dark .card { background: #2c2c2e; }
+.page.dark .field-input,
+.page.dark .field-value { color: #ffffff; }
+.page.dark .field-value.placeholder { color: #777777; }
+.page.dark .avatar-circle { background: #3a3a3c; }
+.page.dark .avatar-fallback { color: #7eb3ec; }
+.page.dark .empty-text { color: #aaaaaa; }
+.page.dark .ghost-btn { background: #2c2c2e; color: #cccccc; border-color: #444; }
