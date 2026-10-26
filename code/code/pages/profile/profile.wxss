@@ -168,3 +168,15 @@
 .page.dark .avatar-fallback { color: #7eb3ec; }
 .page.dark .empty-text { color: #aaaaaa; }
 .page.dark .ghost-btn { background: #2c2c2e; color: #cccccc; border-color: #444; }
+
+.wx-avatar-btn {
+  margin-top: 16rpx;
+  padding: 0 30rpx;
+  height: 56rpx;
+  line-height: 56rpx;
+  font-size: 24rpx;
+  color: #4A90D9;
+  background: #eaf3fb;
+  border-radius: 28rpx;
+}
+.wx-avatar-btn::after { border: none; }

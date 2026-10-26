@@ -62,6 +62,15 @@ Page({
     }
   },
 
+  // 点击头像放大预览
+  onAvatarTap() {
+    if (!this.data.avatarDisplay) return
+    wx.previewImage({
+      urls: [this.data.avatarDisplay],
+      current: this.data.avatarDisplay
+    })
+  },
+
   // 刷新用户信息（补齐邀请码等新字段）
   refreshUser: function () {
     wx.cloud.callFunction({ name: 'login' }).then(res => {
@@ -172,6 +181,26 @@ Page({
     // 设置：跳转设置页（深色模式 / 字体大小 / 显示语言 / 清除缓存）
     if (type === 'settings') {
       wx.navigateTo({ url: '/pages/settings/settings' })
+      return
+    }
+    // 消息通知：请求订阅互动提醒
+    if (type === 'notify') {
+      if (!this.data.user) {
+        wx.showToast({ title: lang.mine.loginFirst, icon: 'none' })
+        setTimeout(() => wx.navigateTo({ url: '/pages/login/login' }), 800)
+        return
+      }
+      wx.requestSubscribeMessage({
+        tmplIds: ['rkifRfeYEoXnC6dV4ay-meqVpu2VbSTsNZfk8iUfqbk'],
+        success: (res) => {
+          if (res['rkifRfeYEoXnC6dV4ay-meqVpu2VbSTsNZfk8iUfqbk'] === 'accept') {
+            wx.showToast({ title: '已开启，收到赞/评论会通知你', icon: 'none' })
+          } else {
+            wx.showToast({ title: '未授权，可随时再来开启', icon: 'none' })
+          }
+        },
+        fail: () => wx.showToast({ title: '授权失败', icon: 'none' })
+      })
       return
     }
     // 关于（F-12）：版本 / 团队分工 / AI 使用说明，不需要登录

@@ -45,6 +45,20 @@ exports.main = async (event) => {
         } catch (e) {
           console.error('写点赞通知失败：', e)
         }
+        // 推送订阅消息（对方订阅过才能发，失败静默）
+        try {
+          await cloud.openapi.subscribeMessage.send({
+            touser: record.openid,
+            templateId: 'rkifRfeYEoXnC6dV4ay-meqVpu2VbSTsNZfk8iUfqbk',
+            page: 'pages/notifications/notifications',
+            data: {
+              thing1: { value: '有人赞了你的打卡动态' },
+              thing2: { value: '打开小程序查看' }
+            }
+          })
+        } catch (e) {
+          // 用户没订阅/配额用完，忽略
+        }
       }
       return { code: 0, liked: true, likesCount: likes.length + 1 }
     }

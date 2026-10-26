@@ -52,6 +52,18 @@ exports.main = async (event) => {
       } catch (e) {
         console.error('写评论通知失败：', e)
       }
+      // 推送订阅消息
+      try {
+        await cloud.openapi.subscribeMessage.send({
+          touser: record.openid,
+          templateId: 'rkifRfeYEoXnC6dV4ay-meqVpu2VbSTsNZfk8iUfqbk',
+          page: 'pages/notifications/notifications',
+          data: {
+            thing1: { value: `${nickname} 评论了你的动态` },
+            thing2: { value: text.slice(0, 20) }
+          }
+        })
+      } catch (e) {}
     }
 
     return { code: 0 }

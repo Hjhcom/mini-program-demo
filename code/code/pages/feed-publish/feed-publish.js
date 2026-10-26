@@ -64,22 +64,54 @@ Page({
       })
     }
 
-    // 有图：先传云存储
-    if (this.data.photoPath) {
-      const cloudPath = 'feeds/' + Date.now() + '-' + Math.floor(Math.random() * 1000) + '.jpg'
-      wx.cloud.uploadFile({
-        cloudPath: cloudPath,
-        filePath: this.data.photoPath
-      }).then(up => {
-        finish(up.fileID)
-      }).catch(err => {
+    // 先过文字内容安全
+    wx.cloud.callFunction({
+      name: 'moderation',
+      data: { type: 'text', text: content }
+    }).then(r => {
+      if (r.result && r.result.code !== 0) {
         wx.hideLoading()
         this.setData({ publishing: false })
-        console.error('图片上传失败：', err)
-        wx.showToast({ title: '图片上传失败', icon: 'none' })
-      })
-    } else {
-      finish('')
-    }
+        wx.showToast({ title: r.result.msg || '内容违规', icon: 'none' })
+        return
+      }
+      // 文字通过，继续处理图片
+      if (this.data.photoPath) {
+        const cloudPath = 'feeds/' + Date.now() + '-' + Math.floor(Math.random() * 1000) + '.jpg'
+        wx.cloud.uploadFile({
+          cloudPath: cloudPath,
+          filePath: this.data.photoPath
+        }).then(up => {
+          // 图片内容安全检测
+          return wx.cloud.callFunction({
+            name: 'moderation',
+            data: { type: 'image', fileID: up.fileID }
+          }).then(mr => {
+            if (mr.result && mr.result.code !== 0) {
+              wx.hideLoading()
+              this.setData({ publishing: false })
+              wx.showToast({ title: mr.result.msg || '图片违规', icon: 'none' })
+              return
+            }
+            finish(up.fileID)
+          })
+        }).catch(err => {
+          wx.hideLoading()
+          this.setData({ publishing: false })
+          console.error('图片上传失败：', err)
+          wx.showToast({ title: '图片上传失败', icon: 'none' })
+        })
+      } else {
+        finish('')
+      }
+    }).catch(() => {
+      // 检测服务异常，放行
+      if (this.data.photoPath) {
+        const cloudPath = 'feeds/' + Date.now() + '-' + Math.floor(Math.random() * 1000) + '.jpg'
+        wx.cloud.uploadFile({ cloudPath, filePath: this.data.photoPath }).then(up => finish(up.fileID))
+      } else {
+        finish('')
+      }
+    })
   }
 })

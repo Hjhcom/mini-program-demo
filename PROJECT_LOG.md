@@ -490,6 +490,49 @@ P2 最后两项。一件改云函数、一件纯前端。
 - 修了头像/照片云存储 fileID 不能直接给 image 组件当 src 的问题：前端拿到列表后批量调 `wx.cloud.getTempFileURL` 转临时 URL 再显示。
 - 涉及模块：`pages/nearby/`（四件套全改）、`pages/index/index.js`（打卡成功后拍照流程）、`cloudfunctions/nearby.js` 改成 `cloudfunctions/getNearby/`（新建）、`cloudfunctions/likeFeed/`（新建）、`cloudfunctions/updateRecordPhoto/`（新建）、`cloudfunctions/getComments/`（新建）、`cloudfunctions/addComment/`（新建）、`cloudfunctions/voiceCheckin/index.js`（加 recordId 返回）、`app.json`（tabBar 三 tab）、`images/tabbar/feed.png` / `feed-active.png`（新增动态 tab 图标）。
 
+### 2026-10-26（下午续）
+
+- **四 tab 校园插画背景统一**
+  - 从网上搜北京理工大学良乡校区实拍照片，用 `image_edit`（seedream_4.5）转成扁平矢量插画风格，四个 tab 各配一张不同照片、不同色调：
+    - **首页欢迎屏**：甘棠园湖景（教学楼 + 湖面倒影），冷蓝色调 → `images/welcome-bg.jpg`
+    - **动态页**：白色石拱桥 + 金色垂柳 + 中式凉亭，暖橙秋景 → `images/feed-bg.jpg`
+    - **消息页**：银杏道透视（石板路 + 金黄银杏 + 蓝天），金黄蓝调 → `images/notifications-bg.jpg`
+    - **我的页**：理科教学楼 + 银杏草坪（浅灰建筑 + 绿草），明快校园调 → `images/mine-bg.jpg`
+  - 实现方式：每页 `.page` 下加 `<image class="page-bg">`（`position: fixed` 铺满）+ `.page-mask`（白色渐变半透遮罩）+ `.content`（z-index:2）；卡片改成 92% 半透明白 + `backdrop-filter: blur` 毛玻璃。
+  - 我的页深色模式下背景图自动隐藏（`.page.dark .page-bg { display:none }`），保持原深色样式。
+  - 涉及模块：`pages/index/index.wxml/wxss`（欢迎屏背景）、`pages/nearby/nearby.wxml/wxss`、`pages/notifications/notifications.wxml/wxss`、`pages/mine/mine.wxml/wxss`、`images/*-bg.jpg`（4 张新增）。
+
+- **头像点击放大预览**
+  - 我的页点头像调起 `wx.previewImage` 全屏放大（双指缩放、长按保存）；无头像（昵称首字占位）不触发。
+  - 涉及模块：`pages/mine/mine.wxml`、`pages/mine/mine.js`（新增 `onAvatarTap`）。
+
+- **头像高清选择（修放大模糊问题）**
+  - 原头像走 `<button open-type="chooseAvatar">` 只能拿微信头像小图（132×132），放大后模糊。
+  - 改成：编辑态点头像弹 actionSheet「从相册选高清图 / 拍照」，用 `wx.chooseMedia` + `sizeType: ['original']` 拿原图；头像下方保留「使用微信头像」小按钮（快速但低清）。
+  - 涉及模块：`pages/profile/profile.wxml/wxss/js`。
+
+- **内容安全检测（合规）**
+  - 新建云函数 `moderation`：
+    - 图片检测 `cloud.openapi.security.imgSecCheck`：违规自动删除已上传文件并返回错误；
+    - 文字检测 `cloud.openapi.security.msgSecCheck` v2 版（scene=2 评论），违规拒绝；
+    - `config.json` 声明 `security.imgSecCheck` + `security.msgSecCheck` 权限。
+  - 前端 4 处接入：
+    - 动态发布（feed-publish）：先过文字检测 → 上传图片 → 图片过检测 → 才写库；
+    - 评论发送（nearby）：发送前过文字检测；
+    - 个人资料头像（profile）：上传后过图片检测；
+    - 打卡照片（index）：上传后过图片检测。
+  - 涉及模块：`cloudfunctions/moderation/`（新建）、`pages/feed-publish/feed-publish.js`、`pages/nearby/nearby.js`、`pages/profile/profile.js`、`pages/index/index.js`。
+  - 注意：`moderation` 为新函数需「创建并部署：云端安装依赖」；需小程序已备案并开通内容安全。
+
+- **互动订阅消息（赞/评论提醒）**
+  - 模板 ID：`rkifRfeYEoXnC6dV4ay-meqVpu2VbSTsNZfk8iUfqbk`（用户在公众平台申请）。
+  - 我的页功能列表新增「消息通知（赞/评论提醒）」入口，点击调 `wx.requestSubscribeMessage` 请求订阅（一次订阅 = 服务端可发一条）。
+  - `likeFeed` 云函数：点赞非自己动态时，给对方写 `notifications` 同时调 `cloud.openapi.subscribeMessage.send` 推订阅消息（落地页 `pages/notifications/notifications`）。
+  - `addComment` 云函数：评论非自己动态时，给对方写通知同时推订阅消息（内容带评论者昵称 + 评论前 20 字）。
+  - 原 `sendDailyReminder`（定时打卡提醒）云函数因模板不匹配，已去掉定时触发器（保留代码不跑）。
+  - 涉及模块：`pages/mine/mine.wxml/js`、`cloudfunctions/likeFeed/index.js`、`cloudfunctions/addComment/index.js`、`cloudfunctions/sendDailyReminder/config.json`（去触发器）。
+  - 注意：`likeFeed`/`addComment` 改造后需重新部署；模板字段名（thing1/thing2 等）需与公众平台实际模板核对，不匹配会发送报错。
+
 ## 后续计划
 
 > 待补充：以下为基于当前进度的建议项，请按团队实际安排更新。

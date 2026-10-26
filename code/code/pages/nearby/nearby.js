@@ -225,6 +225,17 @@ Page({
 
     wx.showLoading({ title: '发送中...' })
     try {
+      // 文字内容安全检测
+      const mr = await wx.cloud.callFunction({
+        name: 'moderation',
+        data: { type: 'text', text: content }
+      })
+      if (mr.result && mr.result.code !== 0) {
+        wx.hideLoading()
+        wx.showToast({ title: mr.result.msg || '内容违规', icon: 'none' })
+        return
+      }
+
       const res = await wx.cloud.callFunction({
         name: 'addComment',
         data: {

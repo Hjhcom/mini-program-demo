@@ -22,7 +22,7 @@
   <view class="user-card" wx:else>
     <text class="card-watermark">1940</text>
     <view class="avatar" wx:if="{{user.avatarUrl}}">
-      <image class="avatar-img" src="{{avatarDisplay}}" mode="aspectFill" />
+      <image class="avatar-img" src="{{avatarDisplay}}" mode="aspectFill" bindtap="onAvatarTap" />
     </view>
     <view class="avatar" wx:else>{{ user.nickname ? user.nickname[0] : '客' }}</view>
     <view class="user-info">
@@ -69,6 +69,10 @@
     </view>
     <view class="cell" bindtap="onItemTap" data-type="settings">
       <text class="cell-label">{{lang.mine.settings}}</text>
+      <text class="cell-arrow">›</text>
+    </view>
+    <view class="cell" bindtap="onItemTap" data-type="notify">
+      <text class="cell-label">消息通知（赞/评论提醒）</text>
       <text class="cell-arrow">›</text>
     </view>
     <view class="cell" bindtap="onItemTap" data-type="about">

@@ -91,6 +91,30 @@ Page({
     this.syncUser()
   },
 
+  // 点头像：弹菜单从相册选或拍照（高清原图）
+  onAvatarEditTap: function () {
+    wx.showActionSheet({
+      itemList: ['从相册选高清图', '拍照'],
+      success: (res) => {
+        wx.chooseMedia({
+          count: 1,
+          mediaType: ['image'],
+          sourceType: res.tapIndex === 0 ? ['album'] : ['camera'],
+          sizeType: ['original'],
+          success: (r) => {
+            const file = r.tempFiles && r.tempFiles[0]
+            if (file) {
+              this.setData({
+                avatarPreview: file.tempFilePath,
+                avatarChanged: true
+              })
+            }
+          }
+        })
+      }
+    })
+  },
+
   onChooseAvatar: function (e) {
     this.setData({
       avatarPreview: e.detail.avatarUrl,
@@ -174,7 +198,19 @@ Page({
         cloudPath: cloudPath,
         filePath: this.data.avatarPreview
       }).then(up => {
-        finish(up.fileID)
+        // 头像内容安全检测
+        return wx.cloud.callFunction({
+          name: 'moderation',
+          data: { type: 'image', fileID: up.fileID }
+        }).then(mr => {
+          if (mr.result && mr.result.code !== 0) {
+            wx.hideLoading()
+            this.setData({ saving: false })
+            wx.showToast({ title: mr.result.msg || '头像违规', icon: 'none' })
+            return
+          }
+          finish(up.fileID)
+        })
       }).catch(err => {
         wx.hideLoading()
         this.setData({ saving: false })

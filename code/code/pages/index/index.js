@@ -854,6 +854,17 @@ Page({
         filePath: tempFilePath
       })
 
+      // 图片内容安全检测
+      const mr = await wx.cloud.callFunction({
+        name: 'moderation',
+        data: { type: 'image', fileID: uploadRes.fileID }
+      })
+      if (mr.result && mr.result.code !== 0) {
+        wx.hideLoading()
+        wx.showToast({ title: mr.result.msg || '照片违规', icon: 'none' })
+        return
+      }
+
       // 更新到记录
       await wx.cloud.callFunction({
         name: 'updateRecordPhoto',
