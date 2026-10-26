@@ -20,15 +20,15 @@
       <!-- 查看态：纯展示 -->
       <view wx:if="{{!editing}}" class="avatar-circle avatar-view">
         <image wx:if="{{avatarPreview}}" class="avatar-img" src="{{avatarPreview}}" mode="aspectFill" />
-        <view wx:else class="avatar-fallback">{{user.nickname ? user.nickname[0] : '?'}}</view>
+        <view wx:else class="avatar-fallback">{{avatarText}}</view>
       </view>
       <!-- 编辑态：点头像弹菜单（微信头像 / 相册） -->
       <view wx:else class="avatar-circle avatar-btn" bindtap="onAvatarEditTap">
         <image wx:if="{{avatarPreview}}" class="avatar-img" src="{{avatarPreview}}" mode="aspectFill" />
-        <view wx:else class="avatar-fallback">{{user.nickname ? user.nickname[0] : '?'}}</view>
+        <view wx:else class="avatar-fallback">{{avatarText}}</view>
       </view>
       <view wx:if="{{editing}}" class="head-tip">{{lang.profile.changeAvatar}}</view>
-      <button wx:if="{{editing}}" class="wx-avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">使用微信头像</button>
+      <button wx:if="{{editing}}" class="wx-avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">{{lang.profile.wxAvatar}}</button>
     </view>
 
     <!-- 昵称 -->

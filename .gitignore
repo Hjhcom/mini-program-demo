@@ -144,3 +144,13 @@ vite.config.ts.timestamp-*
 
 # WorkBuddy 工作目录（本地工作记录，不随仓库共享）
 .workbuddy/
+
+# 小程序本地图片原件备份（体积治理前的原图，不随仓库共享）
+images-backup-precompress/
+
+# 工具脚本运行日志
+tools/*.txt
+
+# 本机一次性图片治理脚本（路径写死本机，不随团队仓库共享）
+tools/check-images.py
+tools/compress-backgrounds.py

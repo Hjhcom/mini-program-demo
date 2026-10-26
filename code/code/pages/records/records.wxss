@@ -100,6 +100,16 @@
   background: #fbeae8;
 }
 
+/* 列表项右侧的打卡照片缩略图（catchtap 已阻止冒泡，点击直接预览） */
+.record-thumb {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 12rpx;
+  margin-right: 16rpx;
+  flex-shrink: 0;
+  background: #f0f0f0;
+}
+
 /* 列表底部的分页状态（加载中 / 上拉加载更多 / 没有更多了） */
 .list-footer {
   display: flex;
@@ -240,6 +250,23 @@
   margin-left: 30rpx;
   text-align: right;
   word-break: break-all;
+}
+
+/* 详情弹窗里的打卡照片 */
+.detail-photo-wrap {
+  width: 100%;
+  margin-top: 24rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.detail-photo {
+  width: 480rpx;
+  max-width: 100%;
+  border-radius: 16rpx;
+  margin-top: 16rpx;
+  background: #f0f0f0;
 }
 
 .detail-close {

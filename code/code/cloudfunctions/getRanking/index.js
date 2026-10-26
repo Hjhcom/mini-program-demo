@@ -11,6 +11,10 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 const $ = db.command.aggregate
 
+// 打卡口径：排除 type='text' 的心情动态；早期打卡记录没有 type 字段，一并保留。
+// 排行榜的成功次数、点位数、连续天数、点位热度都只统计真正的打卡记录。
+const nonTextType = db.command.or([db.command.exists(false), db.command.neq('text')])
+
 // 纯计算部分单独放 lib/points.js —— 不依赖 wx-server-sdk，可被本地单测直接 require
 const { POINTS, streakBonus, calcPoints } = require('./lib/points')
 
@@ -36,7 +40,7 @@ async function userBoard(OPENID) {
   //    ⚠️ 不用 addToSet('$openid') —— 那会把大量 openid 塞进一个数组返回，人多了顶到聚合内存上限。
   //    这里只回传「每组多少次」，条数 = 用户数 × 点位数，规模可控。
   const recRes = await db.collection('records').aggregate()
-    .match({ matched: true })
+    .match({ matched: true, type: nonTextType })
     .group({ _id: { o: '$openid', p: '$pointId' }, times: $.sum(1) })
     .end()
 
@@ -57,7 +61,7 @@ async function userBoard(OPENID) {
   const dayMap = {}
   try {
     const dayRes = await db.collection('records').aggregate()
-      .match({ matched: true })
+      .match({ matched: true, type: nonTextType })
       .group({
         _id: {
           o: '$openid',
@@ -150,7 +154,7 @@ async function pointBoard() {
   // 两阶段聚合：先按 (点位, 用户) 去重，再按点位汇总
   // → times 是该点位成功打卡总次数，userCount 是成功打卡过的独立用户数
   const res = await db.collection('records').aggregate()
-    .match({ matched: true })
+    .match({ matched: true, type: nonTextType })
     .group({
       _id: { p: '$pointId', o: '$openid' },
       times: $.sum(1),

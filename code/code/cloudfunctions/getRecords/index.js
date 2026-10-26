@@ -17,10 +17,15 @@ const db = cloud.database()
 
 const PAGE_SIZE = 20 // 每页条数（前端 pages/records 只负责翻页，不重复定义）
 
+// 打卡口径：排除 type='text' 的心情动态；早期打卡记录没有 type 字段，一并保留。
+// 「我的记录」只展示真正的打卡尝试（含念错的失败记录），不混入附近动态流里的心情动态。
+const nonTextType = db.command.or([db.command.exists(false), db.command.neq('text')])
+
 // 出参白名单：只回详情弹窗与列表真正要用的字段
 function pickRecord(r) {
   return {
     _id: r._id,
+    type: r.type || 'checkin',
     pointId: r.pointId,
     pointName: r.pointName,
     spell: r.spell,
@@ -29,6 +34,7 @@ function pickRecord(r) {
     matched: r.matched === true, // 归一成布尔，老记录缺字段时按未匹配处理
     taskId: r.taskId || '',
     dayKey: r.dayKey || '',
+    photoFileID: r.photoFileID || '',
     createTime: r.createTime
   }
 }
@@ -42,7 +48,7 @@ exports.main = async (event, context) => {
   try {
     // 1. 当前页记录（时间倒序）—— 走 IDX-02（records: openid + createTime 降序）
     const res = await db.collection('records')
-      .where({ openid: OPENID })
+      .where({ openid: OPENID, type: nonTextType })
       .orderBy('createTime', 'desc')
       .skip((page - 1) * PAGE_SIZE)
       .limit(PAGE_SIZE)
@@ -50,13 +56,13 @@ exports.main = async (event, context) => {
 
     // 2. 总条数：既给统计栏用，也用来判断还有没有下一页
     const countRes = await db.collection('records')
-      .where({ openid: OPENID })
+      .where({ openid: OPENID, type: nonTextType })
       .count()
     const total = countRes.total
 
     // 3. 成功次数：服务端按全量统计（前端按已加载页去数会随翻页漂移）
     const okRes = await db.collection('records')
-      .where({ openid: OPENID, matched: true })
+      .where({ openid: OPENID, matched: true, type: nonTextType })
       .count()
 
     return {

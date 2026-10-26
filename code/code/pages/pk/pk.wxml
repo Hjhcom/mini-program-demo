@@ -13,10 +13,14 @@
   <!-- 好友列表 -->
   <view class="friend-list" wx:if="{{friends.length > 0}}">
     <view class="friend-item" wx:for="{{friends}}" wx:key="recordId" bindtap="onFriendTap" data-index="{{index}}">
-      <view class="friend-avatar">{{ item.nickname[0] }}</view>
+      <view class="friend-avatar">{{ item.avatarText }}</view>
       <view class="friend-info">
         <view class="friend-name">{{item.nickname}}</view>
         <view class="friend-stats">{{item.statsText}}</view>
+      </view>
+      <view class="friend-actions">
+        <text class="friend-link" catchtap="onProfileTap" data-index="{{index}}">{{lang.pk.viewProfile}}</text>
+        <text class="friend-remove" catchtap="onRemoveTap" data-index="{{index}}">{{lang.pk.remove}}</text>
       </view>
       <text class="friend-arrow">PK ›</text>
     </view>
@@ -33,14 +37,14 @@
       <view class="pk-title">{{lang.pk.pkTitle}}</view>
       <view class="vs-row">
         <view class="vs-side">
-          <view class="vs-avatar">{{ me.nickname[0] }}</view>
+          <view class="vs-avatar">{{ me.avatarText }}</view>
           <view class="vs-name">{{me.nickname}}</view>
           <view class="vs-num">{{me.total}}</view>
           <view class="vs-label">{{lang.pk.totalLabel}}</view>
         </view>
         <view class="vs-mid">VS</view>
         <view class="vs-side">
-          <view class="vs-avatar">{{ friend.nickname[0] }}</view>
+          <view class="vs-avatar">{{ friend.avatarText }}</view>
           <view class="vs-name">{{friend.nickname}}</view>
           <view class="vs-num">{{friend.total}}</view>
           <view class="vs-label">{{lang.pk.totalLabel}}</view>

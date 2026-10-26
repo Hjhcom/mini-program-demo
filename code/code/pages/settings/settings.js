@@ -26,7 +26,7 @@ Page({
       language: app.globalData.language,
       lang: isEn ? i18n.en : i18n.zh
     })
-    wx.setNavigationBarTitle({ title: isEn ? 'Settings' : '设置' })
+    wx.setNavigationBarTitle({ title: this.data.lang.settings.navTitle })
   },
 
   // 读取本地缓存大小

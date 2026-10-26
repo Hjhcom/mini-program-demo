@@ -15,6 +15,9 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 
+// 打卡口径：排除 type='text' 的心情动态；早期打卡记录没有 type 字段，一并保留。
+const nonTextType = db.command.or([db.command.exists(false), db.command.neq('text')])
+
 // 官方点位标记：现有种子数据用的是 'admin'；没有 creatorOpenid 的老数据也按官方处理
 const OFFICIAL_CREATOR = 'admin'
 
@@ -80,7 +83,7 @@ exports.main = async (event) => {
   let visitedIds = new Set()
   if (OPENID && list.length > 0) {
     const recordsRes = await db.collection('records')
-      .where({ openid: OPENID, matched: true })
+      .where({ openid: OPENID, matched: true, type: nonTextType })
       .field({ pointId: true })
       .get()
     visitedIds = new Set(recordsRes.data.map(r => r.pointId))

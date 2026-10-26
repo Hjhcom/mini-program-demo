@@ -34,7 +34,7 @@ Page({
       fontScale: app.globalData.fontScale,
       lang: isEn ? i18n.en : i18n.zh
     })
-    wx.setNavigationBarTitle({ title: isEn ? 'My Records' : '我的打卡记录' })
+    wx.setNavigationBarTitle({ title: this.data.lang.records.navTitle })
   },
 
   // 触底加载下一页（触发距离在 records.json 的 onReachBottomDistance）
@@ -66,13 +66,26 @@ Page({
     return wx.cloud.callFunction({
       name: 'getRecords',
       data: { page: page }
-    }).then(res => {
+    }).then(async res => {
       wx.hideLoading()
       const r = res.result || {}
       if (r.code !== 0) throw new Error(r.msg || '加载失败')
-      // 补充展示字段：格式化时间、相似度百分比
-      const list = (r.records || []).map(item => ({
+      // 打卡照片：云存储 fileID 换成临时 https 链接供 <image> 渲染
+      const rawList = r.records || []
+      const photoIDs = rawList.map(i => i.photoFileID).filter(f => f && f.indexOf('cloud://') === 0)
+      let photoMap = {}
+      if (photoIDs.length > 0) {
+        try {
+          const urlRes = await wx.cloud.getTempFileURL({ fileList: photoIDs })
+          ;(urlRes.fileList || []).forEach(f => { photoMap[f.fileID] = f.tempFileURL })
+        } catch (e) {
+          console.error('照片临时链接获取失败：', e)
+        }
+      }
+      // 补充展示字段：格式化时间、相似度百分比、照片临时链接
+      const list = rawList.map(item => ({
         ...item,
+        photoUrl: photoMap[item.photoFileID] || '',
         timeText: this.formatTime(item.createTime),
         simText: Math.round((item.similarity || 0) * 100) + '%'
       }))
@@ -113,6 +126,13 @@ Page({
     }
   },
 
+  // 点击照片 → 全屏预览（缩略图上用 catchtap 阻止冒泡，不触发详情弹窗）
+  onPhotoPreview: function (e) {
+    const src = e.currentTarget.dataset.src
+    if (!src) return
+    wx.previewImage({ urls: [src], current: src })
+  },
+
   // 关闭详情弹窗
   closeDetail: function () {
     this.setData({ showDetail: false })
@@ -127,9 +147,7 @@ Page({
   onShareAppMessage: function () {
     const user = app.globalData.userInfo
     const invite = (user && user.inviteCode) || ''
-    const title = app.globalData.language === 'en'
-      ? 'Voice Check-in Game - say the spell to check in!'
-      : '声控打卡游戏｜到打卡点念出咒语，完成打卡！'
+    const title = (app.globalData.language === 'en' ? i18n.en : i18n.zh).common.shareHome
     return {
       title: title,
       path: '/pages/index/index' + (invite ? '?invite=' + invite : '')
@@ -140,9 +158,7 @@ Page({
   onShareTimeline: function () {
     const user = app.globalData.userInfo
     const invite = (user && user.inviteCode) || ''
-    const title = app.globalData.language === 'en'
-      ? 'Voice Check-in Game - say the spell to check in!'
-      : '声控打卡游戏｜到打卡点念出咒语，完成打卡！'
+    const title = (app.globalData.language === 'en' ? i18n.en : i18n.zh).common.shareHome
     return {
       title: title,
       query: invite ? 'invite=' + invite : 'from=timeline'

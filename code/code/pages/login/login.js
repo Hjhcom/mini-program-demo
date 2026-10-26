@@ -41,7 +41,7 @@ Page({
       fontScale: app.globalData.fontScale,
       lang: lang
     })
-    wx.setNavigationBarTitle({ title: isEn ? 'Log in' : '登录' })
+    wx.setNavigationBarTitle({ title: lang.login.navTitle })
     // 倒计时进行中：刷新倒计时按钮文案（语言可能已切换）
     if (!this.data.canSend) {
       this.setData({ resendText: i18n.format(lang.login.resend, { s: this.data.countdown }) })
@@ -91,7 +91,7 @@ Page({
       if (user.avatarUrl && user.nickname && user.nickname !== '打卡玩家') {
         user.source = 'wechat'
         app.setUser(user)
-        this.onLoginSuccess('微信登录成功')
+        this.onLoginSuccess(this.data.lang.login.wechatSuccess)
       } else {
         this.pendingUser = user
         this.setData({ showProfile: true, avatarUrl: '', nickname: '' })
@@ -141,7 +141,7 @@ Page({
         user.source = 'wechat'
         console.log('【资料保存成功】nickname=', user.nickname, 'avatarUrl=', user.avatarUrl)
         app.setUser(user)
-        this.onLoginSuccess('微信登录成功')
+        this.onLoginSuccess(this.data.lang.login.wechatSuccess)
       }).catch(err => {
         wx.hideLoading()
         console.error('保存资料失败：', err)
@@ -264,7 +264,7 @@ Page({
       user.source = 'phone'
       app.setUser(user)
       this.closeSmsLogin()
-      this.onLoginSuccess('手机号登录成功')
+      this.onLoginSuccess(this.data.lang.login.phoneSuccess)
     }).catch(err => {
       wx.hideLoading()
       console.error('手机号登录失败：', err)
@@ -285,7 +285,7 @@ Page({
       isGuest: true
     }
     app.setUser(user)
-    this.onLoginSuccess('已以游客身份登录')
+    this.onLoginSuccess(this.data.lang.login.guestSuccess)
   },
 
   // 登录成功：提示后返回上一页（「我的」）
@@ -304,9 +304,7 @@ Page({
   onShareAppMessage: function () {
     const user = app.globalData.userInfo
     const invite = (user && user.inviteCode) || ''
-    const title = app.globalData.language === 'en'
-      ? 'Voice Check-in Game - say the spell to check in!'
-      : '声控打卡游戏｜到打卡点念出咒语，完成打卡！'
+    const title = (app.globalData.language === 'en' ? i18n.en : i18n.zh).common.shareHome
     return {
       title: title,
       path: '/pages/index/index' + (invite ? '?invite=' + invite : '')
@@ -317,9 +315,7 @@ Page({
   onShareTimeline: function () {
     const user = app.globalData.userInfo
     const invite = (user && user.inviteCode) || ''
-    const title = app.globalData.language === 'en'
-      ? 'Voice Check-in Game - say the spell to check in!'
-      : '声控打卡游戏｜到打卡点念出咒语，完成打卡！'
+    const title = (app.globalData.language === 'en' ? i18n.en : i18n.zh).common.shareHome
     return {
       title: title,
       query: invite ? 'invite=' + invite : 'from=timeline'

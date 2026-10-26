@@ -21,6 +21,8 @@
         <text class="record-name">{{item.pointName}}</text>
         <text class="record-time">{{item.timeText}}</text>
       </view>
+      <image wx:if="{{item.photoUrl}}" class="record-thumb" src="{{item.photoUrl}}" mode="aspectFill"
+             catchtap="onPhotoPreview" data-src="{{item.photoUrl}}" />
       <view class="record-badge {{item.matched ? 'ok' : 'fail'}}">{{item.matched ? lang.records.okBadge : lang.records.failBadge}}</view>
     </view>
 
@@ -62,6 +64,12 @@
       <view class="detail-row">
         <text class="detail-label">{{lang.records.similarity}}</text>
         <text class="detail-value">{{detail.simText}}</text>
+      </view>
+
+      <view class="detail-photo-wrap" wx:if="{{detail.photoUrl}}">
+        <text class="detail-label">{{lang.records.photoLabel}}</text>
+        <image class="detail-photo" src="{{detail.photoUrl}}" mode="widthFix"
+               catchtap="onPhotoPreview" data-src="{{detail.photoUrl}}" />
       </view>
 
       <button class="detail-close" bindtap="closeDetail">{{lang.records.close}}</button>

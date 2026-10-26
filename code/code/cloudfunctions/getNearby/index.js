@@ -12,13 +12,15 @@ const PAGE_SIZE = 20
 exports.main = async (event) => {
   const { OPENID } = cloud.getWXContext()
   const feedType = event.feedType === 'friends' ? 'friends' : 'nearby'
+  // F1：分页偏移量，前端上拉加载更多时传已加载条数
+  const skip = Math.max(0, Number(event.skip) || 0)
 
   try {
     let query = db.collection('records').where({ matched: true })
 
     // 关注 tab：只看好友 + 自己
     if (feedType === 'friends') {
-      if (!OPENID) return { code: 0, list: [] }
+      if (!OPENID) return { code: 0, list: [], hasMore: false }
       const friendRes = await db.collection('friends')
         .where({ userOpenid: OPENID })
         .limit(200)
@@ -31,12 +33,14 @@ exports.main = async (event) => {
     // 1. 查记录
     const res = await query
       .orderBy('createTime', 'desc')
+      .skip(skip)
       .limit(PAGE_SIZE)
       .get()
 
     if (res.data.length === 0) {
-      return { code: 0, list: [] }
+      return { code: 0, list: [], hasMore: false }
     }
+    const hasMore = res.data.length === PAGE_SIZE
 
     // 2. 批量查用户昵称头像
     const openids = [...new Set(res.data.map(r => r.openid))]
@@ -90,7 +94,7 @@ exports.main = async (event) => {
       }
     })
 
-    return { code: 0, list }
+    return { code: 0, list, hasMore }
   } catch (e) {
     console.error('查询动态失败：', e)
     return { code: -1, msg: '查询失败：' + (e.errMsg || e.message) }

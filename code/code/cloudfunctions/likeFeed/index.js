@@ -24,24 +24,47 @@ exports.main = async (event) => {
       await db.collection('records').doc(recordId).update({
         data: { likes: _.pull(OPENID) }
       })
+      // 取消点赞：清理自己发给对方的那条未读点赞通知（已读通知不删，保留历史痕迹）
+      if (record.openid && record.openid !== OPENID) {
+        try {
+          await db.collection('notifications').where({
+            toOpenid: record.openid,
+            fromOpenid: OPENID,
+            type: 'like',
+            recordId: recordId,
+            read: false
+          }).remove()
+        } catch (e) {
+          console.error('清理点赞通知失败：', e)
+        }
+      }
       return { code: 0, liked: false, likesCount: likes.length - 1 }
     } else {
       await db.collection('records').doc(recordId).update({
         data: { likes: _.push(OPENID) }
       })
-      // 给动态主人写点赞通知（不能是自己给自己点赞）
+      // 给动态主人写点赞通知（不能是自己给自己点赞）；同一动态同一人只留一条未读通知，避免重复点赞刷屏
       if (record.openid && record.openid !== OPENID) {
         try {
-          await db.collection('notifications').add({
-            data: {
-              toOpenid: record.openid,
-              fromOpenid: OPENID,
-              type: 'like',
-              recordId: recordId,
-              read: false,
-              createTime: db.serverDate()
-            }
-          })
+          const exist = await db.collection('notifications').where({
+            toOpenid: record.openid,
+            fromOpenid: OPENID,
+            type: 'like',
+            recordId: recordId,
+            read: false
+          }).count()
+          if (!exist.total) {
+            await db.collection('notifications').add({
+              data: {
+                toOpenid: record.openid,
+                fromOpenid: OPENID,
+                type: 'like',
+                recordId: recordId,
+                read: false,
+                createTime: db.serverDate()
+              }
+            })
+          }
         } catch (e) {
           console.error('写点赞通知失败：', e)
         }

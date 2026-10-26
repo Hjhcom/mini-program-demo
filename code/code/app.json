@@ -18,7 +18,8 @@
     "pages/nearby/nearby",
     "pages/profile/profile",
     "pages/feed-publish/feed-publish",
-    "pages/notifications/notifications"
+    "pages/notifications/notifications",
+    "pages/user-profile/user-profile"
   ],
   "window": {
     "navigationBarBackgroundColor": "#4A90D9",

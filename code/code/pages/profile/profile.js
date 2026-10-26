@@ -9,6 +9,7 @@ const GENDER_VALUES = ['male', 'female', 'secret']
 Page({
   data: {
     user: null,
+    avatarText: '?',       // 无头像时展示的昵称首字（wxml 不支持字符串索引，在 JS 层算好）
     editing: false,        // false=查看态，true=编辑态
     nickname: '',
     avatarPreview: '',
@@ -39,7 +40,7 @@ Page({
       genderOptions: isEn ? GENDER_OPTIONS_EN : GENDER_OPTIONS_ZH
     })
     this.setGenderDisplay()
-    wx.setNavigationBarTitle({ title: isEn ? 'Profile' : '个人资料' })
+    wx.setNavigationBarTitle({ title: lang.profile.navTitle })
   },
 
   setGenderDisplay: function () {
@@ -50,7 +51,7 @@ Page({
   // 从 app.globalData 读当前用户，预填展示态字段
   syncUser: function () {
     const user = app.globalData.userInfo
-    this.setData({ user: user })
+    this.setData({ user: user, avatarText: (user && user.nickname) ? user.nickname.charAt(0) : '?' })
     if (!user || user.source === 'guest') return
 
     const nick = user.nickname || ''
@@ -123,7 +124,8 @@ Page({
   },
 
   onNicknameInput: function (e) {
-    this.setData({ nickname: e.detail.value })
+    const nick = e.detail.value || ''
+    this.setData({ nickname: nick, avatarText: nick.charAt(0) || '?' })
   },
 
   onGenderChange: function (e) {

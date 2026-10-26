@@ -11,7 +11,7 @@
   <!-- 未登录：登录引导卡片（按钮在下方区域） -->
   <view class="user-card" wx:if="{{!user}}">
     <text class="card-watermark">1940</text>
-    <view class="avatar avatar-guest">客</view>
+    <view class="avatar avatar-guest">?</view>
     <view class="user-info">
       <text class="nickname">{{lang.mine.notLogin}}</text>
       <text class="status">{{lang.mine.loginHint}}</text>
@@ -24,9 +24,9 @@
     <view class="avatar" wx:if="{{user.avatarUrl}}">
       <image class="avatar-img" src="{{avatarDisplay}}" mode="aspectFill" bindtap="onAvatarTap" />
     </view>
-    <view class="avatar" wx:else>{{ user.nickname ? user.nickname[0] : '客' }}</view>
+    <view class="avatar" wx:else>{{avatarText}}</view>
     <view class="user-info">
-      <text class="nickname">{{ user.nickname }}</text>
+      <text class="nickname">{{ user.nickname || lang.common.guestName }}</text>
       <text class="status">{{ user.source == 'guest' ? lang.mine.guestHint : lang.mine.loggedIn }}</text>
     </view>
     <!-- 资料不全：提供完善入口 -->
@@ -72,7 +72,7 @@
       <text class="cell-arrow">›</text>
     </view>
     <view class="cell" bindtap="onItemTap" data-type="notify">
-      <text class="cell-label">消息通知（赞/评论提醒）</text>
+      <text class="cell-label">{{lang.mine.notify}}</text>
       <text class="cell-arrow">›</text>
     </view>
     <view class="cell" bindtap="onItemTap" data-type="about">

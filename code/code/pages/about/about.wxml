@@ -40,6 +40,14 @@
       <text class="dot">·</text>
       <text class="para">{{lang.about.f4}}</text>
     </view>
+    <view class="li">
+      <text class="dot">·</text>
+      <text class="para">{{lang.about.f5}}</text>
+    </view>
+    <view class="li">
+      <text class="dot">·</text>
+      <text class="para">{{lang.about.f6}}</text>
+    </view>
   </view>
 
   <!-- 团队分工（姓名请在 about.js 的 TEAM 里填） -->

@@ -122,6 +122,21 @@
   backdrop-filter: blur(10rpx);
   border-radius: 24rpx;
   box-shadow: 0 6rpx 20rpx rgba(180,120,60,0.1);
+  transition: background 0.3s, box-shadow 0.3s;
+}
+
+/* N2：通知跳转过来的动态短暂高亮 */
+.feed-item.highlight {
+  background: #eaf3fb;
+  box-shadow: 0 0 0 3rpx #4A90D9, 0 6rpx 20rpx rgba(74,144,217,0.25);
+}
+
+/* F1：分页加载提示 */
+.feed-more {
+  text-align: center;
+  padding: 24rpx 0;
+  font-size: 24rpx;
+  color: #a08a6a;
 }
 
 /* 头像 */
@@ -350,17 +365,51 @@
   margin-left: 16rpx;
 }
 
-.comment-name {
-  display: block;
-  font-size: 24rpx;
-  color: #999;
+.comment-head {
+  display: flex;
+  align-items: center;
   margin-bottom: 4rpx;
+}
+
+.comment-name {
+  font-size: 24rpx;
+  color: #555;
+  font-weight: 500;
+}
+
+.comment-time {
+  margin-left: 12rpx;
+  font-size: 20rpx;
+  color: #aaa;
+}
+
+.comment-del {
+  margin-left: auto;
+  font-size: 20rpx;
+  color: #e64340;
+  padding: 2rpx 12rpx;
 }
 
 .comment-text {
   font-size: 26rpx;
   color: #333;
   line-height: 1.4;
+}
+
+.comment-like {
+  display: flex;
+  align-items: center;
+  margin-top: 8rpx;
+}
+
+.comment-like-icon {
+  font-size: 26rpx;
+  margin-right: 6rpx;
+}
+
+.comment-like-count {
+  font-size: 22rpx;
+  color: #9a8a7a;
 }
 
 .comment-input-bar {

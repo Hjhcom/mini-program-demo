@@ -8,9 +8,10 @@ const geo = require('../../utils/geo.js')
 // 录音管理器（页面加载时初始化一次）
 const recorder = wx.getRecorderManager()
 
-// F-05：地图图钉图标 —— 官方点位深蓝、玩家自建橙色（两张 PNG 与同名 wxss 色值保持一致）
+// F-05：地图图钉图标 —— 官方点位深蓝、玩家自建橙色、已点亮金色（三张 PNG 与同名 wxss 色值保持一致）
 const MARKER_OFFICIAL = '/images/marker/point-official.png'
 const MARKER_CUSTOM = '/images/marker/point-custom.png'
+const MARKER_LIT = '/images/marker/point-lit.png'
 // 举报原因（key 顺序必须与 index.reportReasons 文案顺序一致，见 onReportTap）
 const REPORT_REASONS = ['fake', 'improper', 'duplicate', 'other']
 
@@ -79,6 +80,7 @@ Page({
     fontScale: 'md',   // 字体大小（全局设置）
     lang: i18n.zh,     // 当前语言文案
     mapLang: 'zh',     // 地图语言
+    litProgressText: '', // 点亮进度条文案（带占位符，在 JS 里拼好）
     tip: i18n.zh.index.tipLoading,
     // 首次进入的欢迎引导浮层
     showGuide: false,
@@ -107,7 +109,7 @@ Page({
     })
     recorder.onError(err => {
       console.error('录音失败：', err)
-      this.setData({ recording: false, tip: i18n.format(this.data.lang.index.errRecord, { msg: err.errMsg || '请检查麦克风权限' }) })
+      this.setData({ recording: false, tip: i18n.format(this.data.lang.index.errRecord, { msg: err.errMsg || this.data.lang.index.micPermTip }) })
     })
   },
 
@@ -156,7 +158,14 @@ Page({
       const pt = this.data.pendingTask
       this.setData({ taskBarDesc: i18n.format(lang.index.taskBarDesc, { name: pt.pointName, spell: pt.spell }) })
     }
+    if (this.data.totalCount > 0) {
+      this.setData({
+        litProgressText: i18n.format(lang.index.litProgress, { visited: this.data.visitedCount, total: this.data.totalCount })
+      })
+    }
     this.refreshTip()
+    // N1：刷新消息未读角标
+    app.refreshNotificationBadge()
     // 处理分享卡片带来的邀请码（好友绑定）
     app.bindPendingInvite()
   },
@@ -255,36 +264,21 @@ Page({
       name: 'getPoints'
     }).then(res => {
       const points = (res.result && res.result.points) || []
-      // 把数据库记录转成地图 marker（id 用下标+1，补宽高）
-      // F-05：官方点位与玩家自建点位用不同颜色的图钉；callout 让点图钉时弹出点位名
-      const markers = points.map((p, i) => ({
-        id: i + 1,
-        longitude: p.longitude,
-        latitude: p.latitude,
-        title: p.name,
-        width: 32,
-        height: 32,
-        // 点亮地图：已打卡过的点用绿色图标，未打卡的按官方/自建区分
-        iconPath: p.hasVisited ? MARKER_LIT : (p.isOfficial ? MARKER_OFFICIAL : MARKER_CUSTOM),
-        callout: {
-          content: p.name,
-          color: '#ffffff',
-          fontSize: 12,
-          borderRadius: 6,
-          borderWidth: 0,
-          bgColor: p.hasVisited ? '#d4a017' : (p.isOfficial ? '#4A90D9' : '#e8842c'),
-          padding: 6,
-          display: 'BYCLICK',
-          textAlign: 'center'
-        }
-      }))
       const visitedCount = points.filter(p => p.hasVisited).length
-      this.setData({ points, markers, visitedCount, totalCount: points.length })
+      // 重拉时保留当前选中点的气泡状态
+      const cur = this.data.selectedPoint
+      const markers = this.buildMarkers(points, cur ? cur._id : null)
+      this.setData({
+        points,
+        markers,
+        visitedCount,
+        totalCount: points.length,
+        litProgressText: i18n.format(this.data.lang.index.litProgress, { visited: visitedCount, total: points.length })
+      })
       console.log('打卡点加载成功', points.length, '个')
 
       // 点位被重拉过（新建点位 / 举报隐藏）后，之前选中的点位可能已经不在列表里了：
       // 还在就换成最新数据，不在就清空选中，避免面板继续显示一个图上已经消失的点位。
-      const cur = this.data.selectedPoint
       if (cur) {
         const fresh = points.filter(p => p._id === cur._id)[0]
         if (fresh) {
@@ -299,7 +293,8 @@ Page({
             canReport: false,
             userCount: 0,
             usersTitle: '',
-            recentUsers: []
+            recentUsers: [],
+            markers: this.buildMarkers(points, null)
           })
           this.refreshTip()
         }
@@ -311,6 +306,34 @@ Page({
       console.error('打卡点加载失败：', err)
       this.setData({ tip: this.data.lang.index.errLoadPoints })
     })
+  },
+
+  // 把数据库记录转成地图 marker（id 用下标+1，补宽高）
+  // 选中点的名称气泡常显（ALWAYS），其余点点击才显示（BYCLICK）；
+  // 切换选中点时整体重建 markers，地图重绘后上一个点的气泡自动消失，
+  // 避免连续点击多个图钉时旧气泡不清除、互相遮挡。
+  buildMarkers: function (points, selectedId) {
+    return points.map((p, i) => ({
+      id: i + 1,
+      longitude: p.longitude,
+      latitude: p.latitude,
+      title: p.name,
+      width: 32,
+      height: 32,
+      // 点亮地图：已打卡过的点用金色图标，未打卡的按官方/自建区分
+      iconPath: p.hasVisited ? MARKER_LIT : (p.isOfficial ? MARKER_OFFICIAL : MARKER_CUSTOM),
+      callout: {
+        content: p.name,
+        color: '#ffffff',
+        fontSize: 12,
+        borderRadius: 6,
+        borderWidth: 0,
+        bgColor: p.hasVisited ? '#d4a017' : (p.isOfficial ? '#4A90D9' : '#e8842c'),
+        padding: 6,
+        display: p._id === selectedId ? 'ALWAYS' : 'BYCLICK',
+        textAlign: 'center'
+      }
+    }))
   },
 
   // 点击地图上的图钉：选中打卡点，显示信息和咒语
@@ -329,6 +352,8 @@ Page({
     const hasTask = !!(t && t.pointId === p._id)
     this.setData({
       selectedPoint: p,
+      // 重建 markers：当前点气泡常显，上一个点回到点击才显示，旧气泡随重绘清除
+      markers: this.buildMarkers(this.data.points, p._id),
       inRange: false,
       // F-05：只有"别人建的玩家点位"才给举报入口（自己建的可自己删/改，官方点位由管理员维护）
       canReport: !p.isMine && !p.isOfficial,
@@ -351,7 +376,6 @@ Page({
   //      再调一次 moveToLocation() 是为了让「蓝点」立刻刷新（部分机型上 show-location
   //      的蓝点在 setData 后不会马上更新）。它失败不影响定位效果，所以包了 try/catch。
   onLocateTap: function () {
-    const lang = this.data.lang
     wx.getLocation({
       type: 'gcj02',
       success: res => {
@@ -370,9 +394,34 @@ Page({
       },
       fail: err => {
         console.error('重新定位失败：', err)
-        wx.showToast({ title: lang.index.locateFail, icon: 'none' })
+        this.handleLocationFail(err, true)
       }
     })
+  },
+
+  // G1：定位失败分三类处理——拒绝授权弹设置引导、超时、其他服务/系统故障。
+  // useToast=true（回到我的位置按钮）用轻提示；false（打卡判定）把提示写进面板 tip。
+  handleLocationFail: function (err, useToast) {
+    const lang = this.data.lang
+    const msg = (err && err.errMsg) || ''
+    if (/auth deny|authorize|permission|denied/i.test(msg)) {
+      wx.showModal({
+        title: lang.index.locDeniedTitle,
+        content: lang.index.locDeniedContent,
+        confirmText: lang.index.openSetting,
+        cancelText: lang.common.cancel,
+        success: r => {
+          if (r.confirm) wx.openSetting({})
+        }
+      })
+      return
+    }
+    const text = /timeout/i.test(msg) ? lang.index.locTimeout : lang.index.locFailGeneric
+    if (useToast) {
+      wx.showToast({ title: text, icon: 'none' })
+    } else {
+      this.setData({ tip: text })
+    }
   },
 
   // 唤起导航：把选中的点位交给微信内置地图，用户可直接点「导航」
@@ -522,7 +571,8 @@ Page({
           canReport: false,
           userCount: 0,
           usersTitle: '',
-          recentUsers: []
+          recentUsers: [],
+          markers: this.buildMarkers(this.data.points, null)
         })
         app.globalData.pointsDirty = true
         this.loadPoints()
@@ -567,7 +617,7 @@ Page({
       },
       fail: err => {
         console.error('定位失败：', err)
-        this.setData({ tip: i18n.format(lang.index.errLocation, { msg: err.errMsg || '请检查定位权限' }) })
+        this.handleLocationFail(err, false)
       }
     })
   },
@@ -775,9 +825,7 @@ Page({
   onShareAppMessage: function () {
     const user = app.globalData.userInfo
     const invite = (user && user.inviteCode) || ''
-    const title = app.globalData.language === 'en'
-      ? 'Voice Check-in Game - say the spell to check in!'
-      : '声控打卡游戏｜到打卡点念出咒语，完成打卡！'
+    const title = (app.globalData.language === 'en' ? i18n.en : i18n.zh).common.shareHome
     return {
       title: title,
       path: '/pages/index/index' + (invite ? '?invite=' + invite : '')
@@ -788,9 +836,7 @@ Page({
   onShareTimeline: function () {
     const user = app.globalData.userInfo
     const invite = (user && user.inviteCode) || ''
-    const title = app.globalData.language === 'en'
-      ? 'Voice Check-in Game - say the spell to check in!'
-      : '声控打卡游戏｜到打卡点念出咒语，完成打卡！'
+    const title = (app.globalData.language === 'en' ? i18n.en : i18n.zh).common.shareHome
     return {
       title: title,
       query: invite ? 'invite=' + invite : 'from=timeline'
@@ -825,8 +871,9 @@ Page({
 
   // 打卡照片：问要不要拍一张
   askPhoto(recordId) {
+    const lang = this.data.lang
     wx.showActionSheet({
-      itemList: ['拍一张打卡照片', '不用了'],
+      itemList: [lang.index.askPhotoTake, lang.index.askPhotoSkip],
       success: (res) => {
         if (res.tapIndex === 0) {
           this.takePhoto(recordId)
@@ -837,6 +884,7 @@ Page({
 
   // 拍照并上传
   async takePhoto(recordId) {
+    const lang = this.data.lang
     try {
       const res = await wx.chooseMedia({
         count: 1,
@@ -846,7 +894,7 @@ Page({
       })
       const tempFilePath = res.tempFiles[0].tempFilePath
 
-      wx.showLoading({ title: '上传中...' })
+      wx.showLoading({ title: lang.index.uploading })
 
       // 上传到云存储
       const uploadRes = await wx.cloud.uploadFile({
@@ -872,7 +920,7 @@ Page({
       })
 
       wx.hideLoading()
-      wx.showToast({ title: '照片已保存', icon: 'success' })
+      wx.showToast({ title: lang.index.photoSaved, icon: 'success' })
     } catch (e) {
       wx.hideLoading()
       console.error('拍照失败：', e)

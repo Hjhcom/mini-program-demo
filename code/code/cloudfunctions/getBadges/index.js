@@ -18,6 +18,10 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 
+// 打卡口径：排除 type='text' 的心情动态；早期打卡记录没有 type 字段，一并保留。
+// 徽章的成功次数、点位数、连续天数、夜猫子判定都只统计真正的打卡记录。
+const nonTextType = db.command.or([db.command.exists(false), db.command.neq('text')])
+
 const { BADGES, summarize, evaluate, toDayKey } = require('./lib/badges')
 
 // 单用户最多分析多少条打卡记录（云函数端单次查询上限 1000）。
@@ -80,7 +84,7 @@ exports.main = async (event) => {
 // 该用户所有「打卡成功」的记录（最近 REC_LIMIT 条，足够覆盖徽章判定所需）
 async function fetchRecords(openid) {
   const res = await db.collection('records')
-    .where({ openid: openid, matched: true })
+    .where({ openid: openid, matched: true, type: nonTextType })
     .field({ pointId: true, similarity: true, createTime: true, dayKey: true })
     .orderBy('createTime', 'desc')
     .limit(REC_LIMIT)

@@ -1,7 +1,7 @@
 <!-- pages/feed-publish/feed-publish.wxml -->
-<view class="page">
+<view class="page {{dark ? 'dark' : ''}} {{fontScale == 'lg' ? 'font-lg' : fontScale == 'xl' ? 'font-xl' : ''}}">
   <!-- 文字输入 -->
-  <textarea class="content-input" placeholder="分享此刻的心情..." maxlength="200"
+  <textarea class="content-input" placeholder="{{lang.feedPublish.placeholder}}" maxlength="200"
             value="{{content}}" bindinput="onInput" auto-focus />
   <view class="word-count">{{content.length}}/200</view>
 
@@ -13,12 +13,12 @@
     </view>
     <view class="photo-add" wx:else bindtap="onChoosePhoto">
       <text class="photo-add-icon">+</text>
-      <text class="photo-add-text">添加图片</text>
+      <text class="photo-add-text">{{lang.feedPublish.addPhoto}}</text>
     </view>
   </view>
 
   <!-- 发布按钮 -->
   <button class="publish-btn" loading="{{publishing}}" disabled="{{publishing}}" bindtap="onPublish">
-    {{publishing ? '发布中...' : '发布'}}
+    {{publishing ? lang.feedPublish.publishing : lang.feedPublish.publish}}
   </button>
 </view>

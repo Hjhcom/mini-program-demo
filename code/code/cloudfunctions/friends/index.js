@@ -18,16 +18,20 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
 const db = cloud.database()
 
+// 打卡口径：排除 type='text' 的心情动态；早期打卡记录没有 type 字段，一并保留。
+// 好友 PK 的总次数、成功次数、最近打卡时间都只统计真正的打卡记录。
+const nonTextType = db.command.or([db.command.exists(false), db.command.neq('text')])
+
 // 取某用户的打卡统计：总次数 / 成功次数 / 最近打卡时间
 async function getUserStats(openid) {
   const userRes = await db.collection('users').where({ openid }).limit(1).get()
   const user = userRes.data[0]
   if (!user) return null
 
-  const countRes = await db.collection('records').where({ openid }).count()
-  const successRes = await db.collection('records').where({ openid, matched: true }).count()
+  const countRes = await db.collection('records').where({ openid, type: nonTextType }).count()
+  const successRes = await db.collection('records').where({ openid, matched: true, type: nonTextType }).count()
   const lastRes = await db.collection('records')
-    .where({ openid })
+    .where({ openid, type: nonTextType })
     .orderBy('createTime', 'desc')
     .limit(1)
     .get()
@@ -114,17 +118,19 @@ exports.main = async (event, context) => {
       const mine = await db.collection('friends').add({
         data: { userOpenid: OPENID, friendOpenid: friend.openid, createdAt: db.serverDate() }
       })
-      await db.collection('friends').add({
+      const theirs = await db.collection('friends').add({
         data: { userOpenid: friend.openid, friendOpenid: OPENID, createdAt: db.serverDate() }
       })
 
-      // 给对方写好友通知
+      // 给对方写好友通知；friendRecordId 存「对方名下那条关系」的句柄，
+      // 对方点击通知时原样传给 userProfile，由云函数按归属校验解析到我主页，全程不回 openid。
       try {
         await db.collection('notifications').add({
           data: {
             toOpenid: friend.openid,
             fromOpenid: OPENID,
             type: 'friend',
+            friendRecordId: theirs._id,
             read: false,
             createTime: db.serverDate()
           }
@@ -134,6 +140,29 @@ exports.main = async (event, context) => {
       }
 
       return { code: 0, already: false, friend: { recordId: mine._id, nickname: friend.nickname } }
+    }
+
+    // ===== 解除好友：删除双向两条关系 =====
+    if (action === 'remove') {
+      const friendRecordId = String(event.friendRecordId || '')
+      if (!friendRecordId) return { code: -1, msg: '缺少好友信息' }
+
+      // 归属校验：只能解除自己名下的关系记录
+      const rel = await db.collection('friends')
+        .where({ _id: friendRecordId, userOpenid: OPENID })
+        .limit(1)
+        .get()
+      if (rel.data.length === 0) return { code: -1, msg: '你们还不是好友' }
+      const friendOpenid = rel.data[0].friendOpenid
+
+      await db.collection('friends')
+        .where({ userOpenid: OPENID, friendOpenid: friendOpenid })
+        .remove()
+      await db.collection('friends')
+        .where({ userOpenid: friendOpenid, friendOpenid: OPENID })
+        .remove()
+
+      return { code: 0 }
     }
 
     return { code: -1, msg: '未知操作' }

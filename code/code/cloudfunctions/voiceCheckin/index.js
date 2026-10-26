@@ -209,6 +209,7 @@ exports.main = async (event, context) => {
   const addRes = await db.collection('records').add({
     data: {
       openid: OPENID,
+      type: 'checkin',                    // 区分打卡记录与 type='text' 的心情动态（早期记录无此字段，统计口径按缺失兼容）
       pointId: pointId,
       pointName: point.name,
       spell: targetSpell,                 // 原来是 point.spell，改成实际比对用的咒语

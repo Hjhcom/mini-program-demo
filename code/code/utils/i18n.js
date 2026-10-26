@@ -4,10 +4,22 @@
 
 const zh = {
   common: {
-    appName: '声控打卡游戏'
+    appName: '依声游理',
+    shareHome: '依声游理｜到打卡点念出咒语，完成打卡！',
+    sharePk: '依声游理｜来和我一起声控打卡 PK 吧',
+    shareMine: '依声游理｜来和我一起声控打卡吧',
+    confirm: '确定',
+    cancel: '取消',
+    timeJustNow: '刚刚',
+    timeMin: '{n} 分钟前',
+    timeHour: '{n} 小时前',
+    timeDay: '{m}-{d}',
+    friendAlready: '你们已是好友，去PK吧',
+    friendAdded: '已和「{name}」成为好友，去PK吧',
+    guestName: '打卡玩家'
   },
   index: {
-    brandTitle: '北京理工大学 · 声控打卡',
+    brandTitle: '北京理工大学 · 依声游理',
     brandSlogan: '德以明理，学以精工',
     nearby: '附近动态',
     checkIn: '定位打卡',
@@ -42,6 +54,7 @@ const zh = {
     typeOfficial: '官方',
     typeMine: '我的点位',
     typePlayer: '玩家自建',
+    typeLit: '已点亮',
     creatorPrefix: '创建者：',
     report: '举报该点位',
     reporting: '提交中…',
@@ -75,9 +88,36 @@ const zh = {
     locateFail: '定位失败，请检查定位权限',
     navigate: '导航',
     navigateFail: '打开地图失败',
-    pointList: '点位列表'
+    pointList: '点位列表',
+    // ===== 欢迎屏 / 首次引导 =====
+    welcomeTitle: '依声游理',
+    welcomeSlogan: '德以明理 · 学以精工',
+    welcomeSub: '到点打卡，念出咒语，畅游北理',
+    welcomeBtn: '开启打卡之旅',
+    guideNext: '下一步',
+    guideEnter: '开始探索',
+    guide1Title: '找到打卡点',
+    guide1Desc: '地图上的图钉就是打卡点，走到附近才能解锁打卡',
+    guide2Title: '念出咒语',
+    guide2Desc: '对着手机念出该点的咒语，语音识别相似度 ≥ 80% 才算成功',
+    guide3Title: '和好友一起玩',
+    guide3Desc: '打卡自动生成动态，点赞评论、互相 PK，点亮校园地图',
+    litProgress: '已点亮 {visited}/{total}',
+    // ===== 打卡照片 =====
+    askPhotoTake: '拍一张打卡照片',
+    askPhotoSkip: '不用了',
+    uploading: '上传中...',
+    photoSaved: '照片已保存',
+    micPermTip: '请检查麦克风权限',
+    // ===== 定位失败引导（G1） =====
+    locDeniedTitle: '需要定位权限',
+    locDeniedContent: '请在设置中开启位置权限后重试',
+    openSetting: '去设置',
+    locFailGeneric: '定位失败，请检查设备定位服务',
+    locTimeout: '定位超时，请重试'
   },
   mine: {
+    navTitle: '我的',
     notLogin: '未登录',
     loginHint: '登录后记录你的每一次打卡',
     guestHint: '游客身份，换微信登录可保存记录',
@@ -93,7 +133,11 @@ const zh = {
     ranking: '积分排行榜',
     badges: '成就徽章',
     settings: '设置',
-    about: '关于声控打卡游戏',
+    notify: '消息通知（赞/评论提醒）',
+    notifyOn: '已开启，收到赞/评论会通知你',
+    notifyOff: '未授权，可随时再来开启',
+    notifyFail: '授权失败',
+    about: '关于依声游理',
     loginBtn: '点击登录',
     logout: '退出登录',
     loginFirst: '请先登录',
@@ -106,6 +150,7 @@ const zh = {
     tip: '提示'
   },
   login: {
+    navTitle: '登录',
     brandSub: '登录后开启你的打卡之旅',
     wechat: '微信一键登录',
     phone: '手机号验证登录',
@@ -142,9 +187,13 @@ const zh = {
     loginFail: '登录失败，请重试',
     cancelProfile: '已取消，可继续使用其他登录方式',
     wechatLoginFail: '微信登录失败，请重试',
-    nickErr: '请输入昵称'
+    nickErr: '请输入昵称',
+    wechatSuccess: '微信登录成功',
+    phoneSuccess: '手机号登录成功',
+    guestSuccess: '已以游客身份登录'
   },
   records: {
+    navTitle: '我的打卡记录',
     total: '总记录',
     success: '打卡成功',
     okBadge: '打卡成功',
@@ -156,6 +205,7 @@ const zh = {
     spell: '应念咒语',
     recognized: '识别结果',
     similarity: '相似度',
+    photoLabel: '打卡照片',
     none: '无',
     close: '关闭',
     loading: '加载中…',
@@ -166,6 +216,7 @@ const zh = {
     loadMoreFail: '加载更多失败，请稍后重试'
   },
   pk: {
+    navTitle: '好友打卡PK',
     bannerTitle: '和好友一起打卡PK',
     bannerSub: '分享邀请好友，互相查看打卡记录',
     invite: '邀请好友',
@@ -184,7 +235,14 @@ const zh = {
     loading: 'PK中…',
     loadFail: '加载好友失败，请检查 friends 云函数',
     pkFail: 'PK失败，请重试',
-    stats: '打卡 {total} 次 · 成功 {success} 次'
+    stats: '打卡 {total} 次 · 成功 {success} 次',
+    viewProfile: '主页',
+    remove: '解除好友',
+    removeTitle: '解除好友？',
+    removeContent: '解除后将不再看到对方的动态',
+    removing: '解除中…',
+    removed: '已解除好友',
+    removeFail: '解除失败，请重试'
   },
   task: {
     navTitle: '打卡任务',
@@ -222,7 +280,7 @@ const zh = {
     // F-10 分享与邀请接受
     share: '分享给好友',
     shareTitle: '帮我完成「{name}」的声控打卡任务',
-    shareDefault: '声控打卡游戏｜念出咒语就能打卡',
+    shareDefault: '依声游理｜念出咒语就能打卡',
     inviteTitle: '好友邀请',
     inviteContent: '任务码 {code}，现在接受这个任务吗？',
     inviteLoginFirst: '登录后就能接受这个任务'
@@ -347,8 +405,8 @@ const zh = {
     dTotal: '合计',
     close: '关闭',
     // F-10 分享战绩（把原先硬编码在 ranking.js 里的标题迁过来）
-    shareMine: '我在声控打卡拿了 {points} 分（第 {rank} 名），来挑战我',
-    shareDefault: '声控打卡游戏｜来看看谁排第一'
+    shareMine: '我在依声游理拿了 {points} 分（第 {rank} 名），来挑战我',
+    shareDefault: '依声游理｜来看看谁排第一'
   },
   badges: {
     navTitle: '成就徽章',
@@ -396,6 +454,7 @@ const zh = {
     pgSim: '最高相似度 {n}%'
   },
   settings: {
+    navTitle: '设置',
     account: '账号',
     profile: '个人资料',
     general: '通用',
@@ -414,6 +473,7 @@ const zh = {
     cacheDone: '缓存已清除'
   },
   profile: {
+    navTitle: '个人资料',
     avatarLabel: '头像',
     avatarTip: '点击更换头像',
     nicknameLabel: '昵称',
@@ -433,7 +493,8 @@ const zh = {
     regionPlaceholder: '未选择',
     edit: '编辑资料',
     cancel: '取消',
-    changeAvatar: '点击头像更换'
+    changeAvatar: '点击头像更换',
+    wxAvatar: '使用微信头像'
   },
   agreement: {
     updated: '更新日期：2026 年 10 月 12 日',
@@ -445,7 +506,7 @@ const zh = {
     navTitle: '关于',
     tagline: '在校园里念出咒语，把打卡变成一场语音小游戏',
     introTitle: '这是什么',
-    introText: '《声控打卡游戏》是一门课程的小组项目：把传统的「地图打卡」改成「说出咒语才算打卡」。站在打卡点范围内念对咒语才能成功；念错会告诉你听到的是什么、相似度多少，方便立刻重试。除基础打卡外，还做了打卡任务、积分排行榜、连续打卡徽章、自建打卡点与好友 PK。',
+    introText: '《依声游理》是一门课程的小组项目：把传统的「地图打卡」改成「说出咒语才算打卡」。站在打卡点范围内念对咒语才能成功；念错会告诉你听到的是什么、相似度多少，方便立刻重试。除基础打卡外，还做了打卡任务、积分排行榜、连续打卡徽章、自建打卡点、动态点赞评论、好友添加与 PK。',
     techTitle: '技术栈',
     techText: '原生微信小程序（WXML / WXSS / JavaScript）＋ 微信云开发（云函数、云数据库、云存储）＋ 讯飞开放平台实时语音听写（WebSocket）。文本归一化、相似度计算与是否通过全部在云函数内完成，前端不参与判分。',
     featureTitle: '主要功能',
@@ -453,30 +514,135 @@ const zh = {
     f2: '打卡任务：发布任务生成 6 位邀请码，好友输入即接受，完成后自动置为已完成',
     f3: '积分与徽章：积分排行榜实时聚合，连续打卡可解锁 8 枚成就徽章',
     f4: '自建打卡点与点位列表：地图选点创建点位，列表按距离分组并支持一键导航',
+    f5: '校园动态：发布心情与打卡动态，为他人点赞、发表评论',
+    f6: '好友与 PK：邀请码添加好友，查看双方打卡统计并进行好友 PK',
     teamTitle: '团队分工',
     teamNote: '本项目为课程小组作业，分工与姓名见上；如有调整，以提交的课程文档为准。',
-    roleArch: '整体架构 / 云函数开发',
-    roleFront: '小程序页面与交互',
-    roleCloud: '云数据库设计 / 部署与联调',
-    roleDoc: '测试用例 / 文档与答辩',
+    roleBackend: '后端云函数与数据库',
+    roleFront: '前端页面与地图',
+    roleVoice: '联络人 / 语音模块',
+    roleTest: '测试与现场校准',
+    roleDoc: '文档整理与发布',
     aiTitle: 'AI 使用说明',
     aiText: '本项目在开发过程中使用了 AI 编程助手（WorkBuddy / 大模型），特此说明，并已在课程文档中标注：',
     ai1: '辅助编写部分云函数与页面代码骨架、生成单元测试用例',
     ai2: '辅助整理技术文档、排查真机调试中的报错',
     ai3: '辅助设计数据表结构与索引、复核隐私字段是否外泄',
-    aiNote: '所有 AI 产出的代码均经小组成员逐行审阅、本地单元测试（5 份脚本）与真机验证后才合入仓库；判定规则、业务逻辑与界面文案由小组自行确定，AI 不参与需求决策。',
+    aiNote: '所有 AI 产出的代码均经小组成员逐行审阅、本地单元测试（6 份脚本）与真机验证后才合入仓库；判定规则、业务逻辑与界面文案由小组自行确定，AI 不参与需求决策。',
     privacyTitle: '隐私与数据',
     privacyText: '录音仅用于当次语音识别，不用于任何训练用途；录音文件保留 7 天后由定时云函数自动删除。云函数对外只返回白名单字段，不下发用户 openid。',
     contactTitle: '反馈与联系',
     contactText: '发现问题或有建议，欢迎直接反馈给项目成员，或通过课程群联系小组。',
-    copyright: '© 2026 声控打卡游戏 · 课程小组项目（仅用于教学演示）',
+    copyright: '© 2026 依声游理 · 课程小组项目（仅用于教学演示）',
     versionCopied: '版本号已复制'
+  },
+  // ===== 消息通知（N1–N3） =====
+  notifications: {
+    navTitle: '消息',
+    loading: '加载中...',
+    emptyTitle: '还没有消息',
+    emptySub: '点赞、评论、好友通知都会出现在这里',
+    actionLike: '赞了你的动态',
+    actionComment: '评论：{text}',
+    actionFriend: '通过邀请码加了你为好友',
+    loadFail: '消息加载失败，请稍后重试'
+  },
+  // ===== 动态流（F1/F3/F4） =====
+  nearby: {
+    navTitle: '动态',
+    tabNearby: '附近',
+    tabFriends: '关注',
+    publishEntry: '分享此刻的心情...',
+    loading: '加载中...',
+    loadingMore: '正在加载更多…',
+    noMore: '没有更多了',
+    emptyFriends: '还没有关注的动态',
+    emptyNearby: '还没有打卡动态',
+    emptyFriendsSub: '去「我的」添加好友后，他们的打卡会出现在这里',
+    emptyNearbySub: '成为第一个打卡的人吧',
+    loadFail: '动态加载失败',
+    loadMoreFail: '加载更多失败，请稍后重试',
+    delete: '删除',
+    deleteTitle: '删除这条动态？',
+    deleteContent: '删除后不可恢复',
+    deleting: '删除中...',
+    deleted: '已删除',
+    deleteFail: '删除失败',
+    commentTitle: '评论',
+    commentEmpty: '还没有评论，来抢沙发',
+    commentPlaceholder: '说点什么...',
+    send: '发送',
+    commentRequired: '评论不能为空',
+    sending: '发送中...',
+    sent: '已发送',
+    sendFail: '发送失败',
+    commentDelete: '删除评论',
+    commentDeleted: '评论已删除',
+    commentDeleteFail: '删除评论失败',
+    commentLike: '点赞评论',
+    viewProfile: '查看主页'
+  },
+  // ===== 发布动态（F4） =====
+  feedPublish: {
+    navTitle: '发动态',
+    placeholder: '分享此刻的心情...',
+    addPhoto: '添加图片',
+    publish: '发布',
+    publishing: '发布中...',
+    contentRequired: '写点什么再发吧',
+    loginFirst: '请先登录',
+    published: '已发布',
+    publishFail: '发布失败',
+    photoUploadFail: '图片上传失败',
+    photoTooLarge: '图片过大，请选择 5MB 以内的图片',
+    photoBadFormat: '图片格式不支持，请选择 JPG 或 PNG 图片',
+    draftSaved: '草稿已保存',
+    contentLimit: '内容不能超过 200 字'
+  },
+  // ===== 他人主页（F2） =====
+  userProfile: {
+    navTitle: '他人主页',
+    totalLabel: '累计打卡',
+    successLabel: '成功打卡',
+    lastLabel: '最近打卡',
+    recentTitle: '最近打卡',
+    emptyRecent: '暂无打卡记录',
+    btnPk: '去 PK',
+    btnRemove: '解除好友',
+    btnAdd: '加好友',
+    removeTitle: '解除好友？',
+    removeContent: '解除后将不再看到对方的动态',
+    removing: '解除中…',
+    removed: '已解除好友',
+    removeFail: '解除失败，请重试',
+    addTitle: '加好友',
+    addPlaceholder: '输入对方 6 位邀请码',
+    addDone: '已发送好友请求',
+    alreadyFriend: '你们已是好友',
+    addFail: '添加失败，请重试',
+    selfTip: '这是你自己的主页',
+    loadFail: '加载失败，请稍后重试',
+    none: '暂无',
+    loading: '加载中…',
+    recentPoint: '打卡点'
   }
 }
 
 const en = {
   common: {
-    appName: 'Voice Check-in Game'
+    appName: 'Voice Check-in',
+    shareHome: 'Voice Check-in — say the spell to check in!',
+    sharePk: 'Voice Check-in — check in and PK with me!',
+    shareMine: 'Voice Check-in — check in with me!',
+    confirm: 'OK',
+    cancel: 'Cancel',
+    timeJustNow: 'just now',
+    timeMin: '{n} min ago',
+    timeHour: '{n} h ago',
+    timeDay: '{m}/{d}',
+    friendAlready: 'You are already friends, go PK!',
+    friendAdded: 'Now friends with {name}, go PK!',
+    guestName: 'Player'
   },
   index: {
     brandTitle: 'BIT · Voice Check-in',
@@ -514,6 +680,7 @@ const en = {
     typeOfficial: 'Official',
     typeMine: 'Mine',
     typePlayer: 'Player',
+    typeLit: 'Visited',
     creatorPrefix: 'Created by: ',
     report: 'Report this spot',
     reporting: 'Submitting…',
@@ -545,9 +712,36 @@ const en = {
     locateFail: 'Location failed, check the permission',
     navigate: 'Directions',
     navigateFail: 'Cannot open the map',
-    pointList: 'All spots'
+    pointList: 'All spots',
+    // ===== welcome & first-run guide =====
+    welcomeTitle: 'Voice Check-in',
+    welcomeSlogan: 'Integrity in mind, excellence in practice',
+    welcomeSub: 'Arrive at the spot, say the spell, tour BIT',
+    welcomeBtn: 'Start exploring',
+    guideNext: 'Next',
+    guideEnter: 'Start',
+    guide1Title: 'Find a spot',
+    guide1Desc: 'Pins on the map are check-in spots; you must walk close to unlock a check-in',
+    guide2Title: 'Say the spell',
+    guide2Desc: 'Say the spell of the spot; recognition similarity ≥ 80% to succeed',
+    guide3Title: 'Play with friends',
+    guide3Desc: 'Check-ins become feeds; like and comment, PK with friends, light up the campus map',
+    litProgress: 'Lit {visited}/{total}',
+    // ===== check-in photo =====
+    askPhotoTake: 'Take a check-in photo',
+    askPhotoSkip: 'Not now',
+    uploading: 'Uploading...',
+    photoSaved: 'Photo saved',
+    micPermTip: 'Please check microphone permission',
+    // ===== location failure guidance (G1) =====
+    locDeniedTitle: 'Location permission needed',
+    locDeniedContent: 'Enable location permission in settings and retry',
+    openSetting: 'Settings',
+    locFailGeneric: 'Location failed, please check location services',
+    locTimeout: 'Location timed out, please retry'
   },
   mine: {
+    navTitle: 'Mine',
     notLogin: 'Not logged in',
     loginHint: 'Log in to record every check-in',
     guestHint: 'Guest mode. Log in with WeChat to save records',
@@ -563,7 +757,11 @@ const en = {
     ranking: 'Leaderboard',
     badges: 'Achievements',
     settings: 'Settings',
-    about: 'About Voice Check-in Game',
+    notify: 'Interactions (likes & comments)',
+    notifyOn: 'Subscribed — you will be notified of likes and comments',
+    notifyOff: 'Not authorized — you can enable it anytime',
+    notifyFail: 'Authorization failed',
+    about: 'About Voice Check-in',
     loginBtn: 'Log in',
     logout: 'Log out',
     loginFirst: 'Please log in first',
@@ -576,6 +774,7 @@ const en = {
     tip: 'Notice'
   },
   login: {
+    navTitle: 'Log in',
     brandSub: 'Start your check-in journey after login',
     wechat: 'WeChat login',
     phone: 'Phone verification login',
@@ -612,9 +811,13 @@ const en = {
     loginFail: 'Login failed, try again',
     cancelProfile: 'Cancelled. You can use other login methods',
     wechatLoginFail: 'WeChat login failed, try again',
-    nickErr: 'Please enter a nickname'
+    nickErr: 'Please enter a nickname',
+    wechatSuccess: 'WeChat login successful',
+    phoneSuccess: 'Phone login successful',
+    guestSuccess: 'Logged in as guest'
   },
   records: {
+    navTitle: 'My Records',
     total: 'Total',
     success: 'Success',
     okBadge: 'Success',
@@ -626,6 +829,7 @@ const en = {
     spell: 'Spell',
     recognized: 'Heard',
     similarity: 'Similarity',
+    photoLabel: 'Photo',
     none: 'None',
     close: 'Close',
     loading: 'Loading…',
@@ -636,6 +840,7 @@ const en = {
     loadMoreFail: 'Failed to load more, please try again'
   },
   pk: {
+    navTitle: 'Friend PK',
     bannerTitle: 'PK with friends',
     bannerSub: 'Invite friends and compare check-ins',
     invite: 'Invite',
@@ -654,7 +859,14 @@ const en = {
     loading: 'PK…',
     loadFail: 'Failed to load friends, check the friends cloud function',
     pkFail: 'PK failed, try again',
-    stats: '{total} check-ins · {success} success'
+    stats: '{total} check-ins · {success} success',
+    viewProfile: 'Profile',
+    remove: 'Unfriend',
+    removeTitle: 'Unfriend?',
+    removeContent: 'You will no longer see their feeds',
+    removing: 'Removing…',
+    removed: 'Unfriended',
+    removeFail: 'Failed to unfriend, please retry'
   },
   task: {
     navTitle: 'Check-in Tasks',
@@ -692,7 +904,7 @@ const en = {
     // F-10 sharing & invite accept
     share: 'Share',
     shareTitle: 'Help me with "{name}"',
-    shareDefault: 'Voice Check-in Game - check in by saying the spell',
+    shareDefault: 'Voice Check-in — say the spell to check in',
     inviteTitle: 'Friend invite',
     inviteContent: 'Task code {code}. Accept this task now?',
     inviteLoginFirst: 'Log in to accept this task'
@@ -818,7 +1030,7 @@ const en = {
     close: 'Close',
     // F-10 share my score
     shareMine: 'I scored {points} points (rank {rank}) — beat me!',
-    shareDefault: 'Voice Check-in Game - see who is on top'
+    shareDefault: 'Voice Check-in — see who is on top'
   },
   badges: {
     navTitle: 'Achievements',
@@ -866,6 +1078,7 @@ const en = {
     pgSim: 'Best similarity {n}%'
   },
   settings: {
+    navTitle: 'Settings',
     account: 'Account',
     profile: 'Profile',
     general: 'General',
@@ -884,6 +1097,7 @@ const en = {
     cacheDone: 'Cache cleared'
   },
   profile: {
+    navTitle: 'Profile',
     avatarLabel: 'Avatar',
     avatarTip: 'Tap to change',
     nicknameLabel: 'Nickname',
@@ -903,7 +1117,8 @@ const en = {
     regionPlaceholder: 'Not set',
     edit: 'Edit',
     cancel: 'Cancel',
-    changeAvatar: 'Tap avatar to change'
+    changeAvatar: 'Tap avatar to change',
+    wxAvatar: 'Use WeChat avatar'
   },
   agreement: {
     updated: 'Updated: 2026-10-12',
@@ -915,7 +1130,7 @@ const en = {
     navTitle: 'About',
     tagline: 'Say the spell on campus — check-in as a voice mini-game',
     introTitle: 'What is this',
-    introText: 'Voice Check-in Game is a course group project. It turns the usual "tap to check in" into "say the spell to check in": you must stand inside a spot and say the correct spell. If you miss, the app tells you what it heard and the similarity score so you can retry right away. Beyond basic check-in, it also has tasks, a points leaderboard, streak badges, user-created spots and friend PK.',
+    introText: 'Voice Check-in is a course group project. It turns the usual "tap to check in" into "say the spell to check in": you must stand inside a spot and say the correct spell. If you miss, the app tells you what it heard and the similarity score so you can retry right away. Beyond basic check-in, it also has tasks, a points leaderboard, streak badges, user-created spots, feed likes and comments, friends and friend PK.',
     techTitle: 'Tech stack',
     techText: 'Native WeChat Mini Program (WXML / WXSS / JavaScript) + WeChat Cloud Development (cloud functions, cloud database, cloud storage) + iFlytek real-time speech recognition over WebSocket. Normalisation, similarity scoring and the pass/fail decision all happen inside cloud functions — the client never judges.',
     featureTitle: 'Main features',
@@ -923,24 +1138,117 @@ const en = {
     f2: 'Check-in tasks: publish a task to get a 6-digit invite code; a friend enters it to accept, and it closes automatically when done',
     f3: 'Points & badges: live leaderboard by points, plus 8 achievement badges for streaks',
     f4: 'Custom spots & spot list: create spots by picking on the map; the list groups spots by distance with one-tap navigation',
+    f5: 'Campus feed: share moods and check-in moments; like and comment on others',
+    f6: 'Friends & PK: add friends by invite code, compare stats and challenge friends to PK',
     teamTitle: 'Team',
     teamNote: 'Course group work — roles and names above; if anything changed, the submitted course document prevails.',
-    roleArch: 'Architecture / cloud functions',
-    roleFront: 'Mini Program pages & interactions',
-    roleCloud: 'Database design / deployment & integration',
-    roleDoc: 'Test cases / documentation & presentation',
+    roleBackend: 'Backend cloud functions & database',
+    roleFront: 'Front-end pages & map',
+    roleVoice: 'Liaison / voice module',
+    roleTest: 'Testing & on-site calibration',
+    roleDoc: 'Documentation & release',
     aiTitle: 'AI usage disclosure',
     aiText: 'This project used an AI coding assistant (WorkBuddy / LLMs) during development. We disclose it here, and it is also marked in the course document:',
     ai1: 'Helped draft parts of the cloud functions and page skeletons, and generate unit tests',
     ai2: 'Helped organise technical documentation and debug issues found on real devices',
     ai3: 'Helped design collections/indexes and review whether private fields leaked',
-    aiNote: 'Every line of AI-generated code was reviewed by team members, covered by local unit tests (5 scripts) and verified on a real device before merging. Rules, business logic and UI copy were decided by the team; AI took no part in requirement decisions.',
+    aiNote: 'Every line of AI-generated code was reviewed by team members, covered by local unit tests (6 scripts) and verified on a real device before merging. Rules, business logic and UI copy were decided by the team; AI took no part in requirement decisions.',
     privacyTitle: 'Privacy & data',
     privacyText: 'Recordings are used only for the current recognition and never for training. Audio files are kept for 7 days and then deleted automatically by a scheduled cloud function. Cloud functions return whitelisted fields only and never expose user openid.',
     contactTitle: 'Feedback & contact',
     contactText: 'Found a bug or have a suggestion? Tell any team member, or reach us through the course group chat.',
-    copyright: '© 2026 Voice Check-in Game · Course group project (for teaching demo only)',
+    copyright: '© 2026 Voice Check-in · Course group project (for teaching demo only)',
     versionCopied: 'Version copied'
+  },
+  // ===== notifications =====
+  notifications: {
+    navTitle: 'Messages',
+    loading: 'Loading...',
+    emptyTitle: 'No messages yet',
+    emptySub: 'Likes, comments and friend requests appear here',
+    actionLike: 'liked your feed',
+    actionComment: 'commented: {text}',
+    actionFriend: 'added you via invite code',
+    loadFail: 'Failed to load messages, please retry later'
+  },
+  // ===== feed =====
+  nearby: {
+    navTitle: 'Feed',
+    tabNearby: 'Nearby',
+    tabFriends: 'Following',
+    publishEntry: 'Share a moment...',
+    loading: 'Loading...',
+    loadingMore: 'Loading more…',
+    noMore: 'No more',
+    emptyFriends: 'No feeds from people you follow',
+    emptyNearby: 'No check-in feeds yet',
+    emptyFriendsSub: 'Add friends in "Mine" and their check-ins will show here',
+    emptyNearbySub: 'Be the first to check in!',
+    loadFail: 'Failed to load feed',
+    loadMoreFail: 'Failed to load more, please retry later',
+    delete: 'Delete',
+    deleteTitle: 'Delete this feed?',
+    deleteContent: 'This cannot be undone',
+    deleting: 'Deleting...',
+    deleted: 'Deleted',
+    deleteFail: 'Delete failed',
+    commentTitle: 'Comments',
+    commentEmpty: 'No comments yet — be the first',
+    commentPlaceholder: 'Say something...',
+    send: 'Send',
+    commentRequired: 'Comment cannot be empty',
+    sending: 'Sending...',
+    sent: 'Sent',
+    sendFail: 'Send failed',
+    commentDelete: 'Delete comment',
+    commentDeleted: 'Comment deleted',
+    commentDeleteFail: 'Failed to delete comment',
+    commentLike: 'Like comment',
+    viewProfile: 'View profile'
+  },
+  // ===== publish feed =====
+  feedPublish: {
+    navTitle: 'Post feed',
+    placeholder: 'Share a moment...',
+    addPhoto: 'Add photo',
+    publish: 'Post',
+    publishing: 'Posting...',
+    contentRequired: 'Write something before posting',
+    loginFirst: 'Please log in first',
+    published: 'Posted',
+    publishFail: 'Post failed',
+    photoUploadFail: 'Photo upload failed',
+    photoTooLarge: 'Photo too large — please choose one under 5MB',
+    photoBadFormat: 'Unsupported format — choose a JPG or PNG image',
+    draftSaved: 'Draft saved',
+    contentLimit: 'Content cannot exceed 200 characters'
+  },
+  // ===== other user profile =====
+  userProfile: {
+    navTitle: 'Profile',
+    totalLabel: 'Total check-ins',
+    successLabel: 'Successful',
+    lastLabel: 'Last check-in',
+    recentTitle: 'Recent check-ins',
+    emptyRecent: 'No check-ins yet',
+    btnPk: 'PK',
+    btnRemove: 'Unfriend',
+    btnAdd: 'Add friend',
+    removeTitle: 'Unfriend this friend?',
+    removeContent: 'You will no longer see their feeds',
+    removing: 'Removing…',
+    removed: 'Unfriended',
+    removeFail: 'Failed to unfriend, please retry',
+    addTitle: 'Add friend',
+    addPlaceholder: 'Enter their 6-char invite code',
+    addDone: 'Friend request sent',
+    alreadyFriend: 'You are already friends',
+    addFail: 'Failed to add friend, please retry',
+    selfTip: 'This is your own profile',
+    loadFail: 'Failed to load, please retry later',
+    none: 'None',
+    loading: 'Loading…',
+    recentPoint: 'Check-in spot'
   }
 }
 

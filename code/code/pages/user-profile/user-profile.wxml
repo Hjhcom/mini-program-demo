@@ -1,0 +1,58 @@
+<!-- pages/user-profile/user-profile.wxml —— 他人主页 -->
+<view class="page {{dark ? 'dark' : ''}} {{fontScale == 'lg' ? 'font-lg' : fontScale == 'xl' ? 'font-xl' : ''}}">
+  <view class="loading" wx:if="{{loading}}">{{lang.userProfile.loading}}</view>
+
+  <block wx:else>
+    <!-- 头部：头像 + 昵称 -->
+    <view class="head-card">
+      <view class="avatar-circle">
+        <image wx:if="{{avatarDisplay}}" class="avatar-img" src="{{avatarDisplay}}" mode="aspectFill" />
+        <view wx:else class="avatar-fallback">?</view>
+      </view>
+      <view class="nickname">{{nickname || lang.common.guestName}}</view>
+    </view>
+
+    <!-- 统计三栏 -->
+    <view class="stats-card">
+      <view class="stat">
+        <view class="stat-num">{{total}}</view>
+        <view class="stat-label">{{lang.userProfile.totalLabel}}</view>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat">
+        <view class="stat-num">{{success}}</view>
+        <view class="stat-label">{{lang.userProfile.successLabel}}</view>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat">
+        <view class="stat-num last">{{lastText}}</view>
+        <view class="stat-label">{{lang.userProfile.lastLabel}}</view>
+      </view>
+    </view>
+
+    <!-- 最近打卡 -->
+    <view class="group-title">{{lang.userProfile.recentTitle}}</view>
+    <view class="recent-empty" wx:if="{{recent.length === 0}}">{{lang.userProfile.emptyRecent}}</view>
+    <view class="recent-list" wx:else>
+      <view class="recent-item" wx:for="{{recent}}" wx:key="_id">
+        <view class="recent-main">
+          <view class="recent-point">{{item.pointName || lang.userProfile.recentPoint}}</view>
+          <view class="recent-spell" wx:if="{{item.spell}}">「{{item.spell}}」</view>
+          <view class="recent-time">{{item.timeText}}</view>
+        </view>
+        <image wx:if="{{item.photoUrl}}" class="recent-photo" src="{{item.photoUrl}}" mode="aspectFill"
+               data-src="{{item.photoUrl}}" bindtap="onPhotoPreview" />
+      </view>
+    </view>
+
+    <!-- 操作区 -->
+    <view class="action-bar">
+      <block wx:if="{{relation == 'friend'}}">
+        <button class="primary-btn" bindtap="onGoPk">{{lang.userProfile.btnPk}}</button>
+        <button class="danger-btn" bindtap="onRemove">{{lang.userProfile.btnRemove}}</button>
+      </block>
+      <button wx:elif="{{relation == 'stranger'}}" class="primary-btn" bindtap="onAdd">{{lang.userProfile.btnAdd}}</button>
+      <view wx:else class="self-tip">{{lang.userProfile.selfTip}}</view>
+    </view>
+  </block>
+</view>

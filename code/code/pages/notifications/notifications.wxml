@@ -1,24 +1,24 @@
 <!-- pages/notifications/notifications.wxml -->
-<view class="page">
+<view class="page {{dark ? 'dark' : ''}} {{fontScale == 'lg' ? 'font-lg' : fontScale == 'xl' ? 'font-xl' : ''}}">
   <image class="page-bg" src="/images/notifications-bg.jpg" mode="aspectFill" />
   <view class="page-mask"></view>
 
   <view class="content">
-  <view class="loading" wx:if="{{loading}}">加载中...</view>
+  <view class="loading" wx:if="{{loading}}">{{lang.notifications.loading}}</view>
 
   <view class="empty" wx:elif="{{list.length === 0}}">
     <text class="empty-icon">🔔</text>
-    <text class="empty-text">还没有消息</text>
-    <text class="empty-sub">点赞、评论、好友通知都会出现在这里</text>
+    <text class="empty-text">{{lang.notifications.emptyTitle}}</text>
+    <text class="empty-sub">{{lang.notifications.emptySub}}</text>
   </view>
 
   <view class="list" wx:else>
-    <view class="item" wx:for="{{list}}" wx:key="_id">
+    <view class="item" wx:for="{{list}}" wx:key="_id" data-id="{{item._id}}" bindtap="onItemTap">
       <!-- 头像 -->
       <view class="avatar" wx:if="{{item.avatarUrl}}">
         <image class="avatar-img" src="{{item.avatarUrl}}" mode="aspectFill" />
       </view>
-      <view class="avatar avatar-ph" wx:else>{{item.nickname[0]}}</view>
+      <view class="avatar avatar-ph" wx:else>{{item.avatarText}}</view>
 
       <!-- 内容 -->
       <view class="body">

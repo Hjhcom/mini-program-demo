@@ -3,20 +3,19 @@
 // 课程要求：版本、团队分工、**AI 使用说明**都要能查得到（AI 辅助未标注按学术不端处理）。
 // 所以这一页不只是"装饰"，它是提交材料的一部分 —— 改版本号时记得同步这里。
 //
-// ⚠️⚠️ 交作业前请把下面两个常量改成你们组的真实信息：
-//   1. APP_VERSION：跟 app.json 里的版本号一起改
-//   2. TEAM：姓名 / 分工按实际人数增删（现在是人头占位）
+// 版本号改动时同步 app.json 与本文件；职责文案由语言包按 jobKey 映射。
 const app = getApp()
 const i18n = require('../../utils/i18n')
 
 const APP_VERSION = '1.0.0'
 
-// 团队分工（姓名是占位符，请替换成真实姓名；人数不同就增删条目）
+// 团队分工（第五周定稿，联络人为甘本诚）
 const TEAM = [
-  { who: '（待填写）', jobKey: 'roleArch' },
-  { who: '（待填写）', jobKey: 'roleFront' },
-  { who: '（待填写）', jobKey: 'roleCloud' },
-  { who: '（待填写）', jobKey: 'roleDoc' }
+  { who: '张皓凯', jobKey: 'roleBackend' },
+  { who: '黄景煌', jobKey: 'roleFront' },
+  { who: '甘本诚', jobKey: 'roleVoice' },
+  { who: '张闲达', jobKey: 'roleTest' },
+  { who: '彭冠乔', jobKey: 'roleDoc' }
 ]
 
 Page({

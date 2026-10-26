@@ -6,6 +6,7 @@ Page({
   data: {
     user: null,
     avatarDisplay: '', // 头像展示链接（云 fileID 转临时 https 链接）
+    avatarText: '?',   // 无头像时展示的昵称首字（wxml 不支持字符串索引，在 JS 层算好）
     needProfile: false, // 微信/手机号用户资料不全 → 显示完善入口
     dark: false,        // 深色模式（全局设置）
     fontScale: 'md',    // 字体大小（全局设置）
@@ -20,11 +21,14 @@ Page({
       user,
       dark: app.globalData.darkMode,
       fontScale: app.globalData.fontScale,
-      lang: isEn ? i18n.en : i18n.zh
+      lang: isEn ? i18n.en : i18n.zh,
+      avatarText: (user && user.nickname) ? user.nickname.charAt(0) : '?'
     })
-    wx.setNavigationBarTitle({ title: isEn ? 'Mine' : '我的' })
+    wx.setNavigationBarTitle({ title: this.data.lang.mine.navTitle })
     // 同步底部 tabBar 文字（tabBar 已渲染，setTabBarItem 才能生效）
     app.applyTabBarLang()
+    // N1：刷新消息未读角标
+    app.refreshNotificationBadge()
     console.log('【我的页 onShow】nickname=', user ? user.nickname : null, 'avatarUrl=', user ? user.avatarUrl : null)
 
     // 资料不全（无头像或默认昵称）→ 显示「完善头像昵称」按钮
@@ -77,7 +81,7 @@ Page({
       const r = res.result || {}
       if (r.code === 0 && r.user) {
         app.setUser(r.user)
-        this.setData({ user: r.user })
+        this.setData({ user: r.user, avatarText: (r.user.nickname || '').charAt(0) || '?' })
         // 头像云 fileID → 临时链接
         if (r.user.avatarUrl) {
           if (r.user.avatarUrl.indexOf('cloud://') === 0) {
@@ -194,12 +198,12 @@ Page({
         tmplIds: ['rkifRfeYEoXnC6dV4ay-meqVpu2VbSTsNZfk8iUfqbk'],
         success: (res) => {
           if (res['rkifRfeYEoXnC6dV4ay-meqVpu2VbSTsNZfk8iUfqbk'] === 'accept') {
-            wx.showToast({ title: '已开启，收到赞/评论会通知你', icon: 'none' })
+            wx.showToast({ title: lang.mine.notifyOn, icon: 'none' })
           } else {
-            wx.showToast({ title: '未授权，可随时再来开启', icon: 'none' })
+            wx.showToast({ title: lang.mine.notifyOff, icon: 'none' })
           }
         },
-        fail: () => wx.showToast({ title: '授权失败', icon: 'none' })
+        fail: () => wx.showToast({ title: lang.mine.notifyFail, icon: 'none' })
       })
       return
     }
@@ -247,9 +251,7 @@ Page({
   onShareAppMessage: function () {
     const user = this.data.user || {}
     const invite = user.inviteCode || ''
-    const title = app.globalData.language === 'en'
-      ? 'Voice Check-in Game - check in with me!'
-      : '声控打卡游戏｜来和我一起声控打卡吧'
+    const title = (app.globalData.language === 'en' ? i18n.en : i18n.zh).common.shareMine
     return {
       title: title,
       path: '/pages/index/index' + (invite ? '?invite=' + invite : '')
@@ -260,9 +262,7 @@ Page({
   onShareTimeline: function () {
     const user = this.data.user || {}
     const invite = user.inviteCode || ''
-    const title = app.globalData.language === 'en'
-      ? 'Voice Check-in Game - check in with me!'
-      : '声控打卡游戏｜来和我一起声控打卡吧'
+    const title = (app.globalData.language === 'en' ? i18n.en : i18n.zh).common.shareMine
     return {
       title: title,
       query: invite ? 'invite=' + invite : 'from=timeline'

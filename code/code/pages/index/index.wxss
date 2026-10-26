@@ -76,6 +76,10 @@
   background: #e8842c;
 }
 
+.dot-lit {
+  background: #d4a017;
+}
+
 .legend-text {
   font-size: 22rpx;
   color: #333333;
@@ -557,6 +561,10 @@
 
 .page.dark .dot-custom {
   background: #f0a55e;
+}
+
+.page.dark .dot-lit {
+  background: #e8c06a;
 }
 
 .page.dark .tag-official {

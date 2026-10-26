@@ -1,49 +1,49 @@
 <!--pages/nearby/nearby.wxml —— 动态-->
-<view class="page">
+<view class="page {{dark ? 'dark' : ''}} {{fontScale == 'lg' ? 'font-lg' : fontScale == 'xl' ? 'font-xl' : ''}}">
   <image class="page-bg" src="/images/feed-bg.jpg" mode="aspectFill" />
   <view class="page-mask"></view>
 
   <view class="content">
   <!-- 顶部 tab：附近 / 关注 -->
   <view class="feed-tabs">
-    <view class="feed-tab {{feedType == 'nearby' ? 'active' : ''}}" bindtap="switchTab" data-type="nearby">附近</view>
-    <view class="feed-tab {{feedType == 'friends' ? 'active' : ''}}" bindtap="switchTab" data-type="friends">关注</view>
+    <view class="feed-tab {{feedType == 'nearby' ? 'active' : ''}}" bindtap="switchTab" data-type="nearby">{{lang.nearby.tabNearby}}</view>
+    <view class="feed-tab {{feedType == 'friends' ? 'active' : ''}}" bindtap="switchTab" data-type="friends">{{lang.nearby.tabFriends}}</view>
   </view>
 
   <!-- 发动态入口 -->
   <view class="publish-entry" bindtap="goPublish">
     <text class="publish-icon">✏️</text>
-    <text class="publish-text">分享此刻的心情...</text>
+    <text class="publish-text">{{lang.nearby.publishEntry}}</text>
   </view>
 
   <!-- 加载中 -->
   <view class="loading" wx:if="{{loading}}">
-    <text>加载中...</text>
+    <text>{{lang.nearby.loading}}</text>
   </view>
 
   <!-- 空状态 -->
   <view class="empty" wx:elif="{{isEmpty}}">
     <text class="empty-icon">📍</text>
-    <text class="empty-text">{{feedType == 'friends' ? '还没有关注的动态' : '还没有打卡动态'}}</text>
-    <text class="empty-sub">{{feedType == 'friends' ? '去「我的」添加好友后，他们的打卡会出现在这里' : '成为第一个打卡的人吧'}}</text>
+    <text class="empty-text">{{feedType == 'friends' ? lang.nearby.emptyFriends : lang.nearby.emptyNearby}}</text>
+    <text class="empty-sub">{{feedType == 'friends' ? lang.nearby.emptyFriendsSub : lang.nearby.emptyNearbySub}}</text>
   </view>
 
   <!-- 动态列表 -->
   <view class="feed" wx:else>
-    <view class="feed-item" wx:for="{{list}}" wx:key="_id">
-      <!-- 头像 -->
-      <view class="avatar" wx:if="{{item.avatarUrl}}">
+    <view class="feed-item {{item.highlight ? 'highlight' : ''}}" wx:for="{{list}}" wx:key="_id">
+      <!-- 头像（点击进入他人主页） -->
+      <view class="avatar" wx:if="{{item.avatarUrl}}" data-id="{{item._id}}" bindtap="onAvatarTap">
         <image class="avatar-img" src="{{item.avatarUrl}}" mode="aspectFill" />
       </view>
-      <view class="avatar avatar-ph" wx:else>{{item.nickname[0]}}</view>
+      <view class="avatar avatar-ph" wx:else data-id="{{item._id}}" bindtap="onAvatarTap">{{item.avatarText}}</view>
 
       <!-- 内容 -->
       <view class="feed-content">
         <view class="feed-head">
-          <text class="feed-name">{{item.nickname}}</text>
+          <text class="feed-name" data-id="{{item._id}}" bindtap="onAvatarTap">{{item.nickname}}</text>
           <text class="feed-time">{{item.timeText}}</text>
           <!-- 自己的动态：删除按钮 -->
-          <text wx:if="{{item.isMine}}" class="feed-del" data-id="{{item._id}}" bindtap="onDeleteTap">删除</text>
+          <text wx:if="{{item.isMine}}" class="feed-del" data-id="{{item._id}}" bindtap="onDeleteTap">{{lang.nearby.delete}}</text>
         </view>
 
         <!-- 文字心情：直接展示内容 -->
@@ -75,6 +75,10 @@
         </view>
       </view>
     </view>
+
+    <!-- 分页状态 -->
+    <view class="feed-more" wx:if="{{loadingMore}}">{{lang.nearby.loadingMore}}</view>
+    <view class="feed-more" wx:elif="{{!hasMore && list.length > 0}}">{{lang.nearby.noMore}}</view>
   </view>
   </view>
 
@@ -82,27 +86,35 @@
   <view class="comment-mask" wx:if="{{showCommentPanel}}" bindtap="closeCommentPanel"></view>
   <view class="comment-panel {{showCommentPanel ? 'show' : ''}}">
     <view class="comment-panel-head">
-      <text class="comment-panel-title">评论</text>
+      <text class="comment-panel-title">{{lang.nearby.commentTitle}}</text>
       <text class="comment-panel-close" bindtap="closeCommentPanel">✕</text>
     </view>
-    <scroll-view class="comment-list" scroll-y>
+    <scroll-view class="comment-list" scroll-y bindscrolltolower="loadMoreComments">
       <view class="comment-empty" wx:if="{{commentList.length === 0}}">
-        还没有评论，来抢沙发
+        {{lang.nearby.commentEmpty}}
       </view>
       <view class="comment-item" wx:for="{{commentList}}" wx:key="_id">
         <view class="comment-avatar" wx:if="{{item.avatarUrl}}">
           <image class="comment-avatar-img" src="{{item.avatarUrl}}" mode="aspectFill" />
         </view>
-        <view class="comment-avatar comment-avatar-ph" wx:else>{{item.nickname[0]}}</view>
+        <view class="comment-avatar comment-avatar-ph" wx:else>{{item.avatarText}}</view>
         <view class="comment-body">
-          <text class="comment-name">{{item.nickname}}</text>
+          <view class="comment-head">
+            <text class="comment-name">{{item.nickname}}</text>
+            <text class="comment-time">{{item.timeText}}</text>
+            <text wx:if="{{item.isMine}}" class="comment-del" data-id="{{item._id}}" bindtap="onDeleteComment">{{lang.nearby.commentDelete}}</text>
+          </view>
           <text class="comment-text">{{item.content}}</text>
+          <view class="comment-like" data-id="{{item._id}}" bindtap="onLikeComment">
+            <text class="comment-like-icon">{{item.isLiked ? '❤️' : '🤍'}}</text>
+            <text class="comment-like-count">{{item.likesCount || 0}}</text>
+          </view>
         </view>
       </view>
     </scroll-view>
     <view class="comment-input-bar">
-      <input class="comment-input" placeholder="说点什么..." value="{{commentText}}" bindinput="onCommentInput" confirm-type="send" bindconfirm="onSendComment" />
-      <view class="comment-send-btn" bindtap="onSendComment">发送</view>
+      <input class="comment-input" placeholder="{{lang.nearby.commentPlaceholder}}" value="{{commentText}}" bindinput="onCommentInput" confirm-type="send" bindconfirm="onSendComment" />
+      <view class="comment-send-btn" bindtap="onSendComment">{{lang.nearby.send}}</view>
     </view>
   </view>
 </view>

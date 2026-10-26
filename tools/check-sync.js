@@ -142,5 +142,33 @@ ok(typeof voiceMatch.matchSpell === 'function',
   'matchSpell 已导出（tools/test-voice-match.js 依赖它做回归）')
 
 // ----------------------------------------------------------------------------
+section('5. 打卡口径：统计类云函数必须排除 type=\'text\' 心情动态')
+// ----------------------------------------------------------------------------
+// records 集合同时存两类文档：
+//   · type='checkin'（早期记录无 type 字段）—— 真正的打卡尝试
+//   · type='text' —— 附近动态流里的心情动态，matched:true 只是为了进动态流
+// 积分、徽章、记录列表、好友 PK、已点亮点位都只应统计前者；getNearby 是唯一
+// 需要把两类都取出来的函数，不能加这个过滤。
+const STAT_CLOUDFUNCTIONS = [
+  'getRanking', 'getBadges', 'getRecords', 'friends', 'getPoints', 'userProfile'
+]
+STAT_CLOUDFUNCTIONS.forEach(name => {
+  const src = read(`code/code/cloudfunctions/${name}/index.js`)
+  ok(/const nonTextType = db\.command\.or\(\[db\.command\.exists\(false\), db\.command\.neq\('text'\)\]\)/.test(src),
+    `${name} 定义了 nonTextType 过滤条件（兼容无 type 的早期打卡记录）`)
+  const usageCount = (src.match(/type: nonTextType/g) || []).length
+  ok(usageCount > 0, `${name} 的记录查询使用了 nonTextType（命中 ${usageCount} 处）`)
+})
+
+const nearbySrc = read('code/code/cloudfunctions/getNearby/index.js')
+ok(!/nonTextType/.test(nearbySrc),
+  'getNearby 保持不排除 type=\'text\'（动态流需要同时展示心情动态与成功打卡）')
+
+const publishSrc = read('code/code/cloudfunctions/publishFeed/index.js')
+const voiceSrc = read('code/code/cloudfunctions/voiceCheckin/index.js')
+ok(/type: 'text'/.test(publishSrc), 'publishFeed 写入 type=\'text\' 心情动态')
+ok(/type: 'checkin'/.test(voiceSrc), 'voiceCheckin 写入 type=\'checkin\' 打卡记录')
+
+// ----------------------------------------------------------------------------
 console.log(fail === 0 ? '\n全部一致 ✅' : '\n发现 ' + fail + ' 处不一致 ❌')
 process.exit(fail === 0 ? 0 : 1)

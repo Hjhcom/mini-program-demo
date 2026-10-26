@@ -1,0 +1,9 @@
+{
+  "name": "userProfile",
+  "version": "1.0.0",
+  "description": "查看他人主页资料、统计与最近动态",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

@@ -86,6 +86,29 @@
   margin-top: 6rpx;
 }
 
+.friend-actions {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  margin-right: 16rpx;
+}
+
+.friend-link {
+  font-size: 22rpx;
+  color: #4A90D9;
+  padding: 6rpx 16rpx;
+  border: 1rpx solid #4A90D9;
+  border-radius: 20rpx;
+}
+
+.friend-remove {
+  font-size: 22rpx;
+  color: #e64340;
+  padding: 6rpx 16rpx;
+  border: 1rpx solid #f0c0c0;
+  border-radius: 20rpx;
+}
+
 .friend-arrow {
   font-size: 26rpx;
   color: #4A90D9;

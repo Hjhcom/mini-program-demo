@@ -1,4 +1,6 @@
 // 全局逻辑：小程序启动时执行
+const i18n = require('./utils/i18n')
+
 App({
   globalData: {
     userInfo: null,   // 当前登录用户（含 source 字段：wechat / phone / guest）
@@ -11,7 +13,9 @@ App({
     // F-09：点位列表页选中某个点位后把 _id 放这里再返回。
     // 首页是 tabBar 页、没法带 query 跳回来，只能靠 globalData 传这一棒；
     // 首页 applyPendingPoint() 消费后立刻清空，避免下次进首页又选中一次。
-    pendingPointId: ''
+    pendingPointId: '',
+    // N2：通知点击带来的待高亮动态 recordId，动态流 onShow 消费后清空。
+    pendingHighlightRecordId: ''
   },
 
   onLaunch: function () {
@@ -115,6 +119,23 @@ App({
     wx.setTabBarItem({ index: 3, text: isEn ? 'Mine' : '我的' })
   },
 
+  // N1：刷新「消息」tab 未读角标。不带 markRead，只统计未读数，不改变已读状态。
+  refreshNotificationBadge: function () {
+    if (!wx.cloud || !wx.setTabBarBadge) return
+    wx.cloud.callFunction({ name: 'getNotifications', data: { markRead: false } })
+      .then(res => {
+        const r = res.result || {}
+        if (r.code !== 0) return
+        const unread = r.unread || 0
+        if (unread > 0) {
+          wx.setTabBarBadge({ index: 2, text: String(unread) })
+        } else {
+          wx.removeTabBarBadge({ index: 2 })
+        }
+      })
+      .catch(err => console.error('刷新通知角标失败：', err))
+  },
+
   // 处理分享卡片带来的邀请码：登录后自动与邀请人互为好友
   bindPendingInvite: function () {
     let invite = ''
@@ -135,10 +156,11 @@ App({
     }).then(res => {
       const r = res.result || {}
       if (r.code === 0) {
-        wx.showToast({
-          title: r.already ? '你们已是好友，去PK吧' : '已和「' + (r.friend && r.friend.nickname) + '」成为好友，去PK吧',
-          icon: 'none'
-        })
+        const lang = this.globalData.language === 'en' ? i18n.en : i18n.zh
+        const title = r.already
+          ? lang.common.friendAlready
+          : i18n.format(lang.common.friendAdded, { name: (r.friend && r.friend.nickname) || '' })
+        wx.showToast({ title: title, icon: 'none' })
       } else if (r.msg) {
         wx.showToast({ title: r.msg, icon: 'none' })
       }

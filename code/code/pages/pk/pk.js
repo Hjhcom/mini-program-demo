@@ -14,7 +14,12 @@ Page({
     friend: null,     // 对方统计
     pkResult: '',     // 胜负文案
     meLastText: '',   // 我的最近打卡
-    friendLastText: '' // 对方最近打卡
+    friendLastText: '', // 对方最近打卡
+    autoFriendRecordId: '' // 从他人主页带过来的好友句柄，列表就绪后自动 PK
+  },
+
+  onLoad: function (options) {
+    this.setData({ autoFriendRecordId: (options && options.friendRecordId) || '' })
   },
 
   onShow: function () {
@@ -25,7 +30,7 @@ Page({
       fontScale: app.globalData.fontScale,
       lang: lang
     })
-    wx.setNavigationBarTitle({ title: isEn ? 'Friend PK' : '好友打卡PK' })
+    wx.setNavigationBarTitle({ title: lang.pk.navTitle })
     // 语言切换后刷新好友统计文案
     this.refreshFriendTexts()
     this.loadFriends()
@@ -53,9 +58,16 @@ Page({
       const lang = this.data.lang
       const friends = (r.friends || []).map(f => ({
         ...f,
-        statsText: i18n.format(lang.pk.stats, { total: f.total, success: f.success })
+        statsText: i18n.format(lang.pk.stats, { total: f.total, success: f.success }),
+        avatarText: (f.nickname || '').charAt(0) || '?'
       }))
       this.setData({ friends: friends, loading: false })
+      // 从他人主页带好友句柄进来：列表就绪后自动弹出该好友对比
+      if (this.data.autoFriendRecordId) {
+        const idx = friends.findIndex(f => f.recordId === this.data.autoFriendRecordId)
+        this.setData({ autoFriendRecordId: '' })
+        if (idx >= 0) this.doPkByIndex(idx)
+      }
     }).catch(err => {
       console.error('加载好友失败：', err)
       this.setData({ loading: false })
@@ -65,7 +77,12 @@ Page({
 
   // 点击好友 → 拉取 PK 对比
   onFriendTap: function (e) {
-    const f = this.data.friends[e.currentTarget.dataset.index]
+    this.doPkByIndex(e.currentTarget.dataset.index)
+  },
+
+  // 按列表下标发起 PK 对比
+  doPkByIndex: function (index) {
+    const f = this.data.friends[index]
     if (!f) return
     const lang = this.data.lang
     wx.showLoading({ title: lang.pk.loading })
@@ -92,8 +109,8 @@ Page({
       }
       this.setData({
         showPk: true,
-        me: me,
-        friend: friend,
+        me: { ...me, avatarText: (me.nickname || '').charAt(0) || '?' },
+        friend: { ...friend, avatarText: (friend.nickname || '').charAt(0) || '?' },
         pkResult: pkResult,
         meLastText: this.formatTime(me.lastTime, lang),
         friendLastText: this.formatTime(friend.lastTime, lang)
@@ -119,13 +136,53 @@ Page({
     this.setData({ showPk: false })
   },
 
+  // F2：进入好友主页
+  onProfileTap: function (e) {
+    const f = this.data.friends[e.currentTarget.dataset.index]
+    if (!f) return
+    wx.navigateTo({ url: '/pages/user-profile/user-profile?friendRecordId=' + f.recordId })
+  },
+
+  // F2：解除好友
+  onRemoveTap: function (e) {
+    const f = this.data.friends[e.currentTarget.dataset.index]
+    if (!f) return
+    const lang = this.data.lang.pk
+    wx.showModal({
+      title: lang.removeTitle,
+      content: lang.removeContent,
+      confirmColor: '#e64340',
+      confirmText: lang.remove,
+      cancelText: this.data.lang.common.cancel,
+      success: async (r) => {
+        if (!r.confirm) return
+        wx.showLoading({ title: lang.removing })
+        try {
+          const res = await wx.cloud.callFunction({
+            name: 'friends',
+            data: { action: 'remove', friendRecordId: f.recordId }
+          })
+          wx.hideLoading()
+          if (res.result && res.result.code === 0) {
+            wx.showToast({ title: lang.removed, icon: 'success' })
+            this.loadFriends()
+          } else {
+            wx.showToast({ title: (res.result && res.result.msg) || lang.removeFail, icon: 'none' })
+          }
+        } catch (err) {
+          wx.hideLoading()
+          console.error('解除好友失败：', err)
+          wx.showToast({ title: lang.removeFail, icon: 'none' })
+        }
+      }
+    })
+  },
+
   // 分享（带我的邀请码，好友点开自动绑定）
   onShareAppMessage: function () {
     const user = app.globalData.userInfo
     const invite = (user && user.inviteCode) || ''
-    const title = app.globalData.language === 'en'
-      ? 'Voice Check-in Game - check in and PK with me!'
-      : '声控打卡游戏｜来和我一起声控打卡PK吧'
+    const title = (app.globalData.language === 'en' ? i18n.en : i18n.zh).common.sharePk
     return {
       title: title,
       path: '/pages/index/index' + (invite ? '?invite=' + invite : '')
@@ -136,9 +193,7 @@ Page({
   onShareTimeline: function () {
     const user = app.globalData.userInfo
     const invite = (user && user.inviteCode) || ''
-    const title = app.globalData.language === 'en'
-      ? 'Voice Check-in Game - check in and PK with me!'
-      : '声控打卡游戏｜来和我一起声控打卡PK吧'
+    const title = (app.globalData.language === 'en' ? i18n.en : i18n.zh).common.sharePk
     return {
       title: title,
       query: invite ? 'invite=' + invite : 'from=timeline'

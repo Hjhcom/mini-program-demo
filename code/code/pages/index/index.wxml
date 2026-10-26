@@ -39,6 +39,10 @@
       <view class="legend-dot dot-custom"></view>
       <text class="legend-text">{{lang.index.typePlayer}}</text>
     </view>
+    <view class="legend-item">
+      <view class="legend-dot dot-lit"></view>
+      <text class="legend-text">{{lang.index.typeLit}}</text>
+    </view>
   </view>
 
   <!-- 点亮地图进度条 -->
@@ -46,7 +50,7 @@
     <view class="lit-progress-bar">
       <view class="lit-progress-fill" style="width: {{visitedCount / totalCount * 100}}%"></view>
     </view>
-    <text class="lit-progress-text">已点亮 {{visitedCount}}/{{totalCount}}</text>
+    <text class="lit-progress-text">{{litProgressText}}</text>
   </view>
 
   <!-- 待完成任务提示条（指派给我、进行中、未过期） -->
@@ -153,22 +157,22 @@
         <swiper-item>
           <view class="guide-page">
             <text class="guide-emoji">🗺️</text>
-            <text class="guide-title">找到打卡点</text>
-            <text class="guide-desc">地图上的图钉就是打卡点，走到附近才能解锁打卡</text>
+            <text class="guide-title">{{lang.index.guide1Title}}</text>
+            <text class="guide-desc">{{lang.index.guide1Desc}}</text>
           </view>
         </swiper-item>
         <swiper-item>
           <view class="guide-page">
             <text class="guide-emoji">🎤</text>
-            <text class="guide-title">念出咒语</text>
-            <text class="guide-desc">对着手机念出该点的咒语，语音识别相似度 ≥ 80% 才算成功</text>
+            <text class="guide-title">{{lang.index.guide2Title}}</text>
+            <text class="guide-desc">{{lang.index.guide2Desc}}</text>
           </view>
         </swiper-item>
         <swiper-item>
           <view class="guide-page">
             <text class="guide-emoji">👥</text>
-            <text class="guide-title">和好友一起玩</text>
-            <text class="guide-desc">打卡自动生成动态，点赞评论、互相 PK，点亮校园地图</text>
+            <text class="guide-title">{{lang.index.guide3Title}}</text>
+            <text class="guide-desc">{{lang.index.guide3Desc}}</text>
           </view>
         </swiper-item>
       </swiper>
@@ -180,7 +184,7 @@
       </view>
 
       <button class="guide-btn" bindtap="onGuideNext">
-        {{guideIndex < 2 ? '下一步' : '开始探索'}}
+        {{guideIndex < 2 ? lang.index.guideNext : lang.index.guideEnter}}
       </button>
     </view>
   </view>
@@ -191,11 +195,11 @@
     <view class="welcome-shade"></view>
 
     <view class="welcome-inner">
-      <text class="welcome-title">依声游理</text>
-      <text class="welcome-slogan">德以明理 · 学以精工</text>
-      <text class="welcome-sub">到点打卡，念出咒语，畅游北理</text>
+      <text class="welcome-title">{{lang.index.welcomeTitle}}</text>
+      <text class="welcome-slogan">{{lang.index.welcomeSlogan}}</text>
+      <text class="welcome-sub">{{lang.index.welcomeSub}}</text>
       <button class="welcome-btn" bindtap="onEnterTap">
-        <text class="welcome-btn-text">开启打卡之旅</text>
+        <text class="welcome-btn-text">{{lang.index.welcomeBtn}}</text>
         <text class="welcome-btn-arrow">›</text>
       </button>
     </view>
