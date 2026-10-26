@@ -1,0 +1,99 @@
+/* pages/point-detail/point-detail.wxss */
+.page {
+  min-height: 100vh;
+  background: #f5f7fa;
+  padding: 24rpx;
+  box-sizing: border-box;
+}
+
+.loading {
+  text-align: center;
+  padding: 200rpx 0;
+  color: #999;
+  font-size: 28rpx;
+}
+
+.point-card {
+  background: #ffffff;
+  border-radius: 20rpx;
+  padding: 36rpx 30rpx;
+  margin-bottom: 30rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.04);
+}
+.point-name {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #1a1a1a;
+  margin-bottom: 12rpx;
+}
+.point-spell {
+  font-size: 26rpx;
+  color: #888;
+  margin-bottom: 12rpx;
+}
+.point-stats {
+  font-size: 24rpx;
+  color: #4A90D9;
+}
+
+.section-title {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #333;
+  margin: 20rpx 0 16rpx;
+}
+
+.photo-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+.photo-item {
+  width: calc(33.33% - 8rpx);
+  height: 200rpx;
+  border-radius: 12rpx;
+  background: #eee;
+}
+
+.empty {
+  text-align: center;
+  padding: 60rpx 0;
+  color: #999;
+  font-size: 26rpx;
+}
+
+.rank-list {
+  background: #fff;
+  border-radius: 20rpx;
+  overflow: hidden;
+}
+.rank-item {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 28rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+.rank-item:last-child { border-bottom: none; }
+.rank-avatar {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: #eef3f8;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20rpx;
+}
+.rank-avatar-img { width: 100%; height: 100%; }
+.rank-avatar-ph { font-size: 26rpx; font-weight: bold; color: #4A90D9; }
+.rank-name {
+  flex: 1;
+  font-size: 28rpx;
+  color: #333;
+}
+.rank-count {
+  font-size: 26rpx;
+  color: #4A90D9;
+  font-weight: 500;
+}

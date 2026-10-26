@@ -318,8 +318,8 @@ Page({
       longitude: p.longitude,
       latitude: p.latitude,
       title: p.name,
-      width: 32,
-      height: 32,
+      width: 30,
+      height: 30,
       // 点亮地图：已打卡过的点用金色图标，未打卡的按官方/自建区分
       iconPath: p.hasVisited ? MARKER_LIT : (p.isOfficial ? MARKER_OFFICIAL : MARKER_CUSTOM),
       callout: {
@@ -512,6 +512,13 @@ Page({
       wx.navigateTo({ url: '/pages/login/login' })
     }, 800)
     return true
+  },
+
+  // 选中点位 → 跳点位详情页
+  goPointDetail: function () {
+    const p = this.data.selectedPoint
+    if (!p) return
+    wx.navigateTo({ url: '/pages/point-detail/point-detail?pointId=' + p._id })
   },
 
   // 选中点位 → 跳发布任务页（F-01 × F-02 联动）

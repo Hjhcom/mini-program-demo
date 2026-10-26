@@ -113,6 +113,7 @@
       <button wx:if="{{inRange}}" class="btn btn-record {{recording ? 'recording' : ''}} {{shake ? 'shake' : ''}}"
               bindtap="onRecordTap">{{recording ? lang.index.recording : lang.index.spell}}</button>
       <view class="btn-ghost-row">
+        <button wx:if="{{selectedPoint}}" class="btn btn-ghost" bindtap="goPointDetail">点位详情</button>
         <button wx:if="{{selectedPoint}}" class="btn btn-ghost" bindtap="goCreateTask">{{lang.index.createTaskForFriend}}</button>
         <button class="btn btn-ghost" bindtap="goCreatePoint">{{lang.index.createPoint}}</button>
         <button class="btn btn-ghost" bindtap="goPointList">{{lang.index.pointList}}</button>

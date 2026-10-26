@@ -1,0 +1,35 @@
+<!--pages/point-detail/point-detail.wxml-->
+<view class="page">
+  <view class="loading" wx:if="{{loading}}">加载中...</view>
+
+  <block wx:else>
+    <!-- 点位信息卡 -->
+    <view class="point-card" wx:if="{{point}}">
+      <view class="point-name">{{point.name}}</view>
+      <view class="point-spell" wx:if="{{point.spell}}">咒语：「{{point.spell}}」</view>
+      <view class="point-stats">共 {{totalCheckins}} 次打卡</view>
+    </view>
+
+    <!-- 打卡照片墙 -->
+    <view class="section-title" wx:if="{{photoWall.length > 0}}">打卡照片墙</view>
+    <view class="photo-grid" wx:if="{{photoWall.length > 0}}">
+      <image wx:for="{{photoWall}}" wx:key="fileID" class="photo-item"
+             src="{{item.url}}" mode="aspectFill"
+             data-src="{{item.url}}" bindtap="onPhotoPreview" />
+    </view>
+    <view class="empty" wx:elif="{{!loading}}">还没有打卡照片</view>
+
+    <!-- 打卡排行 -->
+    <view class="section-title" wx:if="{{rankList.length > 0}}">打卡次数排行</view>
+    <view class="rank-list" wx:if="{{rankList.length > 0}}">
+      <view class="rank-item" wx:for="{{rankList}}" wx:key="nickname">
+        <view class="rank-avatar" wx:if="{{item.avatarUrl}}">
+          <image class="rank-avatar-img" src="{{item.avatarUrl}}" mode="aspectFill" />
+        </view>
+        <view class="rank-avatar rank-avatar-ph" wx:else>{{item.nickname[0]}}</view>
+        <text class="rank-name">{{item.nickname}}</text>
+        <text class="rank-count">{{item.count}} 次</text>
+      </view>
+    </view>
+  </block>
+</view>

@@ -24,23 +24,31 @@ const TMP_URL_BATCH = 50 // getTempFileURL 单次上限 50，分批换链接
 
 exports.main = async (event) => {
   const type = (event && event.type) || 'user'
+  const period = (event && event.period) || 'all'
   const { OPENID } = cloud.getWXContext()
   try {
-    if (type === 'point') return await pointBoard()
-    return await userBoard(OPENID)
+    if (type === 'point') return await pointBoard(period)
+    return await userBoard(OPENID, period)
   } catch (e) {
     console.error('getRanking 失败：', e)
     return { code: -1, msg: '排行榜加载失败：' + (e.errMsg || e.message) }
   }
 }
 
+function sinceOf(period) {
+  const now = Date.now()
+  if (period === 'week') return new Date(now - 7 * 24 * 3600 * 1000)
+  if (period === 'month') return new Date(now - 30 * 24 * 3600 * 1000)
+  return null
+}
+
 // ============ 玩家积分榜 ============
-async function userBoard(OPENID) {
-  // 1) 成功打卡：按 (用户, 点位) 两阶段聚合
-  //    ⚠️ 不用 addToSet('$openid') —— 那会把大量 openid 塞进一个数组返回，人多了顶到聚合内存上限。
-  //    这里只回传「每组多少次」，条数 = 用户数 × 点位数，规模可控。
+async function userBoard(OPENID, period) {
+  const since = sinceOf(period)
+  const timeMatch = since ? { createTime: db.command.gte(since) } : {}
+
   const recRes = await db.collection('records').aggregate()
-    .match({ matched: true, type: nonTextType })
+    .match(Object.assign({ matched: true, type: nonTextType }, timeMatch))
     .group({ _id: { o: '$openid', p: '$pointId' }, times: $.sum(1) })
     .end()
 
@@ -61,7 +69,7 @@ async function userBoard(OPENID) {
   const dayMap = {}
   try {
     const dayRes = await db.collection('records').aggregate()
-      .match({ matched: true, type: nonTextType })
+      .match(Object.assign({ matched: true, type: nonTextType }, timeMatch))
       .group({
         _id: {
           o: '$openid',
@@ -150,11 +158,11 @@ async function userBoard(OPENID) {
 }
 
 // ============ 点位热度榜 ============
-async function pointBoard() {
-  // 两阶段聚合：先按 (点位, 用户) 去重，再按点位汇总
-  // → times 是该点位成功打卡总次数，userCount 是成功打卡过的独立用户数
+async function pointBoard(period) {
+  const since = sinceOf(period)
+  const timeMatch = since ? { createTime: db.command.gte(since) } : {}
   const res = await db.collection('records').aggregate()
-    .match({ matched: true, type: nonTextType })
+    .match(Object.assign({ matched: true, type: nonTextType }, timeMatch))
     .group({
       _id: { p: '$pointId', o: '$openid' },
       times: $.sum(1),

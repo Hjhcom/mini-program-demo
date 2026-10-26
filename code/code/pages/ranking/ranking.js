@@ -9,6 +9,7 @@ const RANK_CLASS = ['', 'gold', 'silver', 'bronze']
 Page({
   data: {
     tab: 'user',        // 当前 Tab：user 玩家榜 / point 点位榜
+    period: 'all',       // 时间范围：week 本周 / month 本月 / all 总榜
     list: [],           // 玩家榜
     pointList: [],      // 点位榜
     me: null,           // 我的排名（未上榜 / 游客为 null）
@@ -71,11 +72,19 @@ Page({
     if (!loaded) this.load(tab)
   },
 
+  // 切换时间范围：本周/本月/总榜 → 强制重新拉当前 tab
+  onPeriod: function (e) {
+    const period = e.currentTarget.dataset.period
+    if (!period || period === this.data.period) return
+    this.setData({ period: period, loadedUser: false, loadedPoint: false })
+    this.load(this.data.tab)
+  },
+
   // 拉排行榜数据（type: user / point）
   load: function (type) {
     const t = type || 'user'
     this.setData({ loading: true })
-    return wx.cloud.callFunction({ name: 'getRanking', data: { type: t } })
+    return wx.cloud.callFunction({ name: 'getRanking', data: { type: t, period: this.data.period } })
       .then(res => {
         const r = res.result || {}
         if (r.code !== 0) throw new Error(r.msg || 'load fail')

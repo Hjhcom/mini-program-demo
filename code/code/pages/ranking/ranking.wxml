@@ -7,6 +7,13 @@
     <view class="tab {{tab == 'point' ? 'on' : ''}}" bindtap="onTab" data-tab="point">{{lang.ranking.tabPoint}}</view>
   </view>
 
+  <!-- 时间范围筛选 -->
+  <view class="period-bar">
+    <view class="period-item {{period == 'week' ? 'on' : ''}}" bindtap="onPeriod" data-period="week">本周</view>
+    <view class="period-item {{period == 'month' ? 'on' : ''}}" bindtap="onPeriod" data-period="month">本月</view>
+    <view class="period-item {{period == 'all' ? 'on' : ''}}" bindtap="onPeriod" data-period="all">总榜</view>
+  </view>
+
   <!-- ===== 玩家榜 ===== -->
   <block wx:if="{{tab == 'user'}}">
     <!-- 我的排名 -->

@@ -41,6 +41,23 @@
     <button class="invite-btn share" open-type="share">{{lang.mine.inviteFriend}}</button>
   </view>
 
+  <!-- 打卡热力图 -->
+  <view class="heatmap-card" wx:if="{{user && heatmapDays.length > 0}}">
+    <view class="heatmap-title">我的打卡热力图</view>
+    <view class="heatmap-grid">
+      <view class="heatmap-cell {{day.count >= 3 ? 'lvl-3' : day.count >= 2 ? 'lvl-2' : day.count >= 1 ? 'lvl-1' : day.future ? 'future' : ''}}"
+            wx:for="{{heatmapDays}}" wx:key="date"></view>
+    </view>
+    <view class="heatmap-legend">
+      <text>少</text>
+      <view class="heatmap-cell lvl-0"></view>
+      <view class="heatmap-cell lvl-1"></view>
+      <view class="heatmap-cell lvl-2"></view>
+      <view class="heatmap-cell lvl-3"></view>
+      <text>多</text>
+    </view>
+  </view>
+
   <!-- 功能列表 -->
   <view class="cell-group">
     <view class="cell" bindtap="onItemTap" data-type="records">

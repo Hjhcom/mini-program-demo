@@ -10,7 +10,8 @@ Page({
     needProfile: false, // 微信/手机号用户资料不全 → 显示完善入口
     dark: false,        // 深色模式（全局设置）
     fontScale: 'md',    // 字体大小（全局设置）
-    lang: i18n.zh       // 当前语言文案
+    lang: i18n.zh,       // 当前语言文案
+    heatmapDays: []       // 打卡热力图数据
   },
 
   // 每次显示都同步最新的登录态（登录/退出后回到本页会刷新）
@@ -64,6 +65,17 @@ Page({
     if (user && user.source !== 'guest' && !user.inviteCode) {
       this.refreshUser()
     }
+    // 拉打卡热力图
+    if (user && user.source !== 'guest') this.loadHeatmap()
+  },
+
+  // 拉打卡热力图（最近 12 周）
+  loadHeatmap: function () {
+    wx.cloud.callFunction({ name: 'getHeatmap', data: { weeks: 12 } }).then(res => {
+      if (res.result && res.result.code === 0) {
+        this.setData({ heatmapDays: res.result.days || [] })
+      }
+    }).catch(() => {})
   },
 
   // 点击头像放大预览

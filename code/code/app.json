@@ -19,7 +19,8 @@
     "pages/profile/profile",
     "pages/feed-publish/feed-publish",
     "pages/notifications/notifications",
-    "pages/user-profile/user-profile"
+    "pages/user-profile/user-profile",
+    "pages/point-detail/point-detail"
   ],
   "window": {
     "navigationBarBackgroundColor": "#4A90D9",

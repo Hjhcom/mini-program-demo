@@ -263,3 +263,43 @@
 .logout::after {
   border: none;
 }
+
+/* 打卡热力图 */
+.heatmap-card {
+  margin: 24rpx;
+  padding: 28rpx 30rpx;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(10rpx);
+  border-radius: 20rpx;
+  box-shadow: 0 6rpx 20rpx rgba(74,144,217,0.08);
+}
+.heatmap-title {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 20rpx;
+}
+.heatmap-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6rpx;
+}
+.heatmap-cell {
+  width: 20rpx;
+  height: 20rpx;
+  border-radius: 4rpx;
+  background: #ebedf0;
+}
+.heatmap-cell.lvl-0 { background: #ebedf0; }
+.heatmap-cell.lvl-1 { background: #9be9a8; }
+.heatmap-cell.lvl-2 { background: #40c463; }
+.heatmap-cell.lvl-3 { background: #30a14e; }
+.heatmap-cell.future { background: transparent; }
+.heatmap-legend {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  margin-top: 16rpx;
+  font-size: 20rpx;
+  color: #999;
+}
