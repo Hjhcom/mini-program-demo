@@ -1,6 +1,13 @@
 <!-- pages/mine/mine.wxml —— 我的页面 -->
 <view class="page {{dark ? 'dark' : ''}} {{fontScale == 'lg' ? 'font-lg' : fontScale == 'xl' ? 'font-xl' : ''}}">
 
+  <block wx:if="{{!dark}}">
+    <image class="page-bg" src="/images/mine-bg.jpg" mode="aspectFill" />
+    <view class="page-mask"></view>
+  </block>
+
+  <view class="content">
+
   <!-- 未登录：登录引导卡片（按钮在下方区域） -->
   <view class="user-card" wx:if="{{!user}}">
     <text class="card-watermark">1940</text>
@@ -78,6 +85,7 @@
   <!-- 退出登录（仅登录后显示） -->
   <view class="logout-wrap" wx:if="{{user}}">
     <button class="logout" bindtap="onLogout">{{lang.mine.logout}}</button>
+  </view>
   </view>
 
 </view>

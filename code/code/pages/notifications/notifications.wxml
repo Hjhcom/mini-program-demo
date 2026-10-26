@@ -1,5 +1,9 @@
 <!-- pages/notifications/notifications.wxml -->
 <view class="page">
+  <image class="page-bg" src="/images/notifications-bg.jpg" mode="aspectFill" />
+  <view class="page-mask"></view>
+
+  <view class="content">
   <view class="loading" wx:if="{{loading}}">加载中...</view>
 
   <view class="empty" wx:elif="{{list.length === 0}}">
@@ -28,5 +32,6 @@
       <!-- 未读小红点 -->
       <view class="dot" wx:if="{{!item.read}}"></view>
     </view>
+  </view>
   </view>
 </view>

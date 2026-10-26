@@ -1,7 +1,30 @@
 /* pages/nearby/nearby.wxss —— 动态 */
 .page {
   min-height: 100vh;
-  background: #f5f7fa;
+  position: relative;
+  background: #f0e6d6;
+}
+
+.page-bg {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  width: 100%;
+  height: 100vh;
+  z-index: 0;
+}
+.page-mask {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(180deg,
+    rgba(255,255,255,0.55) 0%,
+    rgba(255,255,255,0.75) 30%,
+    rgba(255,255,255,0.88) 100%);
+  z-index: 1;
+}
+
+.content {
+  position: relative;
+  z-index: 2;
   padding: 20rpx;
   box-sizing: border-box;
   padding-bottom: 120rpx;
@@ -10,11 +33,12 @@
 /* 顶部 tab 切换 */
 .feed-tabs {
   display: flex;
-  background: #ffffff;
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(10rpx);
   border-radius: 40rpx;
   padding: 6rpx;
   margin-bottom: 20rpx;
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4rpx 16rpx rgba(180,120,60,0.08);
 }
 .feed-tab {
   flex: 1;
@@ -22,7 +46,7 @@
   height: 64rpx;
   line-height: 64rpx;
   font-size: 28rpx;
-  color: #666;
+  color: #8a6f4a;
   border-radius: 36rpx;
   transition: all 0.2s;
 }
@@ -36,11 +60,12 @@
 .publish-entry {
   display: flex;
   align-items: center;
-  background: #ffffff;
-  border-radius: 20rpx;
+  background: rgba(255,255,255,0.9);
+  backdrop-filter: blur(10rpx);
+  border-radius: 24rpx;
   padding: 24rpx 28rpx;
   margin-bottom: 20rpx;
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4rpx 16rpx rgba(180,120,60,0.08);
 }
 .publish-icon {
   font-size: 32rpx;
@@ -48,14 +73,14 @@
 }
 .publish-text {
   font-size: 28rpx;
-  color: #999;
+  color: #a08a6a;
 }
 
 /* 加载中 */
 .loading {
   text-align: center;
   padding: 200rpx 0;
-  color: #999;
+  color: #8a6f4a;
   font-size: 28rpx;
 }
 
@@ -74,13 +99,13 @@
 
 .empty-text {
   font-size: 30rpx;
-  color: #666;
+  color: #5a4a3a;
   margin-bottom: 10rpx;
 }
 
 .empty-sub {
   font-size: 24rpx;
-  color: #999;
+  color: #8a6f4a;
 }
 
 /* 动态列表 */
@@ -93,9 +118,10 @@
 .feed-item {
   display: flex;
   padding: 28rpx;
-  background: #ffffff;
-  border-radius: 20rpx;
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(10rpx);
+  border-radius: 24rpx;
+  box-shadow: 0 6rpx 20rpx rgba(180,120,60,0.1);
 }
 
 /* 头像 */
@@ -106,6 +132,8 @@
   border-radius: 50%;
   background: #eef3f8;
   overflow: hidden;
+  border: 3rpx solid #ffffff;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.1);
 }
 
 .avatar-img {
@@ -132,23 +160,23 @@
 .feed-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10rpx;
+  margin-bottom: 12rpx;
 }
 
 .feed-name {
   font-size: 28rpx;
   font-weight: bold;
-  color: #1a1a1a;
+  color: #2a2a2a;
 }
 
 .feed-time {
+  margin-left: 14rpx;
   font-size: 22rpx;
-  color: #999;
+  color: #b0a08a;
 }
 
 .feed-del {
-  margin-left: 16rpx;
+  margin-left: auto;
   font-size: 22rpx;
   color: #e64340;
   padding: 4rpx 14rpx;
@@ -157,63 +185,69 @@
 }
 
 .feed-text {
-  font-size: 26rpx;
+  font-size: 28rpx;
   color: #333;
-  line-height: 1.5;
+  line-height: 1.6;
+  margin-bottom: 8rpx;
 }
 
-.feed-point {
-  color: #4A90D9;
+/* 打卡点位标签气泡 */
+.feed-point-tag {
+  display: inline-flex;
+  align-items: center;
+  background: #eaf3fb;
+  border-radius: 24rpx;
+  padding: 8rpx 18rpx;
+  margin-bottom: 10rpx;
+}
+.feed-point-pin {
+  font-size: 22rpx;
+  margin-right: 6rpx;
+}
+.feed-point-name {
+  font-size: 24rpx;
+  color: #2c6aa8;
   font-weight: 500;
 }
 
 .feed-spell {
-  margin-top: 8rpx;
+  margin-top: 6rpx;
+  margin-bottom: 6rpx;
   font-size: 24rpx;
-  color: #888;
-  background: #f5f7fa;
-  padding: 8rpx 16rpx;
-  border-radius: 8rpx;
-  display: inline-block;
+  color: #8a7a6a;
+  font-style: italic;
 }
 
 /* 打卡照片 */
 .feed-photo {
   margin-top: 16rpx;
   width: 100%;
-  height: 300rpx;
-  border-radius: 12rpx;
-  background: #f5f7fa;
+  height: 320rpx;
+  border-radius: 16rpx;
+  background: #f0e6d6;
 }
 
-/* 操作按钮 */
+/* 操作按钮：纯图标 + 数字 */
 .feed-actions {
-  margin-top: 16rpx;
+  margin-top: 18rpx;
   display: flex;
-  justify-content: flex-end;
-  gap: 24rpx;
+  align-items: center;
+  gap: 36rpx;
 }
 
 .like-btn, .comment-btn {
   display: flex;
   align-items: center;
-  padding: 8rpx 20rpx;
-  border-radius: 24rpx;
-  background: #f5f7fa;
-}
-
-.like-btn.liked {
-  background: #fff0f0;
 }
 
 .like-icon, .comment-icon {
-  font-size: 28rpx;
+  font-size: 32rpx;
   margin-right: 8rpx;
 }
 
 .like-count, .comment-count {
   font-size: 24rpx;
-  color: #666;
+  color: #9a8a7a;
 }
 
 .like-btn.liked .like-count {

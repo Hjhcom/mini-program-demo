@@ -1,5 +1,9 @@
 <!--pages/nearby/nearby.wxml —— 动态-->
 <view class="page">
+  <image class="page-bg" src="/images/feed-bg.jpg" mode="aspectFill" />
+  <view class="page-mask"></view>
+
+  <view class="content">
   <!-- 顶部 tab：附近 / 关注 -->
   <view class="feed-tabs">
     <view class="feed-tab {{feedType == 'nearby' ? 'active' : ''}}" bindtap="switchTab" data-type="nearby">附近</view>
@@ -47,11 +51,12 @@
 
         <!-- 打卡记录：展示打卡点 + 咒语 -->
         <block wx:else>
-          <view class="feed-text">
-            打卡了 <text class="feed-point">{{item.pointName}}</text>
+          <view class="feed-point-tag" wx:if="{{item.pointName}}">
+            <text class="feed-point-pin">📍</text>
+            <text class="feed-point-name">{{item.pointName}}</text>
           </view>
           <view class="feed-spell" wx:if="{{item.spell}}">
-            念了咒语「{{item.spell}}」
+            「{{item.spell}}」
           </view>
         </block>
 
@@ -61,15 +66,16 @@
         <view class="feed-actions">
           <view class="like-btn {{item.isLiked ? 'liked' : ''}}" data-id="{{item._id}}" bindtap="onLikeTap">
             <text class="like-icon">{{item.isLiked ? '❤️' : '🤍'}}</text>
-            <text class="like-count">{{item.likesCount}}</text>
+            <text class="like-count">{{item.likesCount || 0}}</text>
           </view>
           <view class="comment-btn" data-id="{{item._id}}" bindtap="onCommentTap">
             <text class="comment-icon">💬</text>
-            <text class="comment-count">{{item.commentCount}}</text>
+            <text class="comment-count">{{item.commentCount || 0}}</text>
           </view>
         </view>
       </view>
     </view>
+  </view>
   </view>
 
   <!-- 评论弹层 -->

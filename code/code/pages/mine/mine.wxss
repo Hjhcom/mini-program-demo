@@ -1,15 +1,41 @@
 /* 我的页面样式（风格与首页一致：主色 #4A90D9） */
 .page {
   min-height: 100vh;
+  position: relative;
   background: #f5f6f7;
 }
+
+/* 校园插画背景（仅浅色模式） */
+.page-bg {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  width: 100%;
+  height: 100vh;
+  z-index: 0;
+}
+.page-mask {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(180deg,
+    rgba(255,255,255,0.35) 0%,
+    rgba(255,255,255,0.65) 35%,
+    rgba(245,246,247,0.92) 100%);
+  z-index: 1;
+}
+.content {
+  position: relative;
+  z-index: 2;
+}
+.page.dark .page-bg,
+.page.dark .page-mask { display: none; }
+.page.dark .content { z-index: auto; }
 
 /* 用户卡片 */
 .user-card {
   display: flex;
   align-items: center;
   padding: 90rpx 40rpx 70rpx;
-  background: linear-gradient(135deg, #6BB6FF 0%, #4A90D9 100%);
+  background: linear-gradient(135deg, rgba(107,182,255,0.92) 0%, rgba(74,144,217,0.92) 100%);
   border-radius: 0 0 40rpx 40rpx;
   position: relative;
   overflow: hidden;
@@ -115,21 +141,23 @@
 /* 功能列表 */
 .cell-group {
   margin: 24rpx;
-  background: #ffffff;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(10rpx);
   border-radius: 24rpx;
   overflow: hidden;
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 6rpx 20rpx rgba(74,144,217,0.08);
 }
 
 /* 我的邀请码卡片 */
 .invite-card {
   margin: 24rpx;
   padding: 28rpx 30rpx;
-  background: #ffffff;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(10rpx);
   border-radius: 20rpx;
   display: flex;
   align-items: center;
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 6rpx 20rpx rgba(74,144,217,0.08);
 }
 
 .invite-label {
@@ -224,11 +252,12 @@
 }
 
 .logout {
-  background: #ffffff;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(10rpx);
   color: #d33a31;
   font-size: 30rpx;
   border-radius: 24rpx;
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 6rpx 20rpx rgba(74,144,217,0.08);
 }
 
 .logout::after {
