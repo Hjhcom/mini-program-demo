@@ -1,0 +1,59 @@
+<!--pages/route-detail/route-detail.wxml —— 剧本任务线-->
+<view class="page">
+  <!-- 加载中 -->
+  <view class="loading" wx:if="{{loading}}">
+    <text>{{lang.loading}}</text>
+  </view>
+
+  <!-- 无线路 -->
+  <view class="empty" wx:elif="{{!route}}">
+    <text class="empty-icon">📜</text>
+    <text class="empty-text">{{lang.none}}</text>
+  </view>
+
+  <!-- 线路详情 -->
+  <block wx:else>
+    <!-- 剧本封面 -->
+    <view class="cover {{progress.completed ? 'cover-done' : ''}}">
+      <text class="cover-badge">📖 {{lang.navTitle}}</text>
+      <text class="cover-title">{{route.name}}</text>
+      <text class="cover-desc">{{route.desc}}</text>
+      <!-- 进度条 -->
+      <view class="progress-row">
+        <view class="progress-bar">
+          <view class="progress-fill" style="width: {{progress.completed ? 100 : (progress.currentIndex / route.total * 100)}}%"></view>
+        </view>
+        <text class="progress-text">{{progress.completed ? lang.done : (progress.currentIndex + ' / ' + route.total)}}</text>
+      </view>
+      <text class="cover-bonus" wx:if="{{!progress.completed}}">{{lang.bonusTip}}</text>
+      <text class="cover-done-text" wx:if="{{progress.completed}}">🎉 {{lang.routeDone}}</text>
+    </view>
+
+    <!-- 分幕剧情 -->
+    <view class="acts">
+      <view class="act {{item.status === 'done' ? 'act-done' : (item.status === 'current' ? 'act-current' : 'act-locked')}}"
+            wx:for="{{acts}}" wx:key="index">
+        <!-- 幕序号 + 状态 -->
+        <view class="act-head">
+          <text class="act-index">{{lang.act}}{{index + 1}}</text>
+          <text class="act-status" wx:if="{{item.status === 'done'}}">✓ {{lang.stepDone}}</text>
+          <text class="act-status status-current" wx:elif="{{item.status === 'current'}}">▶ {{lang.stepCurrent}}</text>
+          <text class="act-status status-locked" wx:else>🔒 {{lang.stepLocked}}</text>
+        </view>
+        <!-- 地点 -->
+        <text class="act-point">{{item.pointName}}</text>
+        <!-- 剧情 -->
+        <text class="act-story">{{item.story}}</text>
+        <!-- 咒语提示 -->
+        <view class="act-spell" wx:if="{{item.status !== 'locked'}}">
+          <text class="act-spell-label">{{lang.spellLabel}}</text>
+          <text class="act-spell-text">{{item.spell}}</text>
+        </view>
+        <!-- 去打卡（当前步骤） -->
+        <view class="act-go" wx:if="{{item.status === 'current'}}" bindtap="onGoCheckin" data-point="{{item.pointId}}">
+          {{lang.goCheckin}}
+        </view>
+      </view>
+    </view>
+  </block>
+</view>

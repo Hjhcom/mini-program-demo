@@ -84,6 +84,9 @@
         <text class="point-tag tag-player" wx:else>{{lang.index.typePlayer}}</text>
       </view>
       <text class="point-spell">{{lang.index.spellLabel}}{{selectedPoint.spell}}</text>
+      <!-- F-13：该点位我的最高星级（收集进度） -->
+      <text class="point-stars" wx:if="{{selectedPoint.bestStars > 0}}">⭐ × {{selectedPoint.bestStars}}</text>
+      <text class="point-hidden" wx:if="{{selectedPoint.hasHidden}}">{{lang.index.hiddenTag}}</text>
       <text class="point-creator" wx:if="{{selectedPoint.creatorNickname}}">
         {{lang.index.creatorPrefix}}{{selectedPoint.creatorNickname}}
       </text>
@@ -117,6 +120,7 @@
         <button wx:if="{{selectedPoint}}" class="btn btn-ghost" bindtap="goCreateTask">{{lang.index.createTaskForFriend}}</button>
         <button class="btn btn-ghost" bindtap="goCreatePoint">{{lang.index.createPoint}}</button>
         <button class="btn btn-ghost" bindtap="goPointList">{{lang.index.pointList}}</button>
+        <button class="btn btn-ghost" bindtap="goRoute">{{lang.index.routeEntry}}</button>
         <button class="btn btn-ghost" bindtap="goRanking">{{lang.index.ranking}}</button>
         <button class="btn btn-ghost" bindtap="goRecords">{{lang.index.records}}</button>
       </view>
@@ -137,6 +141,8 @@
     <view class="result-card">
       <view class="result-icon">✓</view>
       <text class="result-title">{{celebrateTitle}}</text>
+      <!-- F-13：星级（1~3 星；隐藏咒语带 ✨） -->
+      <text class="result-stars" wx:if="{{celebrateStars}}">{{celebrateStars}}</text>
       <text class="result-points">{{celebratePoints}}</text>
       <text class="result-sub">{{celebrateSub}}</text>
     </view>
@@ -203,6 +209,72 @@
         <text class="welcome-btn-text">{{lang.index.welcomeBtn}}</text>
         <text class="welcome-btn-arrow">›</text>
       </button>
+    </view>
+  </view>
+
+  <!-- F-17 剧本任务线浮层：点「开启打卡之旅」/「剧本任务线」按钮弹出，手动关闭 -->
+  <view class="route-mask" wx:if="{{showRouteMask}}" catchtouchmove="noop">
+    <view class="route-panel">
+      <!-- 加载中 -->
+      <view class="route-loading" wx:if="{{routeLoading}}">
+        <text>{{lang.routes.loading}}</text>
+      </view>
+      <!-- 无线路 / 加载失败 -->
+      <block wx:elif="{{!routeData}}">
+        <view class="route-empty">
+          <text class="route-empty-icon">{{routeError ? '⚠️' : '📜'}}</text>
+          <text class="route-empty-text">{{routeError === 'load' ? lang.routes.errLoad : (routeError || lang.routes.none)}}</text>
+          <view class="route-close-btn" bindtap="{{routeError ? 'retryRoute' : 'closeRouteMask'}}">{{routeError ? lang.routes.retry : lang.routes.close}}</view>
+        </view>
+      </block>
+      <!-- 线路内容 -->
+      <block wx:else>
+        <view class="route-head">
+          <text class="route-head-title">📖 {{routeData.name}}</text>
+          <text class="route-head-close" bindtap="closeRouteMask">✕</text>
+        </view>
+
+        <scroll-view scroll-y class="route-body">
+          <!-- 剧本封面 + 进度 -->
+          <view class="route-cover {{routeProgress.completed ? 'route-cover-done' : ''}}">
+            <text class="route-cover-desc">{{routeData.desc}}</text>
+            <view class="route-progress-row">
+              <view class="route-progress-bar">
+                <view class="route-progress-fill"
+                      style="width: {{routeProgress.completed ? 100 : (routeProgress.currentIndex / routeData.total * 100)}}%"></view>
+              </view>
+              <text class="route-progress-text">{{routeProgress.completed ? lang.routes.done : (routeProgress.currentIndex + ' / ' + routeData.total)}}</text>
+            </view>
+            <text class="route-cover-bonus" wx:if="{{!routeProgress.completed}}">{{routeData.bonusTipText}}</text>
+            <text class="route-cover-done-text" wx:if="{{routeProgress.completed}}">🎉 {{lang.routes.routeDone}}</text>
+          </view>
+
+          <!-- 四幕剧情 -->
+          <view class="route-acts">
+            <view class="route-act {{item.status === 'done' ? 'route-act-done' : (item.status === 'current' ? 'route-act-current' : 'route-act-locked')}}"
+                  wx:for="{{routeActs}}" wx:key="index">
+              <view class="route-act-head">
+                <text class="route-act-index">{{lang.routes.act}}{{index + 1}}</text>
+                <text class="route-act-status" wx:if="{{item.status === 'done'}}">✓ {{lang.routes.stepDone}}</text>
+                <text class="route-act-status route-act-status-current" wx:elif="{{item.status === 'current'}}">▶ {{lang.routes.stepCurrent}}</text>
+                <text class="route-act-status route-act-status-locked" wx:else>🔒 {{lang.routes.stepLocked}}</text>
+              </view>
+              <text class="route-act-point">{{item.pointName}}</text>
+              <text class="route-act-story">{{item.story}}</text>
+              <view class="route-act-spell" wx:if="{{item.status !== 'locked'}}">
+                <text class="route-act-spell-label">{{lang.routes.spellLabel}}</text>
+                <text class="route-act-spell-text">{{item.spell}}</text>
+              </view>
+              <view class="route-act-go" wx:if="{{item.status === 'current'}}" bindtap="onRouteGoCheckin" data-point="{{item.pointId}}">
+                {{lang.routes.goCheckin}}
+              </view>
+            </view>
+          </view>
+
+          <!-- 底部手动关闭 -->
+          <view class="route-close-btn" bindtap="closeRouteMask">{{lang.routes.close}}</view>
+        </scroll-view>
+      </block>
     </view>
   </view>
 

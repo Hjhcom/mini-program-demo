@@ -1,0 +1,9 @@
+{
+  "name": "getRoutes",
+  "version": "1.0.0",
+  "description": "获取剧本任务线（线路）定义与我的进度",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

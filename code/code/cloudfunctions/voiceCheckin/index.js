@@ -7,7 +7,7 @@ const WebSocket = require('ws') // WebSocket 客户端（云端安装依赖时�
 // 所以能直接 require 出来跑本地单测（node tools/test-voice-match.js）。
 // ⚠️ 云函数各自独立打包，只能 require 自己目录内的文件 —— code/code/utils/spell.js 是**前端**
 //    那份拷贝（两者必须行为一致，由 tools/check-sync.js 兜底比对），云函数 require 不到。
-const { matchSpell, REASON } = require('./lib/match')
+const { matchSpell, REASON, starsOf } = require('./lib/match')
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
@@ -119,6 +119,60 @@ async function dropFile(fileID, why) {
   }
 }
 
+// ========== F-17 剧本任务线：打卡成功后推进线路进度 ==========
+// 规则：线路按顺序打卡（steps 数组）。玩家必须从第一幕依次打到最后一幕。
+//  - 该点位是某条线路的「下一个待打卡点」→ 推进 currentIndex（或首次开始时创建进度）
+//  - 打到最后一幕 → completed=true，返回完成信息（前端弹窗庆祝）
+//  - 失败静默：线路推进出任何问题都不影响打卡结果本身（打卡已成功，只是进度没记上）
+async function advanceRoute(openid, pointId) {
+  // 1. 查我的未完成进度（按 routeId 索引）
+  const progRes = await db.collection('route_progress')
+    .where({ openid: openid, completed: false })
+    .limit(10)
+    .get()
+  const progByRoute = {}
+  progRes.data.forEach(p => { progByRoute[p.routeId] = p })
+
+  // 2. 查所有启用的线路（点位数很少，整表读）
+  const routesRes = await db.collection('routes').limit(20).get()
+  for (const r of routesRes.data) {
+    if (r.enabled === false) continue
+    const steps = r.steps || []
+    const prog = progByRoute[r.routeId]
+    if (prog) {
+      // 已有进度：判断是否轮到当前点位
+      const idx = prog.currentIndex || 0
+      const cur = steps[idx]
+      if (!cur || cur.pointId !== pointId) continue
+      const newIdx = idx + 1
+      const completed = newIdx >= steps.length
+      const data = { currentIndex: newIdx, completed: completed }
+      if (completed) data.completedAt = db.serverDate()
+      await db.collection('route_progress').doc(prog._id).update({ data: data })
+      console.log('🎬 线路进度推进：', r.routeId, newIdx, '/', steps.length, completed ? '完成！' : '')
+      return { routeId: r.routeId, name: r.name, nameEn: r.nameEn, completed: completed, currentIndex: newIdx, total: steps.length }
+    } else {
+      // 该线路还没开始：只有打到第一幕才创建进度
+      const first = steps[0]
+      if (first && first.pointId === pointId) {
+        await db.collection('route_progress').add({
+          data: {
+            openid: openid,
+            routeId: r.routeId,
+            stepIds: steps.map(s => s.pointId), // 快照：防止线路配置变更后进度错乱
+            currentIndex: 1,
+            completed: false,
+            startedAt: db.serverDate()
+          }
+        })
+        console.log('🎬 线路开始：', r.routeId, '1 /', steps.length)
+        return { routeId: r.routeId, name: r.name, nameEn: r.nameEn, completed: false, currentIndex: 1, total: steps.length }
+      }
+    }
+  }
+  return null
+}
+
 // ========== 云函数主入口 ==========
 exports.main = async (event, context) => {
   const { OPENID } = cloud.getWXContext()
@@ -172,9 +226,25 @@ exports.main = async (event, context) => {
   const recognizedText = isSilentWav ? '' : await recognize(audio)
 
   // 4. 与目标咒语比对（规则见 lib/match.js：相似度 ≥ 0.8，或互为包含且较短一方 ≥ 2 字）
-  const judge = matchSpell(recognizedText, targetSpell)
-  const matched = judge.matched
-  const sim = judge.similarity
+  //    F-13 隐藏咒语：主咒语没念对时，若该点位配了 hiddenSpell，再比一次。
+  //    念对隐藏咒语同样算打卡成功，但标记 isHidden（积分双倍 + 庆祝特效不同）。
+  //    ⚠️ hiddenSpell 明文只存在服务端（getPoints 出参已剥掉），玩家只能靠 hiddenClue 线索去猜。
+  let judge = matchSpell(recognizedText, targetSpell)
+  let matched = judge.matched
+  let sim = judge.similarity
+  let isHidden = false
+  const hiddenSpell = point.hiddenSpell
+  if (!matched && hiddenSpell) {
+    const hiddenJudge = matchSpell(recognizedText, hiddenSpell)
+    if (hiddenJudge.matched) {
+      judge = hiddenJudge
+      matched = true
+      sim = hiddenJudge.similarity
+      isHidden = true
+      targetSpell = hiddenSpell   // records 里存实际念对的咒语（附近动态展示用）
+      console.log('🎉 命中隐藏咒语！')
+    }
+  }
 
   // 5. 「没听清」和「咒语无效」都不是一次可以记录的打卡尝试 → 不写记录，直接返回
   //    ⚠️ 空识别结果必须在这里就被拦住：JS 里任何字符串都包含空串，
@@ -216,6 +286,8 @@ exports.main = async (event, context) => {
       recognizedText: recognizedText,
       similarity: sim,
       matched: matched,
+      stars: matched ? starsOf(sim) : 0,  // F-13：星级评价（仅成功打卡有星级）
+      isHidden: isHidden,                 // F-13：是否靠隐藏咒语打卡成功
       taskId: taskId || null,             // 新增
       dayKey: dayKey,                     // 新增：F-04 连续打卡统计用
       // 新增（F-11）：把云存储句柄留在记录上，供 cleanVoice 定时删录音时反查。
@@ -225,6 +297,16 @@ exports.main = async (event, context) => {
       createTime: db.serverDate()
     }
   })
+
+  // F-17：打卡成功后推进剧本任务线进度（失败静默，不影响打卡结果）
+  let routeProgress = null
+  if (matched) {
+    try {
+      routeProgress = await advanceRoute(OPENID, pointId)
+    } catch (e) {
+      console.error('线路进度推进失败（打卡本身已成功）：', e)
+    }
+  }
 
   // 打卡成功且属于任务打卡 → 把任务置为已完成
   if (task && matched) {
@@ -242,6 +324,9 @@ exports.main = async (event, context) => {
     recognizedText: recognizedText,
     matched: matched,
     similarity: sim,
-    recordId: addRes._id
+    stars: matched ? starsOf(sim) : 0,  // F-13
+    isHidden: isHidden,                  // F-13
+    recordId: addRes._id,
+    routeProgress: routeProgress         // F-17：线路推进结果（completed=true 表示整条线路完成）
   }
 }

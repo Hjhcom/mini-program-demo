@@ -533,6 +533,48 @@ P2 最后两项。一件改云函数、一件纯前端。
   - 涉及模块：`pages/mine/mine.wxml/js`、`cloudfunctions/likeFeed/index.js`、`cloudfunctions/addComment/index.js`、`cloudfunctions/sendDailyReminder/config.json`（去触发器）。
   - 注意：`likeFeed`/`addComment` 改造后需重新部署；模板字段名（thing1/thing2 等）需与公众平台实际模板核对，不匹配会发送报错。
 
+
+**F-16 星级评价 + 隐藏咒语（核心打卡玩法丰富，F-13 编号已占用故顺延）**
+
+- **星级评价**：打卡成功的相似度不再只是"过了没"，而是分三档 —— ≥ 0.9 三星（念得完美）/ ≥ 0.7 二星（念得很准）/ 其余过关一星。
+  - 判定纯函数 `starsOf(sim)` 加在 `voiceCheckin/lib/match.js`（不依赖云环境，本地单测直接测，`tools/test-voice-match.js` +8 条 → **53 条**）。
+  - `voiceCheckin` 写入 records 新字段 `stars`（仅成功打卡有值），返回值带回前端；庆祝卡片显示 ⭐⭐⭐/⭐⭐/⭐。
+  - `getPoints` 点亮地图升级：查询 records 时多取 `stars`，给每个点位算 `bestStars`（我的历史最高星级）；首页选中点位面板显示"⭐ × N"收集进度。
+- **隐藏咒语**：4 个官方点位各配一句隐藏咒语 + 线索，主咒语没念对时念出隐藏咒语同样算打卡成功，且**积分双倍**（+20）。
+  - 隐藏咒语贴合北理工元素：文萃楼B「德以明理」（校训上半句）/ 甘棠园7D「学以精工」（校训下半句）/ 综教楼A「延安根军工魂」（红色血脉）/ 文博中心「北京理工大学」（校名）。
+  - ⚠️ 关键设计：`hiddenSpell` 明文**只存服务端、getPoints 出参剥掉**，只回传 `hasHidden` + `hiddenClue` 线索 —— 玩家只能靠线索去猜，直接看网络包也拿不到答案。
+  - `getPoints` 加了数据迁移：库里旧官方点位缺 `hiddenSpell` 时按名称从种子数据补齐并**写库**（幂等）—— 必须写库而不是临时拼，否则 `voiceCheckin`（直接读库判定）和 `getPoints` 看到的点位不一致。
+  - `voiceCheckin` 判定改造：主咒语不匹配时再比一次 `hiddenSpell`，命中则 `isHidden=true`、`targetSpell` 换成实际念对的咒语写库（附近动态展示念的就是隐藏咒语）。
+  - 积分双倍：`getRanking/lib/points.js` 加 `POINTS.hiddenBonus = 10`（与打卡基础分 10 叠加 = 20），`calcPoints` 新增 `hiddenTimes` 项；`getRanking/index.js` 聚合时单独统计 `records.matched && isHidden` 的条数（聚合失败按 0 计，不拖垮榜单）。前端副本 `HIDDEN_BONUS = 10` 同步（check-sync 第 3 节校验前后端一致）。
+  - 前端庆祝卡：隐藏咒语命中时标题变「✨ 隐藏咒语！」，分数显示 +20，星级前带 ✨；选中点位时提示语追加"✨ 彩蛋线索：xxx"。
+- 涉及模块：`cloudfunctions/voiceCheckin/lib/match.js`、`cloudfunctions/voiceCheckin/index.js`、`cloudfunctions/getPoints/index.js`、`cloudfunctions/getRanking/lib/points.js`、`cloudfunctions/getRanking/index.js`、`pages/index/index.js/wxml/wxss`、`utils/i18n.js`（index 分区 +4 条，**568 → 569 / 18 分区**）、`tools/test-voice-match.js`。
+- 本地校验：7 个改动 JS 全部 `node --check` 通过；`test-voice-match` **53 条**全绿（含新增星级 8 条）；`test-points` 25 条全绿；`check-i18n` 569/569 两侧一致、wxml 引用键全在；`check-sync` 全绿（含 CHECKIN_POINTS/HIDDEN_BONUS 与云函数 POINTS 一致性）。
+- 待部署云函数（右键上传并部署）：`voiceCheckin` / `getPoints` / `getRanking`。
+
+**F-17 剧本任务线（核心玩法结构性升级：散点打卡 → 有剧情的线路远征）**
+
+- 玩法：把 4 个官方点位串成一条「北理溯源线」（文萃楼B → 甘棠园7D → 综教楼A → 文博中心），**必须按顺序依次打卡**，每过一个点亮一幕，完整走完 **+50 分** + 全屏庆祝弹窗。
+- 剧本《精工之魂》：以 1940 延安自然科学院为世界观起点——玩家在文博中心发现泛黄笔记，按四幕剧情（明理之火→精工之火→军工之火→精工之魂）收集「精工之火」，最后念出校徽上的名字（隐藏咒语「北京理工大学」）点亮展墙，终章「薪火相传，吾辈接续」。剧本剧情文本中英双语，作为内容数据存 `routes` 集合。
+- 数据模型：
+  - `routes` 集合存线路定义（routeId / name / desc / bonus / steps[{pointId, story, storyEn}]），一个权威来源，云函数各自独立打包也读同一份数据，避免配置漂移；
+  - 线路初始化按**点位名称**从 `points` 集合匹配 `_id` 拼 steps（种子点位 `_id` 是动态生成的，写死配置里拿不到）；点位不全时放弃初始化等下次调用（幂等）。
+  - `route_progress` 集合存进度：{ openid, routeId, stepIds(快照), currentIndex, completed, startedAt, completedAt }。
+- 云函数：
+  - **`getRoutes`（新建）**：返回线路定义（含每幕剧情）+ 每幕点位 hasVisited + 我的进度（currentIndex/completed）；出参白名单，不下发敏感字段。
+  - **`voiceCheckin`**：打卡成功后调 `advanceRoute`——该点位是某线路「下一个待打卡点」则推进（首次打第一幕自动创建进度），打到最后一幕 `completed=true`；返回值带 `routeProgress`（含线路名/进度/是否完成）；**失败静默**：线路推进出错不影响打卡结果本身。
+  - **`getRanking`**：`lib/points.js` 加 `POINTS.routeBonus = 50` + `calcPoints` 新增 `routeDone` 项；`index.js` 聚合 `route_progress.completed=true` 条数（聚合失败按 0 计，不拖垮榜单）；出参带 `routeDone`。
+- 前端：
+  - 新建 `pages/route-detail/`（剧本封面 + 进度条 + 分幕剧情列表：幕序号/地点/剧情/咒语/状态 done·current·locked，「去打卡」用 `globalData.pendingPointId` + `switchTab` 回首页选中点位——首页是 tabBar 页无法带 query）。
+  - 首页 ghost 按钮区新增「剧本任务线」入口（`goRoute`）；打卡成功且 `routeProgress.completed` 时弹窗庆祝「🎉 线路完成！+50 分」（`showRouteComplete`，前端副本 `ROUTE_BONUS=50` 与云函数 POINTS.routeBonus 一致）。
+  - **交互调整（用户反馈后）**：剧本任务线从「独立页面」改为「首页浮层」——点欢迎屏「开启打卡之旅」（`onEnterTap`）或首页「剧本任务线」按钮（`goRoute`）都在首页弹出 `route-mask` 全屏浮层（半透明遮罩 + 居中卡片 + scroll-view 滚动），右上角 ✕ 与底部「手动关闭」按钮关闭；关闭后首次进入才补引导。浮层内「去打卡」直接 `selectPointAt` 选中点位（首页就在当前页，无需 switchTab），点位未加载完时回退 `pendingPointId` 机制。原独立页 `pages/route-detail/` 保留文件但不再有入口。
+  - **Bug 修复：`暂无剧本线路` 的根因（用户真机复现）**——云环境里 `points` 集合**非空但缺官方点位**（如已有玩家自建点，getPoints 只在集合为空时插种子），getRoutes 按名称匹配官方点失败就整体放弃初始化，线路永远为空。修复：getRoutes 增加 `SEED_POINTS_FOR_ROUTE`（与 getPoints 的 SEED_POINTS 一致）与 `ensureOfficialPoints()`——初始化线路前**按名称补齐缺失的官方点位**（creatorOpenid='admin'，幂等），再拼 steps 建线路，环境自动自愈。前端空态同时区分「无线路」（📜 + 手动关闭）与「加载失败」（⚠️ + 错误文案 + 重新加载按钮，`routeError` 字段），云函数调用失败不再伪装成空态。i18n routes 分区 +2（errLoad/retry，→ 17 条/侧，全表 588/588）。
+  - `app.json` 注册 `pages/route-detail/route-detail`；`utils/i18n.js` 新增 `routes` 分区（**第 19 分区**，zh/en 各 16 条 → **585 条/侧**），index 分区 +2（routeEntry/ok）。
+- 涉及模块：`cloudfunctions/getRoutes/`（新建 3 件套）、`cloudfunctions/voiceCheckin/index.js`（advanceRoute + routeProgress 返回）、`cloudfunctions/getRanking/lib/points.js` + `index.js`、`pages/route-detail/`（新建四件套）、`pages/index/index.js/wxml`、`app.json`、`utils/i18n.js`。
+- 本地校验：6 个改动 JS 全部 `node --check` 通过；`test-voice-match` 53 条全绿；`test-points` 25 项全绿；`check-i18n` 586/586 两侧一致、wxml 引用键全在（routes 分区 15 条/侧，含 close），index.wxml 浮层无新增硬编码（剩余 9 处硬编码均为 point-detail/index/mine 历史遗留，非本次引入）；`check-sync` 全绿；`check-json` 全绿（含 route-detail.json 注册）。
+- ⚠️ **首次部署必做（真机复现 -502005 后补充）**：剧本任务线新增 **`routes`** 与 **`route_progress`** 两个数据库集合，云开发不会自动创建——必须在云开发控制台 → 数据库 → 新建集合（两个都要建），否则 getRoutes 报 `collection not exists`。getRoutes 已对 -502005 返回友好指引（"请在云开发控制台新建集合 routes 与 route_progress"）；前端空态改为显示云函数返回的具体错误（不再统一显示"请确认已部署"），i18n 文案相应调整。
+- **UI 修复（真机截图反馈）**：① `bonusTip` 占位符 `{n}` 之前在 wxml 直接绑定显示成 `+[n]`——改为 JS 里 `i18n.format` 填充后存 `routeData.bonusTipText` 再展示（中英两侧都正确显示 +50）；② 浮层内容无法下滑——根因是 `route-panel` 只有 `max-height` 无固定高度、scroll-view 拿不到确定高度，改为 `height:82vh` + `.route-body` 加 `height:0; flex:1`（flex 容器里 scroll-view 可滚动的标准做法）。
+- 待部署云函数（右键上传并部署）：`getRoutes`（新建）/ `voiceCheckin` / `getRanking`。
+
 ## 后续计划
 
 > 待补充：以下为基于当前进度的建议项，请按团队实际安排更新。

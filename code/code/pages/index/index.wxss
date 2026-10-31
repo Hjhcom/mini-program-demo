@@ -333,6 +333,27 @@
   background: #fdf0e2;
 }
 
+.point-stars {
+  display: inline-block;
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #d4a017;
+  background: #fff7e0;
+  padding: 4rpx 16rpx;
+  border-radius: 16rpx;
+  margin-right: 12rpx;
+}
+
+.point-hidden {
+  display: inline-block;
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #9c27b0;
+  background: #f7ecfa;
+  padding: 4rpx 16rpx;
+  border-radius: 16rpx;
+}
+
 .point-spell {
   font-size: 26rpx;
   color: #666;
@@ -521,7 +542,28 @@
   color: #8ab4e8;
 }
 
-.page.dark .point-spell {
+.page.dark .point-stars {
+  display: inline-block;
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #d4a017;
+  background: #fff7e0;
+  padding: 4rpx 16rpx;
+  border-radius: 16rpx;
+  margin-right: 12rpx;
+}
+
+.point-hidden {
+  display: inline-block;
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #9c27b0;
+  background: #f7ecfa;
+  padding: 4rpx 16rpx;
+  border-radius: 16rpx;
+}
+
+.point-spell {
   color: #9a9a9c;
 }
 
@@ -614,7 +656,28 @@
 
 /* ===== 字体大小：点位信息与打卡玩家 ===== */
 .page.font-lg .point-name { font-size: 35rpx; }
-.page.font-lg .point-spell { font-size: 29rpx; }
+.page.font-lg .point-stars {
+  display: inline-block;
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #d4a017;
+  background: #fff7e0;
+  padding: 4rpx 16rpx;
+  border-radius: 16rpx;
+  margin-right: 12rpx;
+}
+
+.point-hidden {
+  display: inline-block;
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #9c27b0;
+  background: #f7ecfa;
+  padding: 4rpx 16rpx;
+  border-radius: 16rpx;
+}
+
+.point-spell { font-size: 29rpx; }
 .page.font-lg .users-title { font-size: 29rpx; }
 .page.font-lg .users-empty { font-size: 29rpx; }
 .page.font-lg .avatar-name { font-size: 24rpx; }
@@ -626,7 +689,28 @@
 .page.font-lg .point-navigate { font-size: 26rpx; }
 
 .page.font-xl .point-name { font-size: 38rpx; }
-.page.font-xl .point-spell { font-size: 32rpx; }
+.page.font-xl .point-stars {
+  display: inline-block;
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #d4a017;
+  background: #fff7e0;
+  padding: 4rpx 16rpx;
+  border-radius: 16rpx;
+  margin-right: 12rpx;
+}
+
+.point-hidden {
+  display: inline-block;
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #9c27b0;
+  background: #f7ecfa;
+  padding: 4rpx 16rpx;
+  border-radius: 16rpx;
+}
+
+.point-spell { font-size: 32rpx; }
 .page.font-xl .users-title { font-size: 32rpx; }
 .page.font-xl .users-empty { font-size: 32rpx; }
 .page.font-xl .avatar-name { font-size: 26rpx; }
@@ -715,6 +799,14 @@
 }
 
 /* 「+10 分」用打卡按钮那套橙红，视觉上把"得分"和"操作"关联起来 */
+.result-stars {
+  font-size: 44rpx;
+  letter-spacing: 6rpx;
+  color: #d4a017;
+  margin-bottom: 12rpx;
+  line-height: 1.2;
+}
+
 .result-points {
   margin-top: 8rpx;
   font-size: 52rpx;
@@ -1000,4 +1092,271 @@
 @keyframes welcomeRise {
   from { opacity: 0; transform: translateY(30rpx); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+
+/* ===== F-17 剧本任务线浮层 ===== */
+.route-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.route-panel {
+  width: 88%;
+  height: 82vh;
+  max-height: 82vh;
+  background: #f5f7fa;
+  border-radius: 24rpx;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.route-loading {
+  padding: 160rpx 0;
+  text-align: center;
+  color: #999;
+  font-size: 28rpx;
+}
+
+.route-empty {
+  padding: 120rpx 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.route-empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 20rpx;
+}
+
+.route-empty-text {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 40rpx;
+}
+
+/* 头部 */
+.route-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 28rpx;
+  background: #fff;
+  border-bottom: 1rpx solid #eee;
+}
+
+.route-head-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #1a1a1a;
+}
+
+.route-head-close {
+  width: 52rpx;
+  height: 52rpx;
+  line-height: 48rpx;
+  text-align: center;
+  font-size: 32rpx;
+  color: #888;
+  background: #f0f0f0;
+  border-radius: 50%;
+}
+
+/* 可滚动内容：height:0 + flex:1 让 scroll-view 在 flex 容器里拿到确定高度（否则内容撑开无法滚动） */
+.route-body {
+  flex: 1;
+  height: 0;
+  min-height: 0;
+  padding: 24rpx;
+  box-sizing: border-box;
+}
+
+/* 剧本封面 */
+.route-cover {
+  background: linear-gradient(135deg, #4A90D9, #2E7D32);
+  border-radius: 20rpx;
+  padding: 28rpx 26rpx;
+  color: #fff;
+  margin-bottom: 24rpx;
+}
+
+.route-cover-done {
+  background: linear-gradient(135deg, #d4a017, #e05a3a);
+}
+
+.route-cover-desc {
+  display: block;
+  font-size: 25rpx;
+  line-height: 1.7;
+  white-space: pre-line;
+  margin-bottom: 20rpx;
+}
+
+.route-progress-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12rpx;
+}
+
+.route-progress-bar {
+  flex: 1;
+  height: 14rpx;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 7rpx;
+  overflow: hidden;
+}
+
+.route-progress-fill {
+  height: 100%;
+  background: #fff;
+  border-radius: 7rpx;
+  transition: width 0.4s ease;
+}
+
+.route-progress-text {
+  margin-left: 16rpx;
+  font-size: 22rpx;
+  white-space: nowrap;
+}
+
+.route-cover-bonus {
+  font-size: 22rpx;
+  opacity: 0.9;
+}
+
+.route-cover-done-text {
+  display: block;
+  text-align: center;
+  font-size: 30rpx;
+  font-weight: bold;
+}
+
+/* 四幕剧情 */
+.route-acts {
+  display: flex;
+  flex-direction: column;
+}
+
+.route-act {
+  background: #fff;
+  border-radius: 18rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  border-left: 8rpx solid #ddd;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+}
+
+.route-act-done {
+  border-left-color: #2E7D32;
+}
+
+.route-act-current {
+  border-left-color: #4A90D9;
+}
+
+.route-act-locked {
+  border-left-color: #e0e0e0;
+  opacity: 0.65;
+}
+
+.route-act-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12rpx;
+}
+
+.route-act-index {
+  font-size: 24rpx;
+  color: #4A90D9;
+  font-weight: bold;
+  background: #eef3f8;
+  padding: 4rpx 16rpx;
+  border-radius: 16rpx;
+}
+
+.route-act-done .route-act-index {
+  color: #2E7D32;
+  background: #e8f5e9;
+}
+
+.route-act-status {
+  font-size: 22rpx;
+  color: #2E7D32;
+}
+
+.route-act-status-current {
+  color: #4A90D9;
+}
+
+.route-act-status-locked {
+  color: #999;
+}
+
+.route-act-point {
+  display: block;
+  font-size: 29rpx;
+  font-weight: bold;
+  color: #1a1a1a;
+  margin-bottom: 10rpx;
+}
+
+.route-act-story {
+  display: block;
+  font-size: 24rpx;
+  color: #555;
+  line-height: 1.7;
+  white-space: pre-line;
+}
+
+.route-act-spell {
+  margin-top: 14rpx;
+  background: #f5f7fa;
+  padding: 10rpx 18rpx;
+  border-radius: 12rpx;
+  display: inline-block;
+}
+
+.route-act-spell-label {
+  font-size: 23rpx;
+  color: #888;
+}
+
+.route-act-spell-text {
+  font-size: 25rpx;
+  color: #4A90D9;
+  font-weight: bold;
+}
+
+.route-act-go {
+  margin-top: 18rpx;
+  background: linear-gradient(135deg, #4A90D9, #3a7bc8);
+  color: #fff;
+  text-align: center;
+  padding: 18rpx 0;
+  border-radius: 34rpx;
+  font-size: 27rpx;
+  font-weight: bold;
+}
+
+/* 底部关闭按钮 */
+.route-close-btn {
+  margin: 8rpx 0 12rpx;
+  background: #fff;
+  color: #666;
+  text-align: center;
+  padding: 20rpx 0;
+  border-radius: 34rpx;
+  font-size: 27rpx;
+  border: 1rpx solid #ddd;
 }

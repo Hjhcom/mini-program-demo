@@ -109,6 +109,16 @@ judge(null, undefined, { matched: false, reason: R.INVALID_SPELL, similarity: 0 
 // 两边都空这条特别重要：similarity 的第一行 `if (a === b) return 1` 会让空 vs 空算出相似度 1，
 // 所以必须先判 targetLen —— 上面把它断言成 invalidSpell 就是为了钉住这个顺序。
 
+console.log('— F-13 星级评价（starsOf）—')
+eq(V.starsOf(1), 3, '相似度 1.00 → 3 星')
+eq(V.starsOf(0.9), 3, '相似度 0.90 → 3 星（≥0.9 含等于）')
+eq(V.starsOf(0.89), 2, '相似度 0.89 → 2 星')
+eq(V.starsOf(0.7), 2, '相似度 0.70 → 2 星（≥0.7 含等于）')
+eq(V.starsOf(0.69), 1, '相似度 0.69 → 1 星')
+eq(V.starsOf(0.8), 2, '相似度 0.80（阈值上）→ 2 星')
+eq(V.starsOf(0.4), 1, '互为包含的低相似度（0.40）→ 1 星')
+eq(V.starsOf(0), 1, '相似度 0 也兜底 1 星（调用方只在 matched=true 时取星级）')
+
 console.log('\n' + (fail === 0
   ? '全部通过 ✅  ' + pass + ' 条'
   : pass + ' 条通过，' + fail + ' 条失败 ❌'))

@@ -21,6 +21,10 @@ const REPORT_REASONS = ['fake', 'improper', 'duplicate', 'other']
 // **改积分规则时两处都要改**，否则庆祝卡片上的「+10 分」会和排行榜算出来的分对不上。
 // 这里只展示「打卡」这一项的基础分；连续打卡奖励（+5×min(n,5)）是另一条规则，另计。
 const CHECKIN_POINTS = 10
+// F-13：隐藏咒语打卡的额外加分（前端副本，与 getRanking/lib/points.js 的 POINTS.hiddenBonus 一致）
+const HIDDEN_BONUS = 10
+// F-17：完成一条剧本任务线的奖励积分（前端副本，与 getRanking/lib/points.js 的 POINTS.routeBonus 一致）
+const ROUTE_BONUS = 50
 // 撒花碎片色板（与项目主色 + 图钉色一致）
 const CONFETTI_COLORS = ['#e05a3a', '#f0b429', '#1f9d6b', '#4A90D9', '#c2509a', '#3aa8c1']
 const CONFETTI_COUNT = 14
@@ -85,7 +89,14 @@ Page({
     // 首次进入的欢迎引导浮层
     showGuide: false,
     guideIndex: 0,
-    showWelcome: false
+    showWelcome: false,
+    // F-17：剧本任务线浮层（点「开启打卡之旅」/「剧本任务线」按钮弹出，手动关闭）
+    showRouteMask: false,
+    routeLoading: false,
+    routeData: null,
+    routeProgress: null,
+    routeActs: [],
+    routeError: ''   // 空态区分：''=无线路；非空=加载失败（未部署/报错）
   },
 
   // 页面加载：初始化登录态 + 拉取打卡点 + 初始化录音
@@ -350,6 +361,10 @@ Page({
     // 该点位若正好有指派给我的任务，提示语改说「这里有你的任务」
     const t = this.data.pendingTask
     const hasTask = !!(t && t.pointId === p._id)
+    // F-13：隐藏咒语彩蛋 —— 主提示语拼上线索，让玩家知道这里有隐藏玩法
+    const hiddenHint = p.hasHidden
+      ? (i18n.format(this.data.lang.index.hiddenHint) + (p.hiddenClue || ''))
+      : ''
     this.setData({
       selectedPoint: p,
       // 重建 markers：当前点气泡常显，上一个点回到点击才显示，旧气泡随重绘清除
@@ -362,9 +377,9 @@ Page({
       usersTitle: '',
       recentUsers: [],
       usersLoading: true,
-      tip: hasTask
+      tip: (hasTask
         ? i18n.format(this.data.lang.index.tipHasTask, { name: p.name, spell: t.spell })
-        : i18n.format(this.data.lang.index.tipSelected, { name: p.name, spell: p.spell })
+        : i18n.format(this.data.lang.index.tipSelected, { name: p.name, spell: p.spell })) + hiddenHint
     })
     this.loadPointUsers(p._id)
   },
@@ -643,6 +658,123 @@ Page({
     wx.navigateTo({ url: '/pages/nearby/nearby' })
   },
 
+  // F-17：剧本任务线入口 —— 直接在首页弹浮层（用户要求：点「开启打卡之旅」/按钮都弹浮层，手动关闭）
+  goRoute: function () {
+    this.openRouteMask()
+  },
+
+  // F-17：打开剧本浮层并加载线路数据
+  openRouteMask: function () {
+    this.setData({ showRouteMask: true })
+    if (!this.data.routeData) this.loadRouteData()
+  },
+
+  // F-17：加载线路（getRoutes）+ 点位详情（getPoints），组装四幕
+  async loadRouteData() {
+    this.setData({ routeLoading: true, routeError: '' })
+    try {
+      const routeRes = await wx.cloud.callFunction({ name: 'getRoutes' })
+      const r = routeRes.result || {}
+      if (r.code !== 0) {
+        // 云函数返回业务错误 → 明确显示错误，方便排查（多半是 getRoutes 没部署/部署失败）
+        this.setData({ routeLoading: false, routeData: null, routeProgress: null, routeActs: [], routeError: r.msg || 'err' })
+        return
+      }
+      const list = r.list || []
+      if (list.length === 0) {
+        this.setData({ routeLoading: false, routeData: null, routeProgress: null, routeActs: [], routeError: '' })
+        return
+      }
+      const route = list[0]
+      const isEn = app.globalData.language === 'en'
+
+      // 点位名称/咒语由 getPoints 提供，按 pointId 关联
+      let pointMap = {}
+      try {
+        const pRes = await wx.cloud.callFunction({ name: 'getPoints' })
+        const points = (pRes.result && pRes.result.points) || []
+        points.forEach(p => { pointMap[p._id] = p })
+      } catch (e) {
+        console.error('点位加载失败：', e)
+      }
+
+      const progress = route.progress
+      const acts = (route.steps || []).map((s, i) => {
+        const p = pointMap[s.pointId] || {}
+        let status
+        if (progress && progress.completed) {
+          status = 'done'
+        } else if (progress && i < progress.currentIndex) {
+          status = 'done'
+        } else if ((progress ? i === progress.currentIndex : i === 0)) {
+          status = 'current'
+        } else {
+          status = 'locked'
+        }
+        return {
+          pointId: s.pointId,
+          pointName: p.name || s.pointName || '',
+          spell: p.spell || '',
+          story: isEn ? (s.storyEn || s.story) : s.story,
+          status: status
+        }
+      })
+
+      // bonusTip 带 {n} 占位符，必须在 JS 里 format 填充（wxml 直接绑会显示原始 +[n]）
+      const routesLang = this.data.lang.routes
+      this.setData({
+        routeData: {
+          name: isEn ? route.nameEn : route.name,
+          desc: isEn ? route.descEn : route.desc,
+          bonus: route.bonus,
+          total: route.total,
+          bonusTipText: routesLang ? i18n.format(routesLang.bonusTip, { n: route.bonus }) : ''
+        },
+        routeProgress: progress || { currentIndex: 0, completed: false },
+        routeActs: acts,
+        routeLoading: false
+      })
+    } catch (e) {
+      console.error('剧本线路加载失败：', e)
+      // 调用失败（云函数未部署/环境不对）→ 显示错误文案 + 重试按钮，而不是静默空态
+      this.setData({ routeLoading: false, routeData: null, routeProgress: null, routeActs: [], routeError: 'load' })
+    }
+  },
+
+  // F-17：空态/错误态下的重新加载
+  retryRoute: function () {
+    this.loadRouteData()
+  },
+
+  // F-17：手动关闭剧本浮层；首次进入时关闭后补引导
+  closeRouteMask: function () {
+    this.setData({ showRouteMask: false })
+    try {
+      if (!wx.getStorageSync('guideShown')) {
+        this.setData({ showGuide: true })
+      }
+    } catch (e) {}
+  },
+
+  // F-17：浮层里点「去打卡」→ 关浮层 + 选中对应点位（首页就在当前页，直接 selectPointAt）
+  onRouteGoCheckin: function (e) {
+    const pointId = e.currentTarget.dataset.point
+    if (!pointId) return
+    this.setData({ showRouteMask: false })
+    const points = this.data.points || []
+    const index = points.findIndex(p => p._id === pointId)
+    if (index >= 0) {
+      this.selectPointAt(index)
+      this.setData({ scale: 16 })
+    } else if (points.length === 0) {
+      // 点位还没加载回来：先记 pending，等 loadPoints 完成后由 applyPendingPoint 消化
+      app.globalData.pendingPointId = pointId
+    }
+  },
+
+  // F-17：浮层滚动穿透拦截
+  noop: function () {},
+
   // 跳转到打卡任务页（点击底部任务提示条）
   goTask: function () {
     wx.navigateTo({ url: '/pages/task/task' })
@@ -661,13 +793,18 @@ Page({
   },
 
   // 打卡成功：整屏撒花 + 居中结果卡（徽章放大弹入）
-  showCelebrate: function (recognizedText, similarity) {
+  // F-13：加星级（stars 1~3）与隐藏咒语标记（isHidden → 双倍分 + 专属标题）
+  showCelebrate: function (recognizedText, similarity, stars, isHidden) {
     const lang = this.data.lang
+    const n = isHidden ? CHECKIN_POINTS + HIDDEN_BONUS : CHECKIN_POINTS
     this.setData({
       celebrate: true,
       confetti: buildConfetti(),
-      celebrateTitle: lang.index.celebrateTitle,
-      celebratePoints: i18n.format(lang.index.celebratePoints, { n: CHECKIN_POINTS }),
+      celebrateTitle: isHidden ? lang.index.celebrateTitleHidden : lang.index.celebrateTitle,
+      celebrateStars: isHidden
+        ? '✨ ' + '⭐'.repeat(stars || 0)
+        : '⭐'.repeat(stars || 0),
+      celebratePoints: i18n.format(lang.index.celebratePoints, { n: n }),
       celebrateSub: i18n.format(lang.index.celebrateSub, {
         text: recognizedText || '',
         sim: Math.round((similarity || 0) * 100)
@@ -766,9 +903,13 @@ Page({
             sim: Math.round(r.similarity * 100)
           })
         })
-        // F-07：整屏撒花 + 居中结果卡（+10 分）
-        this.showCelebrate(r.recognizedText, r.similarity)
+        // F-07：整屏撒花 + 居中结果卡（+10 分）；F-13：带星级与隐藏咒语标记
+        this.showCelebrate(r.recognizedText, r.similarity, r.stars, r.isHidden)
         console.log('打卡成功', r)
+        // F-17：剧本任务线推进/完成 → 完成时弹窗庆祝（+50 分）
+        if (r.routeProgress && r.routeProgress.completed) {
+          setTimeout(() => this.showRouteComplete(r.routeProgress), 2600)
+        }
         // 打卡成功 → 问要不要拍一张打卡照片
         if (r.recordId) {
           setTimeout(() => this.askPhoto(r.recordId), 2200)
@@ -800,6 +941,18 @@ Page({
       const msg = i18n.format(lang.index.errCheckin, { msg: err.errMsg || '请检查 voiceCheckin 云函数' })
       this.setData({ tip: msg })
       this.showFailFeedback(lang.index.failTitleGeneric, msg)
+    })
+  },
+
+  // F-17：剧本线路完成庆祝弹窗（与徽章弹窗同一套视觉，复用 showModal）
+  showRouteComplete: function (routeProgress) {
+    const lang = this.data.lang.index
+    const name = app.globalData.language === 'en' ? (routeProgress.nameEn || '') : (routeProgress.name || '')
+    wx.showModal({
+      title: i18n.format(lang.completeTitle),
+      content: i18n.format(lang.completeSub, { name: name, n: ROUTE_BONUS }),
+      showCancel: false,
+      confirmText: lang.ok
     })
   },
 
@@ -866,14 +1019,11 @@ Page({
     this.setData({ showGuide: false, guideIndex: 0 })
   },
 
-  // 欢迎屏「开启打卡之旅」按钮：新玩家进引导，老玩家直接进地图
+  // 欢迎屏「开启打卡之旅」按钮：收起欢迎屏 → 弹出剧本任务浮层（F-17），
+  // 玩家手动关闭后再进引导/地图（引导逻辑挪到 closeRouteMask 里触发）
   onEnterTap() {
     this.setData({ showWelcome: false })
-    try {
-      if (!wx.getStorageSync('guideShown')) {
-        this.setData({ showGuide: true })
-      }
-    } catch (e) {}
+    this.openRouteMask()
   },
 
   // 打卡照片：问要不要拍一张

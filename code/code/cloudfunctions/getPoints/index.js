@@ -23,11 +23,18 @@ const OFFICIAL_CREATOR = 'admin'
 
 // 打卡点种子数据（首次空集合时写入；已写库的记录需在云开发控制台直接改）
 // 坐标说明：均为 gcj02（与 wx.getLocation type=gcj02 一致）；文博中心坐标取自高德 POI，若现场偏差可到点后用首页调试打印的 GPS 校准
+// F-13 隐藏咒语：hiddenSpell 是第二句可念的咒语（念对同样算打卡成功，积分双倍）；
+//                hiddenClue 是给玩家的线索文案。hiddenSpell 明文**只存服务端**，
+//                getPoints 出参会剥掉，玩家只能靠线索去猜。
 const SEED_POINTS = [
-  { name: '北京理工大学良乡校区文萃楼B', longitude: 116.174609, latitude: 39.731685, spell: '我爱文萃', radius: 50 },
-  { name: '北京理工大学良乡校区甘棠园7D', longitude: 116.173819, latitude: 39.735082, spell: '我爱甘棠', radius: 50 },
-  { name: '北京理工大学良乡校区综教楼A', longitude: 116.171219, latitude: 39.733311, spell: '我爱综教', radius: 50 },
-  { name: '北京理工大学良乡校区文博中心', longitude: 116.176778, latitude: 39.733354, spell: '明德精工，创新包容', radius: 50 }
+  { name: '北京理工大学良乡校区文萃楼B', longitude: 116.174609, latitude: 39.731685, spell: '我爱文萃', radius: 50,
+    hiddenSpell: '德以明理', hiddenClue: '四字，校训上半句，你在每一堂课里践行它' },
+  { name: '北京理工大学良乡校区甘棠园7D', longitude: 116.173819, latitude: 39.735082, spell: '我爱甘棠', radius: 50,
+    hiddenSpell: '学以精工', hiddenClue: '四字，校训下半句，北理学子的治学态度' },
+  { name: '北京理工大学良乡校区综教楼A', longitude: 116.171219, latitude: 39.733311, spell: '我爱综教', radius: 50,
+    hiddenSpell: '延安根军工魂', hiddenClue: '七字，北理工从延安走来的红色血脉与国防基因' },
+  { name: '北京理工大学良乡校区文博中心', longitude: 116.176778, latitude: 39.733354, spell: '明德精工，创新包容', radius: 50,
+    hiddenSpell: '北京理工大学', hiddenClue: '五个字，这所学校的全名' }
 ]
 
 exports.main = async (event) => {
@@ -74,23 +81,56 @@ exports.main = async (event) => {
         creatorNickname: p.creatorNickname || '',
         isOfficial: creator === OFFICIAL_CREATOR,
         // 未登录（OPENID 为空）时 isMine 恒为 false，不会误判成"我的点位"
-        isMine: !!OPENID && creator === OPENID
+        isMine: !!OPENID && creator === OPENID,
+        // F-13：隐藏咒语 —— hasHidden 给前端展示彩蛋提示，hiddenClue 是给玩家的线索
+        // ⚠️ hiddenSpell 明文不回传（玩家只能靠线索去猜，回传就失去隐藏的意义）
+        hasHidden: !!(p.hiddenSpell),
+        hiddenClue: p.hiddenClue || ''
       }
       // ⚠️ 这里没有 creatorOpenid —— 刻意不回传，别为了图方便加回去
     })
 
-  // 4. 点亮地图：查当前用户成功打卡过哪些点，给每个点加 hasVisited 标记
+  // 4. 点亮地图：查当前用户成功打卡过哪些点，给每个点加 hasVisited + bestStars
+  //    F-13：bestStars 是该点位「我的历史最高星级」，前端面板用来展示收集进度
   let visitedIds = new Set()
+  const bestStarMap = {}
   if (OPENID && list.length > 0) {
     const recordsRes = await db.collection('records')
       .where({ openid: OPENID, matched: true, type: nonTextType })
-      .field({ pointId: true })
+      .field({ pointId: true, stars: true })
       .get()
-    visitedIds = new Set(recordsRes.data.map(r => r.pointId))
+    recordsRes.data.forEach(r => {
+      visitedIds.add(r.pointId)
+      const s = Number(r.stars) || 0
+      if (s > (bestStarMap[r.pointId] || 0)) bestStarMap[r.pointId] = s
+    })
   }
   list.forEach(p => {
     p.hasVisited = visitedIds.has(p._id)
+    p.bestStars = bestStarMap[p._id] || 0
   })
+
+  // 5. F-13 数据迁移：官方点位若还没有 hiddenSpell（库里是旧数据），按名称从种子数据补齐并写库。
+  //    ⚠️ 必须写库而不是只回传：voiceCheckin 判定隐藏咒语时是直接读库的，
+  //    只在 getPoints 里临时拼一份的话，两个云函数看到的点位就不一致。
+  for (const p of list) {
+    // 出参对象不含 hiddenSpell 字段（剥掉了），用 hasHidden 判断即可
+    if (p.isOfficial && !p.hasHidden) {
+      const seed = SEED_POINTS.find(s => s.name === p.name)
+      if (seed && seed.hiddenSpell) {
+        try {
+          await points.doc(p._id).update({
+            data: { hiddenSpell: seed.hiddenSpell, hiddenClue: seed.hiddenClue }
+          })
+          p.hasHidden = true
+          p.hiddenClue = seed.hiddenClue
+          console.log('已为官方点位补齐隐藏咒语：', p.name)
+        } catch (e) {
+          console.error('补齐隐藏咒语失败（不影响点位展示）：', p.name, e)
+        }
+      }
+    }
+  }
 
   return { code: 0, points: list }
 }

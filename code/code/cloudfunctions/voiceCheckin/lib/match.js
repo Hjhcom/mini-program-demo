@@ -14,6 +14,15 @@ const SIM_THRESHOLD = 0.8
 // 「互为包含」时，较短一方要求的最小有效字数（归一化后）。见 matchSpell 里的说明。
 const MIN_CONTAIN_LEN = 2
 
+// 星级评价（F-13）：基于识别相似度的星级（0~1 编辑距离相似度）
+//    ≥ 0.9 → 3 星（念得完美）；≥ 0.7 → 2 星（念得很准）；其余成功 → 1 星（过关）
+//    纯函数：不依赖云环境，可被 tools/test-voice-match.js 本地单测
+function starsOf(sim) {
+  if (sim >= 0.9) return 3
+  if (sim >= 0.7) return 2
+  return 1
+}
+
 // 判定原因：调用方据此决定「要不要写打卡记录」「给用户什么提示」
 const REASON = {
   SIMILAR: 'similar',            // 相似度达标
@@ -113,5 +122,6 @@ module.exports = {
   normalize,
   charLen,
   similarity,
-  matchSpell
+  matchSpell,
+  starsOf
 }

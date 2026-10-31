@@ -13,8 +13,10 @@
 
 const POINTS = {
   checkin: 10,      // 成功打卡一次
+  hiddenBonus: 10,  // F-13：隐藏咒语打卡额外 +10（合计 20，双倍）
   taskDone: 20,     // 完成别人指派的任务
   taskPublished: 5, // 发布的任务被完成
+  routeBonus: 50,   // F-17：完成一条剧本任务线
   streakStep: 5,    // 连续打卡奖励步长
   streakCap: 5      // 连续打卡奖励封顶倍数（min(n, 5)）
 }
@@ -57,13 +59,15 @@ function streakBonus(dayList) {
   return bonus
 }
 
-// 总分 = 打卡 + 完成任务 + 发布被完成 + 连续打卡奖励
-// stat: { successTimes, taskDone, taskPublished, streakBonus }
+// 总分 = 打卡 + 隐藏咒语加成 + 完成任务 + 发布被完成 + 剧本线路 + 连续打卡奖励
+// stat: { successTimes, hiddenTimes, taskDone, taskPublished, routeDone, streakBonus }
 function calcPoints(stat) {
   const s = stat || {}
   return (s.successTimes || 0) * POINTS.checkin +
+    (s.hiddenTimes || 0) * POINTS.hiddenBonus +
     (s.taskDone || 0) * POINTS.taskDone +
     (s.taskPublished || 0) * POINTS.taskPublished +
+    (s.routeDone || 0) * POINTS.routeBonus +
     (s.streakBonus || 0)
 }
 

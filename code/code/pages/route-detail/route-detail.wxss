@@ -1,0 +1,219 @@
+/* pages/route-detail/route-detail.wxss —— 剧本任务线 */
+.page {
+  min-height: 100vh;
+  background: #f5f7fa;
+  padding: 20rpx;
+  box-sizing: border-box;
+  padding-bottom: 60rpx;
+}
+
+.loading {
+  text-align: center;
+  padding: 200rpx 0;
+  color: #999;
+  font-size: 28rpx;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 200rpx 0;
+}
+
+.empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 20rpx;
+}
+
+.empty-text {
+  font-size: 30rpx;
+  color: #666;
+}
+
+/* 剧本封面 */
+.cover {
+  background: linear-gradient(135deg, #4A90D9, #2E7D32);
+  border-radius: 24rpx;
+  padding: 36rpx 32rpx;
+  color: #fff;
+  margin-bottom: 24rpx;
+}
+
+.cover-done {
+  background: linear-gradient(135deg, #d4a017, #e05a3a);
+}
+
+.cover-badge {
+  display: inline-block;
+  font-size: 22rpx;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 6rpx 18rpx;
+  border-radius: 20rpx;
+  margin-bottom: 16rpx;
+}
+
+.cover-title {
+  display: block;
+  font-size: 40rpx;
+  font-weight: bold;
+  margin-bottom: 16rpx;
+}
+
+.cover-desc {
+  display: block;
+  font-size: 25rpx;
+  line-height: 1.7;
+  opacity: 0.95;
+  white-space: pre-line;
+  margin-bottom: 24rpx;
+}
+
+/* 进度条 */
+.progress-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 14rpx;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 14rpx;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 7rpx;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #fff;
+  border-radius: 7rpx;
+  transition: width 0.4s ease;
+}
+
+.progress-text {
+  margin-left: 16rpx;
+  font-size: 22rpx;
+  white-space: nowrap;
+}
+
+.cover-bonus {
+  font-size: 22rpx;
+  opacity: 0.9;
+}
+
+.cover-done-text {
+  display: block;
+  text-align: center;
+  font-size: 32rpx;
+  font-weight: bold;
+}
+
+/* 分幕剧情 */
+.acts {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.act {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 28rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+  border-left: 8rpx solid #ddd;
+}
+
+.act-done {
+  border-left-color: #2E7D32;
+}
+
+.act-current {
+  border-left-color: #4A90D9;
+}
+
+.act-locked {
+  border-left-color: #e0e0e0;
+  opacity: 0.65;
+}
+
+.act-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12rpx;
+}
+
+.act-index {
+  font-size: 24rpx;
+  color: #4A90D9;
+  font-weight: bold;
+  background: #eef3f8;
+  padding: 4rpx 16rpx;
+  border-radius: 16rpx;
+}
+
+.act-done .act-index {
+  color: #2E7D32;
+  background: #e8f5e9;
+}
+
+.act-status {
+  font-size: 22rpx;
+  color: #2E7D32;
+}
+
+.status-current {
+  color: #4A90D9;
+}
+
+.status-locked {
+  color: #999;
+}
+
+.act-point {
+  display: block;
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #1a1a1a;
+  margin-bottom: 10rpx;
+}
+
+.act-story {
+  display: block;
+  font-size: 25rpx;
+  color: #555;
+  line-height: 1.7;
+  white-space: pre-line;
+}
+
+.act-spell {
+  margin-top: 16rpx;
+  background: #f5f7fa;
+  padding: 12rpx 20rpx;
+  border-radius: 12rpx;
+  display: inline-block;
+}
+
+.act-spell-label {
+  font-size: 24rpx;
+  color: #888;
+}
+
+.act-spell-text {
+  font-size: 26rpx;
+  color: #4A90D9;
+  font-weight: bold;
+}
+
+/* 去打卡 */
+.act-go {
+  margin-top: 20rpx;
+  background: linear-gradient(135deg, #4A90D9, #3a7bc8);
+  color: #fff;
+  text-align: center;
+  padding: 20rpx 0;
+  border-radius: 36rpx;
+  font-size: 28rpx;
+  font-weight: bold;
+}

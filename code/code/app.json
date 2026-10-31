@@ -20,6 +20,7 @@
     "pages/feed-publish/feed-publish",
     "pages/notifications/notifications",
     "pages/user-profile/user-profile",
+    "pages/route-detail/route-detail",
     "pages/point-detail/point-detail"
   ],
   "window": {

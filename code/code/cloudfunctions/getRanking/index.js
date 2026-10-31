@@ -63,6 +63,28 @@ async function userBoard(OPENID, period) {
     .group({ _id: '$creatorOpenid', n: $.sum(1) })
     .end()
 
+  // 2.6) 剧本任务线完成数（F-17）：route_progress 里 completed=true 的条数
+  let routeRes = { list: [] }
+  try {
+    routeRes = await db.collection('route_progress').aggregate()
+      .match({ completed: true })
+      .group({ _id: '$openid', n: $.sum(1) })
+      .end()
+  } catch (e) {
+    console.error('剧本线路聚合失败（本次加成按 0 计）：', e)
+  }
+
+  // 2.5) 隐藏咒语打卡次数（F-13）：records 里 matched && isHidden 的条数
+  let hiddenRes = { list: [] }
+  try {
+    hiddenRes = await db.collection('records').aggregate()
+      .match(Object.assign({ matched: true, isHidden: true, type: nonTextType }, timeMatch))
+      .group({ _id: '$openid', n: $.sum(1) })
+      .end()
+  } catch (e) {
+    console.error('隐藏咒语聚合失败（本次加成按 0 计）：', e)
+  }
+
   // 3) 连续打卡奖励：按 (用户, 自然日) 去重，日期用 UTC+8 口径
   //    用 $dateToString + timezone 一次性拿到 dayKey，避免把整段记录拉到内存里算。
   //    这一步失败不影响榜单（奖励按 0 计并打日志），避免整页挂掉。
@@ -96,7 +118,7 @@ async function userBoard(OPENID, period) {
   const stat = {}
   const ensure = id => {
     if (!stat[id]) {
-      stat[id] = { successTimes: 0, pointCount: 0, taskDone: 0, taskPublished: 0, streakBonus: 0 }
+      stat[id] = { successTimes: 0, pointCount: 0, hiddenTimes: 0, taskDone: 0, taskPublished: 0, routeDone: 0, streakBonus: 0 }
     }
     return stat[id]
   }
@@ -107,6 +129,8 @@ async function userBoard(OPENID, period) {
     s.successTimes += (r.times || 0) // 同一用户同一点位打了 n 次就累加 n
     s.pointCount += 1                // 组数 = 去重后的点位数
   })
+  ;(hiddenRes.list || []).forEach(r => { if (r._id) ensure(r._id).hiddenTimes = r.n || 0 })
+  ;(routeRes.list || []).forEach(r => { if (r._id) ensure(r._id).routeDone = r.n || 0 })
   ;(doneRes.list || []).forEach(r => { if (r._id) ensure(r._id).taskDone = r.n || 0 })
   ;(pubRes.list || []).forEach(r => { if (r._id) ensure(r._id).taskPublished = r.n || 0 })
   Object.keys(stat).forEach(o => { stat[o].streakBonus = streakBonus(dayMap[o]) })
@@ -140,6 +164,8 @@ async function userBoard(OPENID, period) {
       points: e.points,
       successTimes: e.s.successTimes,
       pointCount: e.s.pointCount,
+      hiddenTimes: e.s.hiddenTimes,
+      routeDone: e.s.routeDone,
       taskDone: e.s.taskDone,
       taskPublished: e.s.taskPublished,
       streakBonus: e.s.streakBonus,

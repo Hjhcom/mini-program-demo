@@ -73,6 +73,12 @@ const zh = {
     errLogin: '登录失败，请检查云函数',
     // ===== F-07 打卡结果反馈动效 =====
     celebrateTitle: '打卡成功',
+    // F-13 星级与隐藏咒语
+    celebrateTitleHidden: '✨ 隐藏咒语！',
+    hiddenHint: ' ✨ 彩蛋线索：',
+    hiddenTag: '✨ 隐藏咒语',
+    routeEntry: '剧本任务线',
+    ok: '知道了',
     // 「+{n} 分」的 n 由 index.js 的 CHECKIN_POINTS 给（= 积分规则里的打卡基础分 10），
     // 单位放语言包、数字放代码，这样英文是 "+10 pts"、中文是 "+10 分"，不用改代码
     celebratePoints: '+{n} 分',
@@ -548,6 +554,25 @@ const zh = {
     loadFail: '消息加载失败，请稍后重试'
   },
   // ===== 动态流（F1/F3/F4） =====
+  routes: {
+    navTitle: '剧本任务线',
+    loading: '加载中...',
+    close: '手动关闭',
+    errLoad: '线路加载失败，请确认已部署 getRoutes 云函数',
+    retry: '重新加载',
+    act: '第',
+    stepDone: '已完成',
+    stepCurrent: '进行中',
+    stepLocked: '未解锁',
+    spellLabel: '咒语：',
+    goCheckin: '去打卡',
+    bonusTip: '完成整条线路 +{n} 分',
+    routeDone: '线路完成！',
+    done: '已完成',
+    none: '暂无剧本线路',
+    completeTitle: '🎉 线路完成！',
+    completeSub: '你完成了「{name}」，获得 +{n} 分'
+  },
   nearby: {
     navTitle: '动态',
     tabNearby: '附近',
@@ -699,6 +724,12 @@ const en = {
     errLogin: 'Login failed, check the cloud function',
     // ===== F-07 check-in result feedback =====
     celebrateTitle: 'Check-in success',
+    // F-13 stars & hidden spell
+    celebrateTitleHidden: '✨ Hidden spell!',
+    hiddenHint: ' ✨ Clue: ',
+    hiddenTag: '✨ Hidden Spell',
+    routeEntry: 'Route Quests',
+    ok: 'OK',
     celebratePoints: '+{n} pts',
     celebrateSub: 'You said "{text}", similarity {sim}%',
     failTitle: 'Spell mismatch',
@@ -1172,6 +1203,25 @@ const en = {
     loadFail: 'Failed to load messages, please retry later'
   },
   // ===== feed =====
+  routes: {
+    navTitle: 'Route Quests',
+    loading: 'Loading...',
+    close: 'Close',
+    errLoad: 'Failed to load quests — deploy the getRoutes cloud function first',
+    retry: 'Retry',
+    act: 'Act ',
+    stepDone: 'Done',
+    stepCurrent: 'In progress',
+    stepLocked: 'Locked',
+    spellLabel: 'Spell: ',
+    goCheckin: 'Check in now',
+    bonusTip: 'Finish the trail for +{n} pts',
+    routeDone: 'Trail complete!',
+    done: 'Done',
+    none: 'No quests yet',
+    completeTitle: '🎉 Trail complete!',
+    completeSub: 'You completed "{name}", +{n} pts'
+  },
   nearby: {
     navTitle: 'Feed',
     tabNearby: 'Nearby',
