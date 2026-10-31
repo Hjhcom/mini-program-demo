@@ -46,4 +46,10 @@
     </view>
     <view class="foot-tip">{{lang.pointList.footTip}}</view>
   </block>
+
+  <!-- F-18 UI：创建打卡点入口（从首页功能键移入本页，底部悬浮） -->
+  <view class="create-bar" bindtap="goCreatePoint">
+    <text class="create-icon">＋</text>
+    <text class="create-text">{{lang.pointList.createPoint}}</text>
+  </view>
 </view>

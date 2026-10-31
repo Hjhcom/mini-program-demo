@@ -134,6 +134,52 @@
 }
 
 
+/* ===== F-18 UI 打卡点亮波纹 ===== */
+.lit-ripple {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  z-index: 8; /* 地图之上、工具层之下 */
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.lit-ripple-ring {
+  position: absolute;
+  left: -90rpx;
+  top: -90rpx;
+  width: 180rpx;
+  height: 180rpx;
+  border-radius: 50%;
+  border: 6rpx solid rgba(212, 160, 23, 0.85);
+  animation: litRing 1.6s ease-out infinite;
+}
+
+.lit-ripple-ring.r2 {
+  animation-delay: 0.5s;
+}
+
+.lit-ripple-ring.r3 {
+  animation-delay: 1.0s;
+}
+
+@keyframes litRing {
+  0% { transform: scale(0.35); opacity: 0.9; }
+  100% { transform: scale(6); opacity: 0; }
+}
+
+/* 点亮瞬间进度条跳动 */
+.lit-progress.bump {
+  animation: litBump 0.6s ease;
+}
+
+@keyframes litBump {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
 /* ===== F-08 地图工具（浮在地图右上角）===== */
 .map-tools {
   position: absolute;
@@ -514,13 +560,85 @@
   border: none;
 }
 
-/* 次要操作按钮组（三列宫格排列） */
+/* 次要操作按钮组（三列宫格排列）—— point-create 等页面仍用，保留 */
 .btn-ghost-row {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-start;
   gap: 30rpx;
   margin-top: 16rpx;
+}
+
+/* ===== F-18 UI 首页功能键：2×2 / 2×3 减法宫格 ===== */
+.btn-grid {
+  margin-top: 16rpx;
+}
+
+.grid-sub {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+  gap: 16rpx;
+}
+
+.grid-btn {
+  /* flex 拉伸占满所在行，避免右侧留白 */
+  flex: 1 1 calc(50% - 16rpx);
+  min-width: 0;
+  height: 150rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 !important;
+  margin: 0 !important;
+  line-height: 1.2;
+  background: linear-gradient(160deg, #ffffff, #f0f6fd);
+  border-radius: 24rpx;
+  box-shadow: 0 4rpx 14rpx rgba(74, 144, 217, 0.08);
+  color: #333333;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.grid-btn::after {
+  border: none;
+}
+
+.grid-icon {
+  font-size: 44rpx;
+  margin-bottom: 12rpx;
+}
+
+.grid-text {
+  font-size: 26rpx;
+  color: #4a5a6a;
+}
+
+/* 剧本任务线：渐变高亮格 */
+.grid-btn-route {
+  background: linear-gradient(135deg, #4A90D9, #45b7a6);
+  box-shadow: 0 6rpx 18rpx rgba(74, 144, 217, 0.30);
+}
+
+.grid-btn-route .grid-text {
+  color: #ffffff;
+  font-weight: bold;
+}
+
+/* 深色模式 */
+.page.dark .grid-btn {
+  background: linear-gradient(160deg, #2c2c2e, #252a33);
+  box-shadow: none;
+}
+
+.page.dark .grid-text {
+  color: #e5e5e5;
+}
+
+.page.dark .grid-btn-route {
+  background: linear-gradient(135deg, #3a7bc8, #359b8c);
+  box-shadow: none;
 }
 
 
@@ -1107,6 +1225,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  animation: routeMaskIn 0.25s ease;
+}
+
+@keyframes routeMaskIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .route-panel {
@@ -1118,6 +1242,22 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  animation: routePanelIn 0.3s ease;
+}
+
+@keyframes routePanelIn {
+  from { transform: translateY(80rpx); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* 退出动画：整个遮罩淡出（关闭前 250ms 由 JS 加 route-mask-out 类） */
+.route-mask-out {
+  animation: routeMaskOut 0.25s ease forwards;
+}
+
+@keyframes routeMaskOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
 }
 
 .route-loading {
@@ -1194,6 +1334,30 @@
   background: linear-gradient(135deg, #d4a017, #e05a3a);
 }
 
+.route-cover-seal {
+  display: inline-block;
+  background: rgba(224, 90, 58, 0.92);
+  color: #fff;
+  font-size: 22rpx;
+  padding: 6rpx 18rpx;
+  border-radius: 6rpx;
+  margin-bottom: 16rpx;
+  box-shadow: 0 2rpx 8rpx rgba(224, 90, 58, 0.35);
+}
+
+.route-cover-seal-text {
+  letter-spacing: 2rpx;
+}
+
+.route-cover-divider {
+  display: block;
+  text-align: center;
+  font-size: 22rpx;
+  opacity: 0.85;
+  margin-top: 8rpx;
+  letter-spacing: 2rpx;
+}
+
 .route-cover-desc {
   display: block;
   font-size: 25rpx;
@@ -1221,6 +1385,17 @@
   background: #fff;
   border-radius: 7rpx;
   transition: width 0.4s ease;
+}
+
+/* 通关态：进度条变金色并微微发光（精工之魂点亮） */
+.route-cover-done .route-progress-fill {
+  background: linear-gradient(90deg, #d4a017, #f5c842);
+  animation: routeGoldGlow 1.6s ease-in-out infinite;
+}
+
+@keyframes routeGoldGlow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.72; }
 }
 
 .route-progress-text {
@@ -1276,18 +1451,43 @@
   margin-bottom: 12rpx;
 }
 
+.route-act-title {
+  display: flex;
+  align-items: center;
+}
+
+.route-act-icon {
+  font-size: 30rpx;
+  margin-right: 10rpx;
+}
+
 .route-act-index {
-  font-size: 24rpx;
+  font-size: 22rpx;
   color: #4A90D9;
   font-weight: bold;
   background: #eef3f8;
-  padding: 4rpx 16rpx;
-  border-radius: 16rpx;
+  padding: 4rpx 14rpx;
+  border-radius: 14rpx;
+  margin-right: 12rpx;
+}
+
+.route-act-name {
+  font-size: 26rpx;
+  font-weight: bold;
+  color: #1a1a1a;
 }
 
 .route-act-done .route-act-index {
   color: #2E7D32;
   background: #e8f5e9;
+}
+
+.route-act-done .route-act-name {
+  color: #2E7D32;
+}
+
+.route-act-current .route-act-name {
+  color: #4A90D9;
 }
 
 .route-act-status {

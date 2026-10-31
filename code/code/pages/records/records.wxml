@@ -39,6 +39,9 @@
 
   <!-- 空状态 -->
   <view class="empty" wx:elif="{{!loading}}">
+    <view class="empty-illus">
+      <text class="empty-illus-icon">📭</text>
+    </view>
     <text class="empty-text">{{lang.records.empty}}</text>
     <button class="empty-btn" bindtap="goHome">{{lang.records.goHome}}</button>
   </view>

@@ -21,6 +21,13 @@
        show-location
        bindmarkertap="onMarkerTap"></map>
 
+  <!-- F-18 UI：打卡成功点亮波纹（金色圆环从地图中部扩散） -->
+  <view class="lit-ripple" wx:if="{{litRipple}}">
+    <view class="lit-ripple-ring r1"></view>
+    <view class="lit-ripple-ring r2"></view>
+    <view class="lit-ripple-ring r3"></view>
+  </view>
+
   <!-- F-08：地图工具（右上角浮层）—— 回到我的位置 -->
   <view class="map-tools">
     <view class="map-tool" bindtap="onLocateTap">
@@ -46,7 +53,7 @@
   </view>
 
   <!-- 点亮地图进度条 -->
-  <view class="lit-progress" wx:if="{{isLoggedIn && totalCount > 0}}">
+  <view class="lit-progress {{litRipple ? 'bump' : ''}}" wx:if="{{isLoggedIn && totalCount > 0}}">
     <view class="lit-progress-bar">
       <view class="lit-progress-fill" style="width: {{visitedCount / totalCount * 100}}%"></view>
     </view>
@@ -115,14 +122,35 @@
       <button class="btn" bindtap="checkIn">{{lang.index.checkIn}}</button>
       <button wx:if="{{inRange}}" class="btn btn-record {{recording ? 'recording' : ''}} {{shake ? 'shake' : ''}}"
               bindtap="onRecordTap">{{recording ? lang.index.recording : lang.index.spell}}</button>
-      <view class="btn-ghost-row">
-        <button wx:if="{{selectedPoint}}" class="btn btn-ghost" bindtap="goPointDetail">点位详情</button>
-        <button wx:if="{{selectedPoint}}" class="btn btn-ghost" bindtap="goCreateTask">{{lang.index.createTaskForFriend}}</button>
-        <button class="btn btn-ghost" bindtap="goCreatePoint">{{lang.index.createPoint}}</button>
-        <button class="btn btn-ghost" bindtap="goPointList">{{lang.index.pointList}}</button>
-        <button class="btn btn-ghost" bindtap="goRoute">{{lang.index.routeEntry}}</button>
-        <button class="btn btn-ghost" bindtap="goRanking">{{lang.index.ranking}}</button>
-        <button class="btn btn-ghost" bindtap="goRecords">{{lang.index.records}}</button>
+      <view class="btn-grid">
+        <view class="grid-sub">
+          <!-- 剧本任务线：渐变高亮格 -->
+          <button class="grid-btn grid-btn-route" bindtap="goRoute">
+            <text class="grid-icon">📖</text>
+            <text class="grid-text">{{lang.index.routeEntry}}</text>
+          </button>
+          <button class="grid-btn" bindtap="goRanking">
+            <text class="grid-icon">🏆</text>
+            <text class="grid-text">{{lang.index.ranking}}</text>
+          </button>
+          <button class="grid-btn" bindtap="goPointList">
+            <text class="grid-icon">📍</text>
+            <text class="grid-text">{{lang.index.pointList}}</text>
+          </button>
+          <button class="grid-btn" bindtap="goRecords">
+            <text class="grid-icon">📝</text>
+            <text class="grid-text">{{lang.index.records}}</text>
+          </button>
+          <!-- 选中点位后追加：自动凑成 2×3 完整方阵 -->
+          <button wx:if="{{selectedPoint}}" class="grid-btn" bindtap="goPointDetail">
+            <text class="grid-icon">🗺️</text>
+            <text class="grid-text">{{lang.index.pointDetail}}</text>
+          </button>
+          <button wx:if="{{selectedPoint}}" class="grid-btn" bindtap="goCreateTask">
+            <text class="grid-icon">📋</text>
+            <text class="grid-text">{{lang.index.createTaskForFriend}}</text>
+          </button>
+        </view>
       </view>
     </view>
 
@@ -213,7 +241,7 @@
   </view>
 
   <!-- F-17 剧本任务线浮层：点「开启打卡之旅」/「剧本任务线」按钮弹出，手动关闭 -->
-  <view class="route-mask" wx:if="{{showRouteMask}}" catchtouchmove="noop">
+  <view class="route-mask {{routeClosing ? 'route-mask-out' : ''}}" wx:if="{{showRouteMask}}" catchtouchmove="noop">
     <view class="route-panel">
       <!-- 加载中 -->
       <view class="route-loading" wx:if="{{routeLoading}}">
@@ -237,6 +265,10 @@
         <scroll-view scroll-y class="route-body">
           <!-- 剧本封面 + 进度 -->
           <view class="route-cover {{routeProgress.completed ? 'route-cover-done' : ''}}">
+            <!-- 1940 延安元素：红色印章徽章 -->
+            <view class="route-cover-seal">
+              <text class="route-cover-seal-text">{{lang.routes.coverSeal}}</text>
+            </view>
             <text class="route-cover-desc">{{routeData.desc}}</text>
             <view class="route-progress-row">
               <view class="route-progress-bar">
@@ -247,6 +279,7 @@
             </view>
             <text class="route-cover-bonus" wx:if="{{!routeProgress.completed}}">{{routeData.bonusTipText}}</text>
             <text class="route-cover-done-text" wx:if="{{routeProgress.completed}}">🎉 {{lang.routes.routeDone}}</text>
+            <text class="route-cover-divider" wx:if="{{!routeProgress.completed}}">{{lang.routes.coverDivider}}</text>
           </view>
 
           <!-- 四幕剧情 -->
@@ -254,7 +287,11 @@
             <view class="route-act {{item.status === 'done' ? 'route-act-done' : (item.status === 'current' ? 'route-act-current' : 'route-act-locked')}}"
                   wx:for="{{routeActs}}" wx:key="index">
               <view class="route-act-head">
-                <text class="route-act-index">{{lang.routes.act}}{{index + 1}}</text>
+                <view class="route-act-title">
+                  <text class="route-act-icon">{{item.actIcon}}</text>
+                  <text class="route-act-index">{{lang.routes.act}}{{index + 1}}</text>
+                  <text class="route-act-name">{{item.actName}}</text>
+                </view>
                 <text class="route-act-status" wx:if="{{item.status === 'done'}}">✓ {{lang.routes.stepDone}}</text>
                 <text class="route-act-status route-act-status-current" wx:elif="{{item.status === 'current'}}">▶ {{lang.routes.stepCurrent}}</text>
                 <text class="route-act-status route-act-status-locked" wx:else>🔒 {{lang.routes.stepLocked}}</text>

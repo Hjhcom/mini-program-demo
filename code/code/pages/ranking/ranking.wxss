@@ -129,8 +129,21 @@
   margin-bottom: 18rpx;
 }
 
+/* F-18 UI：榜单入场动画（依次 fadeInUp，延迟由 wxml style 注入） */
+.rank-item.anim {
+  animation: rankIn 0.45s ease backwards;
+}
+
+@keyframes rankIn {
+  from { opacity: 0; transform: translateY(24rpx); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* F-18 UI：我的名次高亮 —— 金色边框 + 微光 + 淡金底 */
 .rank-item.is-me {
-  border: 2rpx solid #4A90D9;
+  border: 2rpx solid #d4a017;
+  background: linear-gradient(135deg, #fffdf5, #fff8e1);
+  box-shadow: 0 0 16rpx rgba(212, 160, 23, 0.25);
 }
 
 .rank-badge {

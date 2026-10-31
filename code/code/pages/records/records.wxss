@@ -283,3 +283,21 @@
 .detail-close::after {
   border: none;
 }
+
+
+/* 空状态插画（F-17 UI） */
+.empty-illus {
+  width: 190rpx;
+  height: 190rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #eef3f8, #e8f5e9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 28rpx;
+  box-shadow: 0 8rpx 24rpx rgba(74, 144, 217, 0.15);
+}
+
+.empty-illus-icon {
+  font-size: 84rpx;
+}

@@ -15,6 +15,9 @@
   <block wx:else>
     <!-- 剧本封面 -->
     <view class="cover {{progress.completed ? 'cover-done' : ''}}">
+      <view class="cover-seal">
+        <text class="cover-seal-text">{{lang.coverSeal}}</text>
+      </view>
       <text class="cover-badge">📖 {{lang.navTitle}}</text>
       <text class="cover-title">{{route.name}}</text>
       <text class="cover-desc">{{route.desc}}</text>
@@ -27,15 +30,20 @@
       </view>
       <text class="cover-bonus" wx:if="{{!progress.completed}}">{{lang.bonusTip}}</text>
       <text class="cover-done-text" wx:if="{{progress.completed}}">🎉 {{lang.routeDone}}</text>
+      <text class="cover-divider" wx:if="{{!progress.completed}}">{{lang.coverDivider}}</text>
     </view>
 
     <!-- 分幕剧情 -->
     <view class="acts">
       <view class="act {{item.status === 'done' ? 'act-done' : (item.status === 'current' ? 'act-current' : 'act-locked')}}"
             wx:for="{{acts}}" wx:key="index">
-        <!-- 幕序号 + 状态 -->
+        <!-- 幕图标 + 幕名 + 状态 -->
         <view class="act-head">
-          <text class="act-index">{{lang.act}}{{index + 1}}</text>
+          <view class="act-title">
+            <text class="act-icon">{{item.actIcon}}</text>
+            <text class="act-index">{{lang.act}}{{index + 1}}</text>
+            <text class="act-name">{{item.actName}}</text>
+          </view>
           <text class="act-status" wx:if="{{item.status === 'done'}}">✓ {{lang.stepDone}}</text>
           <text class="act-status status-current" wx:elif="{{item.status === 'current'}}">▶ {{lang.stepCurrent}}</text>
           <text class="act-status status-locked" wx:else>🔒 {{lang.stepLocked}}</text>

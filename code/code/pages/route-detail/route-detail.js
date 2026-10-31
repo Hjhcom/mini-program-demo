@@ -57,11 +57,14 @@ Page({
         } else {
           status = 'locked'
         }
+        const isLast = i === (route.steps || []).length - 1
         return {
           pointId: s.pointId,
           pointName: p.name || s.pointName || '',
           spell: p.spell || '',
           story: isEn ? (s.storyEn || s.story) : s.story,
+          actName: isEn ? (s.actNameEn || '') : (s.actName || ''),
+          actIcon: isLast ? '✨' : '🔥',
           status: status
         }
       })

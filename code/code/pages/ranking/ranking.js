@@ -6,6 +6,11 @@ const i18n = require('../../utils/i18n')
 // 名次徽标样式：前三名金银铜，其余用普通样式
 const RANK_CLASS = ['', 'gold', 'silver', 'bronze']
 
+// F-18 UI：前三名奖牌 emoji（金牌/银牌/铜牌）
+function medalOf(rank) {
+  return ['🥇', '🥈', '🥉'][rank - 1] || ''
+}
+
 Page({
   data: {
     tab: 'user',        // 当前 Tab：user 玩家榜 / point 点位榜
@@ -92,6 +97,7 @@ Page({
           const pointList = (r.list || []).map(i => ({
             rank: i.rank,
             rankClass: RANK_CLASS[i.rank] || '',
+            rankMedal: i.rank <= 3 ? medalOf(i.rank) : '',
             pointName: i.pointName,
             times: i.times,
             userCount: i.userCount,
@@ -131,6 +137,7 @@ Page({
     return {
       rank: i.rank,
       rankClass: RANK_CLASS[i.rank] || '',
+      rankMedal: i.rank <= 3 ? medalOf(i.rank) : '',
       nickname: nickname,
       initial: nickname.charAt(0), // 无头像时的占位字（wxml 里不便做字符串下标）
       avatarUrl: i.avatarUrl || '',

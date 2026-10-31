@@ -35,9 +35,10 @@
 
     <!-- 榜单列表 -->
     <view class="list" wx:if="{{list.length > 0}}">
-      <view class="rank-item {{item.isMe ? 'is-me' : ''}}" wx:for="{{list}}" wx:key="rank"
+      <view class="rank-item anim {{item.isMe ? 'is-me' : ''}}" wx:for="{{list}}" wx:key="rank"
+            style="animation-delay: {{index * 60}}ms"
             bindtap="onItemTap" data-index="{{index}}">
-        <view class="rank-badge {{item.rankClass}}">{{item.rank}}</view>
+        <view class="rank-badge {{item.rankClass}}">{{item.rankMedal || item.rank}}</view>
         <image class="rank-avatar" src="{{item.avatarUrl}}" mode="aspectFill" wx:if="{{item.avatarUrl}}" />
         <view class="rank-avatar rank-ph" wx:else>{{item.initial}}</view>
         <view class="rank-main">
@@ -62,8 +63,9 @@
   <!-- ===== 点位榜 ===== -->
   <block wx:else>
     <view class="list" wx:if="{{pointList.length > 0}}">
-      <view class="rank-item" wx:for="{{pointList}}" wx:key="rank">
-        <view class="rank-badge {{item.rankClass}}">{{item.rank}}</view>
+      <view class="rank-item anim" wx:for="{{pointList}}" wx:key="rank"
+            style="animation-delay: {{index * 60}}ms">
+        <view class="rank-badge {{item.rankClass}}">{{item.rankMedal || item.rank}}</view>
         <view class="rank-main">
           <text class="rank-name">{{item.pointName}}</text>
           <text class="rank-sub">{{item.subText}}</text>

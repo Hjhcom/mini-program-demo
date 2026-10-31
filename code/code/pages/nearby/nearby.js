@@ -151,6 +151,14 @@ Page({
     wx.previewImage({ urls: [src], current: src })
   },
 
+  // F-18：动态里的打卡点 → 去这里（回首页地图选中该点位，复用 pendingPointId 机制）
+  onPointGoTap(e) {
+    const pointId = e.currentTarget.dataset.point
+    if (!pointId) return
+    app.globalData.pendingPointId = pointId
+    wx.switchTab({ url: '/pages/index/index' })
+  },
+
   // F2：点击头像/昵称进入他人主页（服务端按动态记录解析作者，前端不接触 openid）
   onAvatarTap(e) {
     const recordId = e.currentTarget.dataset.id

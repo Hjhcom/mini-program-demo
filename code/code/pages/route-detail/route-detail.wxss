@@ -60,6 +60,30 @@
   margin-bottom: 16rpx;
 }
 
+.cover-seal {
+  display: inline-block;
+  background: rgba(224, 90, 58, 0.92);
+  color: #fff;
+  font-size: 22rpx;
+  padding: 6rpx 18rpx;
+  border-radius: 6rpx;
+  margin-bottom: 14rpx;
+  box-shadow: 0 2rpx 8rpx rgba(224, 90, 58, 0.35);
+}
+
+.cover-seal-text {
+  letter-spacing: 2rpx;
+}
+
+.cover-divider {
+  display: block;
+  text-align: center;
+  font-size: 22rpx;
+  opacity: 0.85;
+  margin-top: 8rpx;
+  letter-spacing: 2rpx;
+}
+
 .cover-desc {
   display: block;
   font-size: 25rpx;
@@ -89,6 +113,17 @@
   background: #fff;
   border-radius: 7rpx;
   transition: width 0.4s ease;
+}
+
+/* 通关态：进度条变金色并微微发光 */
+.cover-done .progress-fill {
+  background: linear-gradient(90deg, #d4a017, #f5c842);
+  animation: routeGoldGlow 1.6s ease-in-out infinite;
+}
+
+@keyframes routeGoldGlow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.72; }
 }
 
 .progress-text {
@@ -144,18 +179,43 @@
   margin-bottom: 12rpx;
 }
 
+.act-title {
+  display: flex;
+  align-items: center;
+}
+
+.act-icon {
+  font-size: 30rpx;
+  margin-right: 10rpx;
+}
+
 .act-index {
-  font-size: 24rpx;
+  font-size: 22rpx;
   color: #4A90D9;
   font-weight: bold;
   background: #eef3f8;
-  padding: 4rpx 16rpx;
-  border-radius: 16rpx;
+  padding: 4rpx 14rpx;
+  border-radius: 14rpx;
+  margin-right: 12rpx;
+}
+
+.act-name {
+  font-size: 26rpx;
+  font-weight: bold;
+  color: #1a1a1a;
 }
 
 .act-done .act-index {
   color: #2E7D32;
   background: #e8f5e9;
+}
+
+.act-done .act-name {
+  color: #2E7D32;
+}
+
+.act-current .act-name {
+  color: #4A90D9;
 }
 
 .act-status {

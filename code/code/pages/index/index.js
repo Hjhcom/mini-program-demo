@@ -96,7 +96,9 @@ Page({
     routeData: null,
     routeProgress: null,
     routeActs: [],
-    routeError: ''   // 空态区分：''=无线路；非空=加载失败（未部署/报错）
+    routeError: '',   // 空态区分：''=无线路；非空=加载失败（未部署/报错）
+    routeClosing: false, // 浮层淡出中（防重复点击 + 触发 CSS 退出动画）
+    litRipple: false  // F-18 UI：打卡成功时的点亮波纹动画（1.6s 后自动收起）
   },
 
   // 页面加载：初始化登录态 + 拉取打卡点 + 初始化录音
@@ -482,7 +484,12 @@ Page({
     const index = points.findIndex(p => p._id === id)
     if (index < 0) return // 点位已被举报隐藏或删除 → 静默放弃，不打扰用户
     this.selectPointAt(index)
-    this.setData({ scale: 16 })
+    // F-18：跨页跳转选中（动态「去这里」/ 点位列表 / 剧本「去打卡」）——
+    // 必须把地图中心也移到点位经纬度，否则地图还停在上次位置，用户看不到目标点位
+    this.setData({
+      center: { latitude: points[index].latitude, longitude: points[index].longitude },
+      scale: 16
+    })
   },
 
   // F-02：拉取该点位「打卡成功」的人数与最近打卡的玩家
@@ -711,11 +718,15 @@ Page({
         } else {
           status = 'locked'
         }
+        // 剧本化（F-17 UI）：每幕幕名 + 火焰图标（前三幕🔥，终章✨）
+        const isLast = i === (route.steps || []).length - 1
         return {
           pointId: s.pointId,
           pointName: p.name || s.pointName || '',
           spell: p.spell || '',
           story: isEn ? (s.storyEn || s.story) : s.story,
+          actName: isEn ? (s.actNameEn || '') : (s.actName || ''),
+          actIcon: isLast ? '✨' : '🔥',
           status: status
         }
       })
@@ -746,34 +757,72 @@ Page({
     this.loadRouteData()
   },
 
-  // F-17：手动关闭剧本浮层；首次进入时关闭后补引导
+  // F-17：手动关闭剧本浮层（先播放淡出动画，250ms 后再真正移除）；首次进入时关闭后补引导
   closeRouteMask: function () {
-    this.setData({ showRouteMask: false })
-    try {
-      if (!wx.getStorageSync('guideShown')) {
-        this.setData({ showGuide: true })
-      }
-    } catch (e) {}
+    if (this.data.routeClosing) return
+    this.setData({ routeClosing: true })
+    setTimeout(() => {
+      this.setData({ showRouteMask: false, routeClosing: false })
+      try {
+        if (!wx.getStorageSync('guideShown')) {
+          this.setData({ showGuide: true })
+        }
+      } catch (e) {}
+    }, 250)
   },
 
   // F-17：浮层里点「去打卡」→ 关浮层 + 选中对应点位（首页就在当前页，直接 selectPointAt）
   onRouteGoCheckin: function (e) {
     const pointId = e.currentTarget.dataset.point
     if (!pointId) return
-    this.setData({ showRouteMask: false })
+    if (this.data.routeClosing) return
+    this.setData({ routeClosing: true })
     const points = this.data.points || []
     const index = points.findIndex(p => p._id === pointId)
+    // 点位选中提前做（不等到淡出结束），再统一淡出移除浮层
     if (index >= 0) {
       this.selectPointAt(index)
-      this.setData({ scale: 16 })
+      this.setData({
+        center: { latitude: points[index].latitude, longitude: points[index].longitude },
+        scale: 16
+      })
     } else if (points.length === 0) {
       // 点位还没加载回来：先记 pending，等 loadPoints 完成后由 applyPendingPoint 消化
       app.globalData.pendingPointId = pointId
     }
+    setTimeout(() => {
+      this.setData({ showRouteMask: false, routeClosing: false })
+    }, 200)
   },
 
   // F-17：浮层滚动穿透拦截
   noop: function () {},
+
+  // F-18 UI：打卡点亮动画 —— 金色波纹从地图中心扩散（1.6s 后自动收起）
+  playLitRipple: function () {
+    if (this.data.litRipple) return
+    this.setData({ litRipple: true })
+    setTimeout(() => this.setData({ litRipple: false }), 1600)
+  },
+
+  // F-18 UI：打卡成功后本地即时点亮图钉（不重拉 getPoints）
+  // 该点位 hasVisited 置 true → 重建 markers（金色图标）+ 点亮进度条/文案同步
+  refreshLitPoint: function (pointId) {
+    if (!pointId) return
+    const points = this.data.points.map(p => {
+      if (p._id !== pointId) return p
+      if (p.hasVisited) return p // 已是点亮态（重复打卡）无需处理
+      return Object.assign({}, p, { hasVisited: true })
+    })
+    const visitedCount = points.filter(p => p.hasVisited).length
+    this.setData({
+      points: points,
+      markers: this.buildMarkers(points, this.data.selectedPoint ? this.data.selectedPoint._id : null),
+      visitedCount: visitedCount,
+      totalCount: points.length,
+      litProgressText: i18n.format(this.data.lang.index.litProgress, { visited: visitedCount, total: points.length })
+    })
+  },
 
   // 跳转到打卡任务页（点击底部任务提示条）
   goTask: function () {
@@ -906,6 +955,10 @@ Page({
         // F-07：整屏撒花 + 居中结果卡（+10 分）；F-13：带星级与隐藏咒语标记
         this.showCelebrate(r.recognizedText, r.similarity, r.stars, r.isHidden)
         console.log('打卡成功', r)
+        // F-18 UI：打卡成功 → 点亮地图动画（金色波纹 + 进度条跳动）+
+        //          本地即时把该点位图钉刷成金色（不用等下次拉 getPoints）
+        this.playLitRipple()
+        this.refreshLitPoint(point._id)
         // F-17：剧本任务线推进/完成 → 完成时弹窗庆祝（+50 分）
         if (r.routeProgress && r.routeProgress.completed) {
           setTimeout(() => this.showRouteComplete(r.routeProgress), 2600)

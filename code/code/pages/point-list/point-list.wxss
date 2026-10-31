@@ -257,3 +257,34 @@
 .page.font-xl .card-spell { font-size: 29rpx; }
 .page.font-xl .card-dist { font-size: 31rpx; }
 .page.font-xl .card-nav { font-size: 26rpx; }
+
+/* F-18 UI：创建打卡点悬浮入口 */
+.create-bar {
+  position: fixed;
+  left: 50%;
+  bottom: 60rpx;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  padding: 20rpx 48rpx;
+  background: linear-gradient(135deg, #4A90D9, #45b7a6);
+  border-radius: 48rpx;
+  box-shadow: 0 8rpx 24rpx rgba(74, 144, 217, 0.35);
+  z-index: 20;
+}
+
+.create-icon {
+  font-size: 32rpx;
+  color: #ffffff;
+  margin-right: 10rpx;
+}
+
+.create-text {
+  font-size: 28rpx;
+  color: #ffffff;
+  font-weight: bold;
+}
+
+.page.dark .create-bar {
+  background: linear-gradient(135deg, #3a7bc8, #359b8c);
+}

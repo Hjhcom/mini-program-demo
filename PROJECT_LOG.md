@@ -573,7 +573,20 @@ P2 最后两项。一件改云函数、一件纯前端。
 - 本地校验：6 个改动 JS 全部 `node --check` 通过；`test-voice-match` 53 条全绿；`test-points` 25 项全绿；`check-i18n` 586/586 两侧一致、wxml 引用键全在（routes 分区 15 条/侧，含 close），index.wxml 浮层无新增硬编码（剩余 9 处硬编码均为 point-detail/index/mine 历史遗留，非本次引入）；`check-sync` 全绿；`check-json` 全绿（含 route-detail.json 注册）。
 - ⚠️ **首次部署必做（真机复现 -502005 后补充）**：剧本任务线新增 **`routes`** 与 **`route_progress`** 两个数据库集合，云开发不会自动创建——必须在云开发控制台 → 数据库 → 新建集合（两个都要建），否则 getRoutes 报 `collection not exists`。getRoutes 已对 -502005 返回友好指引（"请在云开发控制台新建集合 routes 与 route_progress"）；前端空态改为显示云函数返回的具体错误（不再统一显示"请确认已部署"），i18n 文案相应调整。
 - **UI 修复（真机截图反馈）**：① `bonusTip` 占位符 `{n}` 之前在 wxml 直接绑定显示成 `+[n]`——改为 JS 里 `i18n.format` 填充后存 `routeData.bonusTipText` 再展示（中英两侧都正确显示 +50）；② 浮层内容无法下滑——根因是 `route-panel` 只有 `max-height` 无固定高度、scroll-view 拿不到确定高度，改为 `height:82vh` + `.route-body` 加 `height:0; flex:1`（flex 容器里 scroll-view 可滚动的标准做法）。
+- **UI 迭代（用户选定 剧本化+动画+空态插画）**：
+  - **剧本化**：getRoutes 每幕数据加 `actName`（明理之火/精工之火/军工之火/精工之魂，中英双语）出参下发；首页浮层与 route-detail 页每幕头部显示 🔥/✨ 火焰图标 + 幕名（前三幕🔥，终章✨），状态色联动（done 绿 / current 蓝）；封面加「🕯️ 1940 · 延安自然科学院」红色印章徽章 + 底部装饰线「—— 精工之魂 · 四幕之旅 ——」（迁入 i18n `coverSeal`/`coverDivider`，中英双语，→ routes 分区 19 条/侧，全表 **590/590**）；通关态进度条变金色渐变并微微发光（`routeGoldGlow` pulse 动画）。
+  - **浮层进出场动画**：遮罩淡入 + 面板 slide-up 入场（`routeMaskIn`/`routePanelIn`）；关闭/去打卡走统一淡出（新增 `routeClosing` 状态，250ms 后移除，防重复点击）。
+  - **空态插画**：动态页空态、打卡记录空态加「emoji 圆形渐变底插画」样式（190rpx 圆 + 蓝绿渐变 + 投影，📍/📭），评论空态加 💬 图标 + 居中排版。
 - 待部署云函数（右键上传并部署）：`getRoutes`（新建）/ `voiceCheckin` / `getRanking`。
+- **F-18 动态「去这里」**：动态卡片里的打卡点标签现在可点击（有 pointId 的记录）——点击后经 `app.globalData.pendingPointId` + `switchTab` 回首页地图并选中该点位（复用剧本任务线「去打卡」的既有机制），方便看到别人的打卡地直接去打卡。实现：`getNearby` 出参加 `pointId`（records 里本就存有该字段，早期记录兼容空值）；前端 `onPointGoTap`；标签改为蓝渐变底 + 白字 + 「› 去这里」提示（无 pointId 时保持原浅蓝样式不可跳）；i18n nearby 分区 +1 `goHere`（→ 全表 **595/595**）。⚠️ **需重新部署 `getNearby` 云函数** 后新记录才带 pointId。**修复（真机反馈「只跳首页不定位」）**：`applyPendingPoint` 与 `onRouteGoCheckin` 选中点位后只设 `scale` 没把地图中心移到点位经纬度——补 `center: {latitude, longitude}` setData，动态「去这里」/点位列表/剧本「去打卡」跨页跳转后地图都会直接跳到目标点位。
+
+- **F-18 UI 迭代（用户选定 点亮动画+首页网格+排行榜动效+动态瀑布流，纯前端无云函数改动）**：
+  - **打卡点亮动画**：打卡成功瞬间地图上播放金色波纹扩散动画（`lit-ripple` 三环 ring 1.6s 依次延迟扩散，z-index 8 于地图之上工具之下，自动收起）；点亮进度条同步 `bump` 跳动（0.6s scale 脉冲）。新增 `refreshLitPoint(pointId)`——打卡成功后**本地即时**把该点位 `hasVisited` 置 true、重建 markers（金色图钉）、同步 `visitedCount/litProgressText`，不再等下次拉 getPoints 才变金色（此前打卡成功图钉要等刷新才点亮）；`playLitRipple` 防重复（litRipple 期间忽略）。
+  - **首页功能键（经三轮方案迭代，最终定稿「减法宫格」）**：第一版 2×3 横排小卡、第二版「1+2 通栏主卡」均被用户否决；按用户选定方案最终定为——首页只留 **4 个主入口**（剧本任务线📖渐变高亮格 + 排行榜🏆 + 点位列表📍 + 打卡记录📝）排 2×2 方阵，选中点位时自动追加「点位详情/创建任务」变 2×3 完整方阵（无悬空）；**「创建点位」入口从首页移入点位列表页**（底部悬浮渐变按钮「＋ 创建打卡点」，pointList 分区新增 `createPoint` 键）。竖排图标卡样式沿用（图标 40rpx + 文字、白→淡蓝渐变底、圆角 24rpx），剧本格蓝青渐变白字。
+  - **排行榜动效**：榜单项依次 fadeInUp 入场（`rankIn` 0.45s + wxml style 注入 `index*60ms` 延迟，玩家榜/点位榜共用）；**前三名显示 🥇🥈🥉 奖牌**（新增 `medalOf()` 辅助函数，`rankMedal` 字段替代数字）；**我的名次高亮**升级——金色边框 + 淡金渐变底 + 金色微光 box-shadow。
+  - **动态页（经四轮方案迭代，最终定稿「单列精致信息流」）**：双列方案（widthFix 随图高 → 固定 240rpx → 大头卡 400rpx）连续三轮被用户否决，最终按用户选定回**单列朋友圈风**——头像 80rpx 在左、内容在右（`.feed-content`），卡片白底圆角 24rpx 柔和阴影，作者条（昵称截断+时间+删除）置顶，**照片 4:3 圆角 16rpx**（内容宽约 558rpx × 高 420rpx，不再受窄列挤压），操作条纯图标+数字无分隔线。移除双列分列逻辑（`leftCol`/`rightCol`、`splitCols`/`syncCols` 全部删除），直接 `wx:for="{{list}}"` 渲染，点赞/评论/高亮路径更新逻辑简化。深色模式 `.page.dark .feed-item` 适配保留。
+  - 涉及模块：`pages/index/index.js/.wxml/.wxss`、`pages/ranking/ranking.js/.wxml/.wxss`、`pages/nearby/nearby.js/.wxml/.wxss`、`utils/i18n.js`（index 分区 +1 → 93 条/侧，全表 **591/591**）。
+  - 本地校验：`node --check` 通过（index/ranking/nearby/point-list 改动 JS）；`check-i18n` 593/593 两侧一致、wxml 引用键全在（剩余 9 处硬编码中文仍为 point-detail/mine 历史遗留，非本次引入）；`check-json` 全绿。无需重新部署云函数（无后端改动）。
 
 ## 后续计划
 

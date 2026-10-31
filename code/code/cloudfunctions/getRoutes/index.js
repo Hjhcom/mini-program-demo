@@ -35,6 +35,8 @@ const SEED_ROUTE = {
   steps: [
     {
       pointName: '北京理工大学良乡校区文萃楼B',
+      actName: '明理之火',
+      actNameEn: 'The Spark of Understanding',
       story:
         '笔记把你引向文萃楼。清晨的阳光穿过窗棂，照在还没擦净的黑板上——上面残留着昨晚自习的公式。\n' +
         '你想起开学典礼上校长说的那句话："先明理，而后精工。"\n' +
@@ -46,6 +48,8 @@ const SEED_ROUTE = {
     },
     {
       pointName: '北京理工大学良乡校区甘棠园7D',
+      actName: '精工之火',
+      actNameEn: 'The Spark of Craftsmanship',
       story:
         '夜幕降临，甘棠园的窗口次第亮起。路灯下，一个学长正蹲着修一台老式收音机——\n' +
         '"北理人白天听课，晚上动手。书本上的道理，得靠手上的功夫才立得住。"\n' +
@@ -57,6 +61,8 @@ const SEED_ROUTE = {
     },
     {
       pointName: '北京理工大学良乡校区综教楼A',
+      actName: '军工之火',
+      actNameEn: 'The Spark of Heritage',
       story:
         '综教楼走廊尽头，挂着一张泛黄的老照片：延安窑洞前的师生，身后是简陋的实验设备。\n' +
         '从延安到北京，从窑洞到实验室——"延安根、军工魂"六个字，在这所学校里从未断过。\n' +
@@ -68,6 +74,8 @@ const SEED_ROUTE = {
     },
     {
       pointName: '北京理工大学良乡校区文博中心',
+      actName: '精工之魂',
+      actNameEn: 'The Soul of Craftsmanship',
       story:
         '你带着三枚火焰回到文博中心。展柜最深处，一枚锈迹斑斑的徽章静静躺着，\n' +
         '"德以明理，学以精工"八个字被岁月磨得发亮。\n' +
@@ -139,7 +147,7 @@ async function ensureRoutes() {
   for (const s of SEED_ROUTE.steps) {
     const p = byName[s.pointName]
     if (!p) return [] // 理论到不了这（刚补齐过），防御性兜底：等下次调用
-    steps.push({ pointId: p._id, story: s.story, storyEn: s.storyEn })
+    steps.push({ pointId: p._id, actName: s.actName, actNameEn: s.actNameEn, story: s.story, storyEn: s.storyEn })
   }
 
   await db.collection('routes').add({
@@ -193,6 +201,8 @@ exports.main = async (event) => {
         const visited = visitedIds.has(s.pointId)
         return {
           pointId: s.pointId,
+          actName: s.actName,
+          actNameEn: s.actNameEn,
           story: s.story,
           storyEn: s.storyEn,
           visited: visited,

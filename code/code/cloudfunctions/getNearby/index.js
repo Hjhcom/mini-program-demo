@@ -81,6 +81,7 @@ exports.main = async (event) => {
         _id: r._id,
         type: type,
         content: r.content || '',
+        pointId: r.pointId || '',   // F-18：动态里的打卡点可点击跳转（早期记录可能无此字段）
         pointName: r.pointName,
         spell: r.spell,
         createTime: r.createTime,

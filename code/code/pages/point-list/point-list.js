@@ -172,5 +172,10 @@ Page({
   // 重新定位（用户之前拒绝过权限、现在想再试）
   onRetryLocate: function () {
     this.reload()
+  },
+
+  // F-18 UI：去创建打卡点（入口从首页功能键移入本页）
+  goCreatePoint: function () {
+    wx.navigateTo({ url: '/pages/point-create/point-create' })
   }
 })
