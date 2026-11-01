@@ -12,13 +12,25 @@
     <text class="empty-sub">{{lang.notifications.emptySub}}</text>
   </view>
 
-  <view class="list" wx:else>
-    <view class="item" wx:for="{{list}}" wx:key="_id" data-id="{{item._id}}" bindtap="onItemTap">
-      <!-- 头像 -->
-      <view class="avatar" wx:if="{{item.avatarUrl}}">
-        <image class="avatar-img" src="{{item.avatarUrl}}" mode="aspectFill" />
-      </view>
-      <view class="avatar avatar-ph" wx:else>{{item.avatarText}}</view>
+  <view wx:else>
+    <!-- F-19：顶部工具条：一键全部已读 -->
+    <view class="toolbar">
+      <view class="btn-mark" wx:if="{{hasUnread}}" bindtap="onMarkAllRead">{{lang.notifications.markAllRead}}</view>
+    </view>
+
+    <view class="list">
+      <view class="item" wx:for="{{list}}" wx:key="_id" data-id="{{item._id}}"
+            bindtap="onItemTap" bindlongpress="onItemLongPress">
+        <!-- 头像 + 类型徽标（F-19：点赞红 / 评论蓝 / 好友绿） -->
+        <view class="avatar">
+          <image wx:if="{{item.avatarUrl}}" class="avatar-img" src="{{item.avatarUrl}}" mode="aspectFill" />
+          <text wx:else class="avatar-ph">{{item.avatarText}}</text>
+          <view class="type-badge type-{{item.type}}">
+            <text wx:if="{{item.type === 'like'}}">👍</text>
+            <text wx:elif="{{item.type === 'comment'}}">💬</text>
+            <text wx:else>👥</text>
+          </view>
+        </view>
 
       <!-- 内容 -->
       <view class="body">
@@ -31,6 +43,7 @@
 
       <!-- 未读小红点 -->
       <view class="dot" wx:if="{{!item.read}}"></view>
+    </view>
     </view>
   </view>
   </view>

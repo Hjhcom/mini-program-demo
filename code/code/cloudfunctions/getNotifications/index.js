@@ -12,9 +12,28 @@ const PAGE_SIZE = 30
 exports.main = async (event) => {
   const { OPENID } = cloud.getWXContext()
   if (!OPENID) return { code: -1, msg: '请先登录' }
+  const action = (event && event.action) || 'list'
   const markRead = !!(event && event.markRead)
 
   try {
+    // F-19 消息页升级：一键全部已读
+    if (action === 'markAllRead') {
+      await db.collection('notifications')
+        .where({ toOpenid: OPENID, read: false })
+        .update({ data: { read: true } })
+      return { code: 0, unread: 0 }
+    }
+
+    // F-19 消息页升级：删除单条（where+remove 校验归属，防止删别人的消息）
+    if (action === 'delete') {
+      const id = (event && event.id) || ''
+      if (!id) return { code: -1, msg: '缺少参数' }
+      await db.collection('notifications')
+        .where({ _id: id, toOpenid: OPENID })
+        .remove()
+      return { code: 0 }
+    }
+
     // 1. 拉我的通知（最近一页）
     const res = await db.collection('notifications')
       .where({ toOpenid: OPENID })

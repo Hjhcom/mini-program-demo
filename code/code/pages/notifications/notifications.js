@@ -9,6 +9,7 @@ Page({
   data: {
     list: [],
     loading: true,
+    hasUnread: false,
     dark: false,
     fontScale: 'md',
     lang: i18n.zh
@@ -47,6 +48,7 @@ Page({
     const lang = this.data.lang.notifications
     if (n.type === 'like') return lang.actionLike
     if (n.type === 'comment') return i18n.format(lang.actionComment, { text: n.text || '' })
+    if (n.type === 'reply') return i18n.format(lang.actionReply, { text: n.text || '' })
     if (n.type === 'friend') return lang.actionFriend
     return ''
   },
@@ -85,7 +87,7 @@ Page({
           action: this.actionText(n),
           timeText: this.formatTime(n.createTime)
         }))
-        this.setData({ list, loading: false })
+        this.setData({ list, hasUnread: raw.some(n => !n.read), loading: false })
       } else {
         throw new Error((res.result && res.result.msg) || this.data.lang.notifications.loadFail)
       }
@@ -102,11 +104,11 @@ Page({
     const item = this.data.list.find(n => n._id === id)
     if (!item) return
 
-    // 好友通知：带对方视角关系句柄进主页，归属校验由 userProfile 云函数完成
+    // F-19：好友通知 → 直接进 PK 页（带好友句柄自动开战）
     if (item.type === 'friend') {
       if (!item.friendRecordId) return
       wx.navigateTo({
-        url: `/pages/user-profile/user-profile?friendRecordId=${item.friendRecordId}`
+        url: `/pages/pk/pk?friendRecordId=${item.friendRecordId}`
       })
       return
     }
@@ -115,5 +117,46 @@ Page({
     if (!item.recordId) return
     app.globalData.pendingHighlightRecordId = item.recordId
     wx.switchTab({ url: '/pages/nearby/nearby' })
+  },
+
+  // F-19：一键全部已读
+  onMarkAllRead() {
+    const lang = this.data.lang.notifications
+    wx.cloud.callFunction({ name: 'getNotifications', data: { action: 'markAllRead' } })
+      .then(res => {
+        if (!(res.result && res.result.code === 0)) throw new Error((res.result && res.result.msg) || lang.loadFail)
+        const list = this.data.list.map(n => ({ ...n, read: true }))
+        this.setData({ list, hasUnread: false })
+        wx.removeTabBarBadge({ index: 2 })
+        wx.showToast({ title: lang.markAllDone, icon: 'none' })
+      })
+      .catch(err => {
+        console.error('标记全部已读失败：', err)
+        wx.showToast({ title: lang.loadFail, icon: 'none' })
+      })
+  },
+
+  // F-19：长按删除单条
+  onItemLongPress(e) {
+    const id = e.currentTarget.dataset.id
+    const item = this.data.list.find(n => n._id === id)
+    if (!item) return
+    const lang = this.data.lang.notifications
+    wx.showActionSheet({
+      itemList: [lang.deleteItem],
+      success: (res) => {
+        if (res.tapIndex !== 0) return
+        wx.cloud.callFunction({ name: 'getNotifications', data: { action: 'delete', id } })
+          .then(r => {
+            if (!(r.result && r.result.code === 0)) throw new Error((r.result && r.result.msg) || lang.loadFail)
+            // 重拉刷新列表与角标（不带 markRead，避免把其余未读误标）
+            this.fetchList(false)
+          })
+          .catch(err => {
+            console.error('删除消息失败：', err)
+            wx.showToast({ title: lang.loadFail, icon: 'none' })
+          })
+      }
+    })
   }
 })

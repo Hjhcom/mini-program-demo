@@ -1,5 +1,6 @@
 // pages/point-detail/point-detail.js
 const app = getApp()
+const i18n = require('../../utils/i18n')
 
 Page({
   data: {
@@ -8,11 +9,15 @@ Page({
     point: null,
     totalCheckins: 0,
     photoWall: [],
-    rankList: []
+    rankList: [],
+    spellText: '',
+    totalText: '',
+    lang: i18n.zh
   },
 
   onLoad(options) {
-    this.setData({ pointId: options.pointId || '' })
+    const isEn = app.globalData.language === 'en'
+    this.setData({ pointId: options.pointId || '', lang: isEn ? i18n.en : i18n.zh })
     this.loadDetail()
   },
 
@@ -37,21 +42,28 @@ Page({
             ures.fileList.forEach(f => { urlMap[f.fileID] = f.tempFileURL })
           } catch (e) {}
         }
+        const lang = this.data.lang.pointDetail
         this.setData({
           loading: false,
           point: d.point,
           totalCheckins: d.totalCheckins,
+          spellText: d.point && d.point.spell ? i18n.format(lang.spellFormat, { spell: d.point.spell }) : '',
+          totalText: i18n.format(lang.totalFormat, { n: d.totalCheckins }),
           photoWall: d.photoWall.map(p => ({ ...p, url: urlMap[p.fileID] || p.fileID })),
-          rankList: d.rankList.map(r => ({ ...r, avatarUrl: urlMap[r.avatarUrl] || r.avatarUrl }))
+          rankList: d.rankList.map(r => ({
+            ...r,
+            avatarUrl: urlMap[r.avatarUrl] || r.avatarUrl,
+            countText: i18n.format(lang.rankCount, { n: r.count })
+          }))
         })
-        wx.setNavigationBarTitle({ title: d.point ? d.point.name : '点位详情' })
+        wx.setNavigationBarTitle({ title: d.point ? d.point.name : lang.navTitle })
       } else {
-        throw new Error((res.result && res.result.msg) || '加载失败')
+        throw new Error((res.result && res.result.msg) || this.data.lang.pointDetail.loadFail)
       }
     } catch (e) {
       console.error(e)
       this.setData({ loading: false })
-      wx.showToast({ title: '加载失败', icon: 'none' })
+      wx.showToast({ title: this.data.lang.pointDetail.loadFail, icon: 'none' })
     }
   },
 

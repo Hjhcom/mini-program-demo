@@ -246,7 +246,8 @@ Page({
       commentList: [],
       commentText: '',
       commentHasMore: false,
-      commentLoadingMore: false
+      commentLoadingMore: false,
+      replyTarget: null
     })
     await this.loadComments(true)
   },
@@ -323,11 +324,15 @@ Page({
 
       const res = await wx.cloud.callFunction({
         name: 'addComment',
-        data: { recordId: this.data.currentRecordId, content }
+        data: {
+          recordId: this.data.currentRecordId,
+          content,
+          replyTo: (this.data.replyTarget && this.data.replyTarget.id) || ''
+        }
       })
       wx.hideLoading()
       if (res.result && res.result.code === 0) {
-        this.setData({ commentText: '' })
+        this.setData({ commentText: '', replyTarget: null })
         await this.loadComments(true)
         const index = this.data.list.findIndex(item => item._id === this.data.currentRecordId)
         if (index >= 0) {
@@ -417,5 +422,25 @@ Page({
         }
       }
     })
+  },
+
+  // F-21：回复某条评论（设置回复目标，输入框变为「回复 @昵称」）
+  onReplyComment(e) {
+    const id = e.currentTarget.dataset.id
+    const name = e.currentTarget.dataset.name
+    if (!id) return
+    const lang = this.data.lang.nearby
+    this.setData({
+      replyTarget: {
+        id: id,
+        nickname: name,
+        placeholder: i18n.format(lang.replyPlaceholder, { name: name })
+      }
+    })
+  },
+
+  // F-21：取消回复（恢复普通评论）
+  clearReplyTarget() {
+    this.setData({ replyTarget: null })
   }
 })

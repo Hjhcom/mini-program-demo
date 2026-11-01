@@ -114,16 +114,23 @@
             <text class="comment-time">{{item.timeText}}</text>
             <text wx:if="{{item.isMine}}" class="comment-del" data-id="{{item._id}}" bindtap="onDeleteComment">{{lang.nearby.commentDelete}}</text>
           </view>
-          <text class="comment-text">{{item.content}}</text>
+          <text class="comment-text">
+            <text wx:if="{{item.replyToNickname}}" class="comment-reply-to">@{{item.replyToNickname}} </text>{{item.content}}
+          </text>
           <view class="comment-like" data-id="{{item._id}}" bindtap="onLikeComment">
             <text class="comment-like-icon">{{item.isLiked ? '❤️' : '🤍'}}</text>
             <text class="comment-like-count">{{item.likesCount || 0}}</text>
           </view>
+          <view class="comment-reply" data-id="{{item._id}}" data-name="{{item.nickname}}" bindtap="onReplyComment">{{lang.nearby.reply}}</view>
         </view>
       </view>
     </scroll-view>
     <view class="comment-input-bar">
-      <input class="comment-input" placeholder="{{lang.nearby.commentPlaceholder}}" value="{{commentText}}" bindinput="onCommentInput" confirm-type="send" bindconfirm="onSendComment" />
+      <view class="comment-reply-tag" wx:if="{{replyTarget}}" bindtap="clearReplyTarget">
+        <text class="comment-reply-tag-text">{{lang.nearby.replyTo}}: @{{replyTarget.nickname}}</text>
+        <text class="comment-reply-tag-x">✕</text>
+      </view>
+      <input class="comment-input" placeholder="{{replyTarget ? replyTarget.placeholder : lang.nearby.commentPlaceholder}}" value="{{commentText}}" bindinput="onCommentInput" confirm-type="send" bindconfirm="onSendComment" />
       <view class="comment-send-btn" bindtap="onSendComment">{{lang.nearby.send}}</view>
     </view>
   </view>

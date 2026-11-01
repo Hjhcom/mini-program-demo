@@ -119,6 +119,18 @@ async function dropFile(fileID, why) {
   }
 }
 
+// F-20 防作弊：两经纬度直线距离（米），haversine 公式（云函数独立打包，就地实现）
+function haversineM(lat1, lng1, lat2, lng2) {
+  const R = 6371000
+  const toRad = d => d * Math.PI / 180
+  const dLat = toRad(lat2 - lat1)
+  const dLng = toRad(lng2 - lng1)
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+    Math.sin(dLng / 2) * Math.sin(dLng / 2)
+  return 2 * R * Math.asin(Math.sqrt(a))
+}
+
 // ========== F-17 剧本任务线：打卡成功后推进线路进度 ==========
 // 规则：线路按顺序打卡（steps 数组）。玩家必须从第一幕依次打到最后一幕。
 //  - 该点位是某条线路的「下一个待打卡点」→ 推进 currentIndex（或首次开始时创建进度）
@@ -217,6 +229,42 @@ exports.main = async (event, context) => {
     targetSpell = task.spell
   }
 
+  // ========== F-20 防作弊 ==========
+  // 1) 定位距离校验：必须携带当前定位，且与打卡点直线距离 ≤ 300 米。
+  //    前端 inRange 门禁可被绕过/模拟器改参，云函数端才是最终防线；
+  //    先于讯飞识别拦截，既防刷分也省一次讯飞调用。gcj02 与地图坐标系一致，误差 ±30m 量级。
+  const lat = Number(event.latitude)
+  const lng = Number(event.longitude)
+  const CHECKIN_MAX_DIST = 300 // 米：官方点位/玩家点位统一兜底阈值
+  if (!isFinite(lat) || !isFinite(lng)) {
+    await dropFile(fileID, '缺少定位')
+    return { code: -1, msg: '请开启定位后再打卡', errCode: 'no_location' }
+  }
+  const distM = haversineM(lat, lng, point.latitude, point.longitude)
+  if (distM > CHECKIN_MAX_DIST) {
+    await dropFile(fileID, '距离过远')
+    return { code: -1, msg: '离打卡点太远，请靠近后再试', errCode: 'too_far' }
+  }
+
+  // 2) 同日同点限一次：同一 openid 同一打卡点同一天只允许成功一次。
+  //    任务打卡豁免——避免"上午普通打过、下午接任务还要再打一次"被误伤。
+  //    dayKey 按 UTC+8 自然日（云函数容器时区是 UTC，直接取本地日期会差 8 小时）。
+  const bjNow = new Date(Date.now() + 8 * 3600 * 1000)
+  const bjMonth = bjNow.getUTCMonth() + 1
+  const bjDate = bjNow.getUTCDate()
+  const dayKey = bjNow.getUTCFullYear() + '-' +
+    (bjMonth < 10 ? '0' : '') + bjMonth + '-' +
+    (bjDate < 10 ? '0' : '') + bjDate
+  if (!taskId) {
+    const dupRes = await db.collection('records')
+      .where({ openid: OPENID, pointId: pointId, dayKey: dayKey, matched: true })
+      .count()
+    if (dupRes.total > 0) {
+      await dropFile(fileID, '同日重复打卡')
+      return { code: -1, msg: '今天已经在这个点位打卡过了，明天再来吧', errCode: 'duplicate_today' }
+    }
+  }
+
   // 3. 讯飞识别
   //    只有 44 字节 = 裸 wav 头、一个采样点都没有（麦克风压根没录到声音）。
   //    这种情况不必去打讯飞（白等一次 WebSocket 往返 + 可能报 10107），
@@ -263,19 +311,8 @@ exports.main = async (event, context) => {
   }
 
   // 6. 写入打卡记录
-  //    dayKey：按 UTC+8 算出的自然日（'YYYY-MM-DD'），供 F-04 连续打卡统计使用，
+  //    dayKey（上方 F-20 已按 UTC+8 算好）：供 F-04 连续打卡统计使用，
   //    也是将来给 records 建「同一用户同一点位同一天唯一」索引的前提。
-  //    ⚠️ 云函数容器时区是 UTC，直接取本地日期会差 8 小时 ——
-  //       北京时间 00:00~08:00 的打卡会被算成前一天，连续打卡天数就会错。
-  //    另外：各云函数目录之间不能互相 require（部署时是各自独立打包的），
-  //    所以这里的换算逻辑只能就地实现，不能引 getBadges/lib/badges.js。
-  const bjNow = new Date(Date.now() + 8 * 3600 * 1000)
-  const bjMonth = bjNow.getUTCMonth() + 1
-  const bjDate = bjNow.getUTCDate()
-  const dayKey = bjNow.getUTCFullYear() + '-' +
-    (bjMonth < 10 ? '0' : '') + bjMonth + '-' +
-    (bjDate < 10 ? '0' : '') + bjDate
-
   const addRes = await db.collection('records').add({
     data: {
       openid: OPENID,

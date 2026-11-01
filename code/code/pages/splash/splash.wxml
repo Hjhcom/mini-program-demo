@@ -6,9 +6,9 @@
   <view class="logo">
     <image class="logo-img" src="/images/bit-logo.png" mode="aspectFit" />
   </view>
-  <view class="title">依声游理</view>
-  <view class="subtitle">德以明理 · 学以精工</view>
-  <view class="desc">到点打卡，念出咒语，畅游北理</view>
+  <view class="title">{{lang.index.welcomeTitle}}</view>
+  <view class="subtitle">{{lang.index.welcomeSlogan}}</view>
+  <view class="desc">{{lang.index.welcomeSub}}</view>
 
   <view class="skip" bindtap="onSkip">{{countdown > 0 ? '跳过 ' + countdown + 's' : '进入'}}</view>
 </view>

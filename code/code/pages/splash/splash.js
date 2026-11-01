@@ -1,11 +1,17 @@
 // pages/splash/splash.js —— 启动封面：展示 5 秒后自动跳转首页
+const app = getApp()
+const i18n = require('../../utils/i18n')
+
 Page({
   data: {
-    countdown: 5 // 封面倒计时（秒）
+    countdown: 5, // 封面倒计时（秒）
+    lang: i18n.zh
   },
 
   // 页面显示时开始倒计时
   onShow: function () {
+    const isEn = app.globalData.language === 'en'
+    this.setData({ lang: isEn ? i18n.en : i18n.zh })
     this.startCountdown()
   },
 

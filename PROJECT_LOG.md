@@ -588,6 +588,32 @@ P2 最后两项。一件改云函数、一件纯前端。
   - 涉及模块：`pages/index/index.js/.wxml/.wxss`、`pages/ranking/ranking.js/.wxml/.wxss`、`pages/nearby/nearby.js/.wxml/.wxss`、`utils/i18n.js`（index 分区 +1 → 93 条/侧，全表 **591/591**）。
   - 本地校验：`node --check` 通过（index/ranking/nearby/point-list 改动 JS）；`check-i18n` 593/593 两侧一致、wxml 引用键全在（剩余 9 处硬编码中文仍为 point-detail/mine 历史遗留，非本次引入）；`check-json` 全绿。无需重新部署云函数（无后端改动）。
 
+## F-19 消息页升级（2026-11-01）
+
+- **范围**：用户从 8 个升级方向选定 ①类型图标彩色化 ④一键已读/长按删除 ⑥好友通知跳 PK 页。
+- **类型徽标**：头像右下角 38rpx 圆形徽标三色区分——点赞红❤(like, #ff6b6b) / 评论蓝💬(comment, #4a90d9) / 好友绿👥(friend, #4caf50)，白描边不遮头像。
+- **一键全部已读**：列表顶部右侧胶囊按钮（仅存在未读时显示），点击调云函数 `action:'markAllRead'`（where toOpenid+read:false 批量置读）→ 本地列表全置已读 + 移除 tabBar 角标 + toast；**长按单条删除**：ActionSheet「删除该消息」→ 云函数 `action:'delete'`（where `{_id, toOpenid}` 校验归属防删他人消息）→ 前端重拉刷新列表与角标（不带 markRead，避免误标其他未读）。
+- **好友通知跳转**：friend 通知点击从 user-profile（对方主页）改为直接进 **PK 页**（`/pages/pk/pk?friendRecordId=`，pk 页 onLoad 收 autoFriendRecordId 自动开战）。
+- **i18n**：notifications 分区 8→11（markAllRead / markAllDone / deleteItem，zh+en 双写，全表 **598/598**）。⚠️ **需重新部署 `getNotifications` 云函数**（新增 action 分支）。
+
+## F-20 防作弊 + i18n 硬编码清零（2026-11-01）
+
+- **防作弊（云函数端最终防线 + 前端联动）**：
+  - **定位距离校验**：`voiceCheckin` 必须收到 `event.latitude/longitude`（前端 checkIn 时 `wx.getLocation` 存 `_loc`，录音停止后随调用上传），云函数 haversine 算与打卡点直线距离，**>300 米拒绝**（`errCode:'too_far'`）并删除该录音；无定位直接拒绝（`errCode:'no_location'`）。校验放在**讯飞识别之前**——既防刷分又省一次讯飞调用。前端已有 inRange 围栏门禁（录音按钮 `wx:if="{{inRange}}"`），云函数兜底防"改前端/模拟器绕过"。haversine 实现已用三组已知坐标自测（赤道 1°≈111km、北纬 39.9° 0.01°≈853m，误差 <1%）。
+  - **同日同点限一次**：非任务打卡时，查 records `{openid, pointId, dayKey, matched:true}` 已存在 → 拒绝（`errCode:'duplicate_today'`）；**任务打卡豁免**（避免"上午普通打过、下午接任务还要再打"被误伤）。dayKey 计算上移到校验处（原写记录处删除，复用同一变量）。
+  - **前端 errCode→i18n 文案映射**：`no_location/too_far/duplicate_today` 走语言包（切英文不露中文），其余失败仍直显服务端 msg。
+- **i18n 硬编码清零**（全表 **616/616**）：point-detail 页整体接入 i18n（新 `pointDetail` 分区 9 键，wxml 7 处 + js 3 处，含 `spellFormat/totalFormat/rankCount` 格式化预拼）；mine 热力图标题与图例（少/多）；ranking 周期切换（本周/本月/总榜）；splash 启动封面接入 i18n（复用 index 分区 welcomeTitle/Slogan/Sub）。login/profile 的单字视觉图标（微/机/客、人/客）属装饰元素，保留不译。
+- ⚠️ **需重新部署 `voiceCheckin` 云函数**（防作弊新逻辑）。⚠️ 开发者工具调试：默认模拟定位离打卡点数千公里会全被拒——请在开发者工具「定位」菜单把模拟位置设为北理工（如文萃楼B 39.7xx,116.1xx），真机在校园内正常。
+
+## F-21 评论回复 + 数据大屏（2026-11-01）
+
+- **评论回复 / @（社交闭环）**：评论面板每条评论新增「回复」按钮 → 输入框变为「回复 @昵称」（蓝底标签可点击 ✕ 取消）；评论内容前显示 `@被回复者`（replyToNickname 蓝字）；提交带 `replyTo`。云端：`addComment` 支持 `replyTo` 参数并写入评论；被回复者（非本人、非动态主人，避免重复通知）收到 **type='reply' 通知 + 订阅消息推送**（复用评论模板）；`getComments` 出参加 `replyTo/replyToNickname`（被回复评论作者 openid 并入用户联查）。消息中心 `actionText` 新增 reply 分支，点击同评论通知一样跳动态高亮。i18n：nearby +3（reply/replyTo/replyPlaceholder）、notifications +1（actionReply）→ 全表 **620/620**。
+- **数据大屏（答辩投屏亮点）**：
+  - `getDashboardData`（新建云函数）：聚合返回今日/累计打卡、活跃玩家、已点亮/总点位（records matched:true 聚合去重）、最近 10 条打卡（昵称/点位/咒语）、打卡次数榜 TOP10（聚合 group openid）、剧本完成率（route_progress 去重 openid）、点位热度 TOP10（聚合 group pointName）。口径与 voiceCheckin 一致（dayKey 按 UTC+8）。
+  - `dashboard/index.html`（独立目录，项目根下）：深蓝科技风大屏，ECharts 点位热度横向条形图 + 剧本通关率仪表盘，北理工校徽/1940 水印/蓝金配色；指标卡数字滚动动画、最近打卡滑动入场、TOP3 金银铜高亮；**30 秒自动刷新**。
+  - **接入方式**：云开发控制台 → HTTP 访问服务 → 添加 `getDashboardData` 路由 → 把 `<环境ID>` 填进 HTML 顶部 `API_URL`；未配置时自动展示演示数据并在右上角标注「演示数据」，保证答辩不翻车。
+- ⚠️ **需部署云函数**：`addComment` / `getComments`（评论回复）、`getDashboardData`（大屏）。
+
 ## 后续计划
 
 > 待补充：以下为基于当前进度的建议项，请按团队实际安排更新。

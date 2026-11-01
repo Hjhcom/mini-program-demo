@@ -627,6 +627,8 @@ Page({
     wx.getLocation({
       type: 'gcj02', // 与腾讯地图坐标系一致
       success: res => {
+        // F-20 防作弊：记住本次定位，录音完成后随 voiceCheckin 上报给云函数做距离校验
+        this._loc = { latitude: res.latitude, longitude: res.longitude }
         // 调试用：打印当前真实 GPS 坐标（校准打卡点后可删）
         console.log('📍 我的当前位置：经度', res.longitude, '纬度', res.latitude,
                     '｜打卡点坐标：经度', p.longitude, '纬度', p.latitude)
@@ -932,17 +934,26 @@ Page({
         data: {
           fileID: up.fileID,
           pointId: point._id,
-          taskId: taskId
+          taskId: taskId,
+          // F-20 防作弊：把 checkIn 时定位到的坐标上报，云函数做 300m 距离兜底校验
+          latitude: (this._loc && this._loc.latitude) || null,
+          longitude: (this._loc && this._loc.longitude) || null
         }
       })
     }).then(res => {
       const r = res.result || {}
       // 任务校验失败（任务不存在 / 状态异常 / 不属于你 / 已超时）时先兜住 msg
       if (r.code !== 0) {
-        const msg = r.msg || lang.index.failTitleGeneric
+        // F-20 防作弊：专用错误码映射 i18n 文案（切英文不露中文），其余仍直显服务端 msg
+        const errMap = {
+          no_location: lang.index.checkinNoLocation,
+          too_far: lang.index.checkinTooFar,
+          duplicate_today: lang.index.checkinTodayDone
+        }
+        const msg = errMap[r.errCode] || r.msg || lang.index.failTitleGeneric
         this.setData({ tip: '⚠️ ' + msg })
         // F-07：这类失败也走一次反馈动效（原则：只要"这次打卡没成"，用户就该被明确告知）
-        this.showFailFeedback(lang.index.failTitleGeneric, r.msg || '')
+        this.showFailFeedback(lang.index.failTitleGeneric, msg)
         return
       }
       if (r.matched) {

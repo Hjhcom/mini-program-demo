@@ -9,9 +9,9 @@
 
   <!-- 时间范围筛选 -->
   <view class="period-bar">
-    <view class="period-item {{period == 'week' ? 'on' : ''}}" bindtap="onPeriod" data-period="week">本周</view>
-    <view class="period-item {{period == 'month' ? 'on' : ''}}" bindtap="onPeriod" data-period="month">本月</view>
-    <view class="period-item {{period == 'all' ? 'on' : ''}}" bindtap="onPeriod" data-period="all">总榜</view>
+    <view class="period-item {{period == 'week' ? 'on' : ''}}" bindtap="onPeriod" data-period="week">{{lang.ranking.periodWeek}}</view>
+    <view class="period-item {{period == 'month' ? 'on' : ''}}" bindtap="onPeriod" data-period="month">{{lang.ranking.periodMonth}}</view>
+    <view class="period-item {{period == 'all' ? 'on' : ''}}" bindtap="onPeriod" data-period="all">{{lang.ranking.periodAll}}</view>
   </view>
 
   <!-- ===== 玩家榜 ===== -->

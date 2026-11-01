@@ -111,6 +111,10 @@ const zh = {
     guide3Title: '和好友一起玩',
     guide3Desc: '打卡自动生成动态，点赞评论、互相 PK，点亮校园地图',
     litProgress: '已点亮 {visited}/{total}',
+    // F-20 防作弊提示
+    checkinNoLocation: '请开启定位后再打卡',
+    checkinTooFar: '离打卡点太远，请靠近后再试',
+    checkinTodayDone: '今天已经在这个点位打卡过了，明天再来吧',
     // ===== 打卡照片 =====
     askPhotoTake: '拍一张打卡照片',
     askPhotoSkip: '不用了',
@@ -155,6 +159,9 @@ const zh = {
     logoutConfirm: '确定要退出登录吗？',
     logoutDone: '已退出登录',
     building: '「{type}」功能建设中，敬请期待',
+    heatmapTitle: '我的打卡热力图',
+    heatmapLow: '少',
+    heatmapHigh: '多',
     tip: '提示'
   },
   login: {
@@ -219,6 +226,9 @@ const zh = {
     loading: '加载中…',
     loadingMore: '正在加载更多…',
     goHere: '去这里',
+    reply: '回复',
+    replyTo: '回复',
+    replyPlaceholder: '回复 @{name}',
     pullUpMore: '上拉加载更多',
     noMore: '没有更多了',
     loadFail: '加载失败，请检查 getRecords 云函数',
@@ -398,6 +408,9 @@ const zh = {
     loading: '排行榜加载中…',
     loadFail: '加载失败，请检查 getRanking 云函数',
     limitNote: '仅展示前 50 名',
+    periodWeek: '本周',
+    periodMonth: '本月',
+    periodAll: '总榜',
     pointsUnit: '分',
     timesUnit: '次',
     rulesBtn: '积分规则',
@@ -554,8 +567,24 @@ const zh = {
     emptySub: '点赞、评论、好友通知都会出现在这里',
     actionLike: '赞了你的动态',
     actionComment: '评论：{text}',
+    actionReply: '回复了你的评论：{text}',
     actionFriend: '通过邀请码加了你为好友',
-    loadFail: '消息加载失败，请稍后重试'
+    loadFail: '消息加载失败，请稍后重试',
+    markAllRead: '全部已读',
+    markAllDone: '已全部标为已读',
+    deleteItem: '删除该消息'
+  },
+  // ===== 点位详情（F-20 清硬编码） =====
+  pointDetail: {
+    loading: '加载中...',
+    spellFormat: '咒语：「{spell}」',
+    totalFormat: '共 {n} 次打卡',
+    photoWall: '打卡照片墙',
+    noPhotos: '还没有打卡照片',
+    rankTitle: '打卡次数排行',
+    rankCount: '{n} 次',
+    navTitle: '点位详情',
+    loadFail: '加载失败'
   },
   // ===== 动态流（F1/F3/F4） =====
   routes: {
@@ -767,6 +796,10 @@ const en = {
     guide3Title: 'Play with friends',
     guide3Desc: 'Check-ins become feeds; like and comment, PK with friends, light up the campus map',
     litProgress: 'Lit {visited}/{total}',
+    // F-20 anti-cheat tips
+    checkinNoLocation: 'Enable location to check in',
+    checkinTooFar: 'Too far from this point, move closer and try again',
+    checkinTodayDone: 'Already checked in here today, come back tomorrow',
     // ===== check-in photo =====
     askPhotoTake: 'Take a check-in photo',
     askPhotoSkip: 'Not now',
@@ -811,6 +844,9 @@ const en = {
     logoutConfirm: 'Are you sure to log out?',
     logoutDone: 'Logged out',
     building: '"{type}" is under construction, stay tuned',
+    heatmapTitle: 'My Check-in Heatmap',
+    heatmapLow: 'Less',
+    heatmapHigh: 'More',
     tip: 'Notice'
   },
   login: {
@@ -875,6 +911,9 @@ const en = {
     loading: 'Loading…',
     loadingMore: 'Loading more…',
     goHere: 'Go Here',
+    reply: 'Reply',
+    replyTo: 'Reply',
+    replyPlaceholder: 'Reply to @{name}',
     pullUpMore: 'Pull up to load more',
     noMore: 'No more records',
     loadFail: 'Failed to load, check the getRecords cloud function',
@@ -1054,6 +1093,9 @@ const en = {
     loading: 'Loading leaderboard…',
     loadFail: 'Failed to load, check the getRanking cloud function',
     limitNote: 'Top 50 only',
+    periodWeek: 'Week',
+    periodMonth: 'Month',
+    periodAll: 'All Time',
     pointsUnit: 'pts',
     timesUnit: 'times',
     rulesBtn: 'Scoring rules',
@@ -1210,8 +1252,24 @@ const en = {
     emptySub: 'Likes, comments and friend requests appear here',
     actionLike: 'liked your feed',
     actionComment: 'commented: {text}',
+    actionReply: 'replied to your comment: {text}',
     actionFriend: 'added you via invite code',
-    loadFail: 'Failed to load messages, please retry later'
+    loadFail: 'Failed to load messages, please retry later',
+    markAllRead: 'Mark All Read',
+    markAllDone: 'All messages marked as read',
+    deleteItem: 'Delete Message'
+  },
+  // ===== point detail =====
+  pointDetail: {
+    loading: 'Loading...',
+    spellFormat: 'Spell: "{spell}"',
+    totalFormat: '{n} check-ins in total',
+    photoWall: 'Check-in Photos',
+    noPhotos: 'No check-in photos yet',
+    rankTitle: 'Check-in Ranking',
+    rankCount: '{n} times',
+    navTitle: 'Point Detail',
+    loadFail: 'Failed to load'
   },
   // ===== feed =====
   routes: {
