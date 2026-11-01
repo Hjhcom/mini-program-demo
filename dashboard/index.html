@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>依声游理 · 校园数据大屏</title>
+<script src="https://static.cloudbase.net/cloudbase-js-sdk/2.7.0/cloudbase.full.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
 <style>
   :root {
@@ -305,11 +306,12 @@
 
 <script>
 // ============================================================
-// 1) 数据源配置：部署 getDashboardData 云函数后，
-//    在云开发控制台 → HTTP 访问服务 添加该函数路由，
-//    把下面的 URL 换成你的 <环境ID>，即可接入实时数据。
-//    未配置时自动展示演示数据（右上角会标注「演示数据」）。
-const API_URL = 'https://cloud1-d2gled32od1bdcb02-1494285698.ap-shanghai.app.tcloudbase.com/httptoto666';
+// 1) 数据源配置（免费方案：云开发 Web SDK 匿名登录直连云函数，不需要 HTTP 访问服务/充值）
+//    - 环境 ID 填你的：cloud1-d2gled32od1bdcb02
+//    - 需在云开发控制台「环境 → 登录方式」开启「匿名登录」（免费）
+//    - 需把 getDashboardData 云函数权限设为「所有用户可调用」
+//    - 全部失败时自动展示演示数据（右上角标注「演示数据」），答辩不翻车
+const CLOUD_ENV = 'cloud1-d2gled32od1bdcb02';
 const REFRESH_MS = 30000;
 // ============================================================
 
@@ -460,23 +462,48 @@ function renderRoute(rs) {
   }, true);
 }
 
-async function load() {
-  let data = null, isDemo = false;
-  if (API_URL) {
-    try {
-      const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), 8000);
-      const res = await fetch(API_URL, { signal: ctrl.signal });
-      clearTimeout(timer);
-      const json = await res.json();
-      if (json && json.code === 0) data = json;
-    } catch (e) { console.warn('大屏数据拉取失败，切换到演示数据：', e); }
+// 云开发 Web SDK 匿名登录（兼容不同版本 API）
+async function sdkLogin(app) {
+  try {
+    const auth = app.auth({ persistence: 'local' });
+    if (auth && typeof auth.signInAnonymously === 'function') { await auth.signInAnonymously(); return true; }
+  } catch (e) { console.warn('signInAnonymously 失败：', e); }
+  try {
+    const auth2 = app.auth({ persistence: 'local' });
+    const p = auth2.anonymousAuthProvider();
+    await p.signIn();
+    return true;
+  } catch (e) { console.warn('anonymousAuthProvider 失败：', e); }
+  return false;
+}
+
+// 通过 Web SDK 拉取实时数据（走云开发鉴权通道，免费、无跨域问题）
+async function loadSDK() {
+  if (!window.cloudbase) return null;
+  try {
+    const app = window.cloudbase.init({ env: CLOUD_ENV });
+    const ok = await sdkLogin(app);
+    if (!ok) { console.warn('匿名登录未开启或失败，请在控制台「环境→登录方式」开启匿名登录'); return null; }
+    const res = await app.callFunction({ name: 'getDashboardData' });
+    const r = res && res.result;
+    if (r && r.code === 0) return r;
+    console.warn('getDashboardData 调用异常：', r);
+    return null;
+  } catch (e) {
+    console.warn('Web SDK 拉取失败：', e);
+    return null;
   }
-  if (!data) { data = demo; isDemo = true; }
+}
+
+async function load() {
+  let data = null, isDemo = false, mode = '';
+  data = await loadSDK();
+  if (data) { mode = '实时数据'; }
+  else { data = demo; isDemo = true; mode = '演示数据'; }
 
   currentData = data;
   const badge = $id('dataMode');
-  badge.textContent = isDemo ? '演示数据' : '实时数据';
+  badge.textContent = mode;
   badge.className = 'badge' + (isDemo ? ' demo' : '');
   $id('updateTime').textContent = fmtTime(data.generatedAt || Date.now()) + ' 更新';
 
