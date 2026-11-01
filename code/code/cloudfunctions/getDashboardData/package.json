@@ -1,0 +1,9 @@
+{
+  "name": "getDashboardData",
+  "version": "1.0.0",
+  "description": "校园数据大屏：聚合打卡/排行/剧本/点位热度数据",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}
