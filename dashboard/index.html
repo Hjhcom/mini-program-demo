@@ -312,6 +312,8 @@
 //    - 需把 getDashboardData 云函数权限设为「所有用户可调用」
 //    - 全部失败时自动展示演示数据（右上角标注「演示数据」），答辩不翻车
 const CLOUD_ENV = 'cloud1-d2gled32od1bdcb02';
+// HTTP 网关路由（跨域已开启时优先走它；失败自动切 Web SDK；再失败兜底演示数据）
+const API_URL = 'https://cloud1-d2gled32od1bdcb02-1494285698.ap-shanghai.app.tcloudbase.com/httpstoto666';
 const REFRESH_MS = 30000;
 // ============================================================
 
@@ -462,14 +464,27 @@ function renderRoute(rs) {
   }, true);
 }
 
-// 云开发 Web SDK 匿名登录（兼容不同版本 API / 全局变量）
+// ① 优先：HTTP 网关 fetch（跨域已开启时最直接）
+async function loadFetch() {
+  if (!API_URL) return null;
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 8000);
+    const res = await fetch(API_URL, { signal: ctrl.signal });
+    clearTimeout(timer);
+    const json = await res.json();
+    if (json && json.code === 0) return json;
+    return null;
+  } catch (e) { console.warn('HTTP 网关 fetch 失败：', e); return null; }
+}
+
+// ② 兜底：云开发 Web SDK 匿名登录直连云函数（免费、无跨域问题）
 async function loadSDK() {
   const SDK = window.cloudbase || window.tcb;
   if (!SDK) { console.warn('CloudBase Web SDK 未加载（CDN 失败？）'); return null; }
   try {
     const app = SDK.init({ env: CLOUD_ENV });
     const auth = app.auth({ persistence: 'local' });
-    // 旧版 tcb-js-sdk：signInAnonymously；新版：anonymousAuthProvider().signIn()
     if (typeof auth.signInAnonymously === 'function') {
       await auth.signInAnonymously();
     } else if (auth.anonymousAuthProvider) {
@@ -487,10 +502,10 @@ async function loadSDK() {
 }
 
 async function load() {
-  let data = null, isDemo = false, mode = '';
-  data = await loadSDK();
-  if (data) { mode = '实时数据'; }
-  else { data = demo; isDemo = true; mode = '演示数据'; }
+  let data = await loadFetch();
+  let isDemo = false, mode = '实时数据';
+  if (!data) data = await loadSDK();
+  if (!data) { data = demo; isDemo = true; mode = '演示数据'; }
 
   currentData = data;
   const badge = $id('dataMode');
