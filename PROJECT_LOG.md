@@ -614,6 +614,7 @@ P2 最后两项。一件改云函数、一件纯前端。
   - **接入方式**：云开发控制台 → HTTP 访问服务 → 添加 `getDashboardData` 路由 → 把 `<环境ID>` 填进 HTML 顶部 `API_URL`；未配置时自动展示演示数据并在右上角标注「演示数据」，保证答辩不翻车。
   - **实时接入排障链（2026-11-01 已打通 ✅）**：① 路由跨域 SDEFAULT → 改为「已开启」；② Web SDK CDN 2.7.0 实为 404 → 换 1.7.2，浏览器直连 tcb-api 仍被网关 CORS 拦（需 Web 安全域名白名单，未继续）→ 最终回归 **HTTP 网关 fetch 优先 + Web SDK 兜底** 双数据源；③ 接口报 FUNCTIONS_INVOCATION_FAILED → 控制台「测试」定位为 **Cannot find module 'wx-server-sdk'**：新函数目录缺 package.json，云端装不了依赖 → 补 package.json（wx-server-sdk ~2.6.3）+ 右键「上传并部署：云端安装依赖」（Updating 状态冲突需等待重试）→ 接口返回真实 JSON ✅。函数重写为逐段容错（任何一段聚合失败只影响该指标，不整抛）。
 - ⚠️ **需部署云函数**：`addComment` / `getComments`（评论回复）、`getDashboardData`（大屏）。
+- **小程序内置数据大屏（免费方案落地，替代付费跨域）**：浏览器直连云开发网关受 CORS 限制，跨域配置/Web 安全域名在用户控制台版本不可用或需付费 → 新增 `pages/dashboard` 小程序页面，**`wx.cloud.callFunction` 原生调用 `getDashboardData`**（零跨域、零付费、零配置）。深蓝科技风 + 校徽 + 1940 水印 + 蓝金配色：指标卡 2×2（今日/累计/活跃/点亮点位）、最近打卡、排行榜 TOP5（前三 🥇🥈🥉）、点位热度进度条、剧本完成率金色环形（conic-gradient）；30 秒自动刷新；接口失败兜底演示数据并标注「演示数据」。入口：「我的」页功能列表首项「📊 数据大屏」。i18n 新增 `dashboard` 分区 21 键 + `mine.dashboard` → 全表 **642/642**（check-i18n 全绿）。**顺手修复 F-21 遗留**：nearby 页回复按钮/回复标签的 i18n 引用原指向 `lang.nearby.reply`（键实际在 records 分区）→ 已改指向 `lang.records.reply/replyTo/replyPlaceholder`。网页版大屏（GitHub Pages）保留作投影/手机备用（演示数据兜底），答辩主角为小程序版。
 
 ## 后续计划
 
