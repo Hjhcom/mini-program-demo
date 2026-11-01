@@ -145,6 +145,7 @@ const zh = {
     ranking: '积分排行榜',
     badges: '成就徽章',
     settings: '设置',
+    dashboard: '数据大屏',
     notify: '消息通知（赞/评论提醒）',
     notifyOn: '已开启，收到赞/评论会通知你',
     notifyOff: '未授权，可随时再来开启',
@@ -686,7 +687,30 @@ const zh = {
     none: '暂无',
     loading: '加载中…',
     recentPoint: '打卡点'
-  }
+  },
+  dashboard: {
+    navTitle: '数据大屏',
+    subTitle: '校园声控打卡 · 实时数据',
+    live: '实时数据',
+    demo: '演示数据',
+    updated: '更新',
+    today: '今日打卡',
+    total: '累计打卡',
+    active: '活跃玩家',
+    points: '已点亮 / 总点位',
+    recent: '最近打卡',
+    rank: '打卡次数榜',
+    heat: '点位热度',
+    route: '剧本完成率',
+    refresh: '每 30 秒自动刷新',
+    justNow: '刚刚',
+    minAgo: '分钟前',
+    hourAgo: '小时前',
+    noData: '暂无数据',
+    spellTip: '念出',
+    times: '次',
+    routeTip: '通关玩家 / 参与玩家'
+  },
 }
 
 const en = {
@@ -830,6 +854,7 @@ const en = {
     ranking: 'Leaderboard',
     badges: 'Achievements',
     settings: 'Settings',
+    dashboard: 'Dashboard',
     notify: 'Interactions (likes & comments)',
     notifyOn: 'Subscribed — you will be notified of likes and comments',
     notifyOff: 'Not authorized — you can enable it anytime',
@@ -1371,7 +1396,30 @@ const en = {
     none: 'None',
     loading: 'Loading…',
     recentPoint: 'Check-in spot'
-  }
+  },
+  dashboard: {
+    navTitle: 'Data Dashboard',
+    subTitle: 'Campus Voice Check-in · Live Data',
+    live: 'Live',
+    demo: 'Demo Data',
+    updated: 'updated',
+    today: 'Today',
+    total: 'Total',
+    active: 'Active Players',
+    points: 'Lit / Total Spots',
+    recent: 'Recent Check-ins',
+    rank: 'Leaderboard',
+    heat: 'Hot Spots',
+    route: 'Route Completion',
+    refresh: 'Auto refresh every 30s',
+    justNow: 'Just now',
+    minAgo: 'min ago',
+    hourAgo: 'h ago',
+    noData: 'No data yet',
+    spellTip: 'says',
+    times: 'x',
+    routeTip: 'Completed / Participants'
+  },
 }
 
 // 模板填充：format('你好，{name}', { name: '小明' }) -> '你好，小明'

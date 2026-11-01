@@ -121,13 +121,13 @@
             <text class="comment-like-icon">{{item.isLiked ? '❤️' : '🤍'}}</text>
             <text class="comment-like-count">{{item.likesCount || 0}}</text>
           </view>
-          <view class="comment-reply" data-id="{{item._id}}" data-name="{{item.nickname}}" bindtap="onReplyComment">{{lang.nearby.reply}}</view>
+          <view class="comment-reply" data-id="{{item._id}}" data-name="{{item.nickname}}" bindtap="onReplyComment">{{lang.records.reply}}</view>
         </view>
       </view>
     </scroll-view>
     <view class="comment-input-bar">
       <view class="comment-reply-tag" wx:if="{{replyTarget}}" bindtap="clearReplyTarget">
-        <text class="comment-reply-tag-text">{{lang.nearby.replyTo}}: @{{replyTarget.nickname}}</text>
+        <text class="comment-reply-tag-text">{{lang.records.replyTo}}: @{{replyTarget.nickname}}</text>
         <text class="comment-reply-tag-x">✕</text>
       </view>
       <input class="comment-input" placeholder="{{replyTarget ? replyTarget.placeholder : lang.nearby.commentPlaceholder}}" value="{{commentText}}" bindinput="onCommentInput" confirm-type="send" bindconfirm="onSendComment" />

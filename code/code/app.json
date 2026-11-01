@@ -3,6 +3,7 @@
     "pages/splash/splash",
     "pages/index/index",
     "pages/mine/mine",
+    "pages/dashboard/dashboard",
     "pages/login/login",
     "pages/records/records",
     "pages/pk/pk",

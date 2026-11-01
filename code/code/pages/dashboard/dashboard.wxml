@@ -1,0 +1,82 @@
+<!-- pages/dashboard/dashboard.wxml —— 数据大屏（深蓝科技 + 北理工元素） -->
+<view class="dash">
+  <view class="watermark">1940</view>
+
+  <!-- 顶部 -->
+  <view class="head">
+    <image class="logo" src="/images/bit-logo.png" mode="aspectFill" />
+    <view class="head-txt">
+      <text class="title">{{lang.dashboard.navTitle}}</text>
+      <text class="sub">{{lang.dashboard.subTitle}}</text>
+    </view>
+    <view class="badge {{isDemo ? 'demo' : ''}}">{{isDemo ? lang.dashboard.demo : lang.dashboard.live}}</view>
+  </view>
+  <view class="update">{{updatedText}} · {{refreshLabel}}</view>
+
+  <!-- 指标卡 2x2 -->
+  <view class="metrics">
+    <view class="metric">
+      <text class="m-label">🗓️ {{lang.dashboard.today}}</text>
+      <text class="m-value">{{todayCheckins}}</text>
+    </view>
+    <view class="metric gold">
+      <text class="m-label">🏆 {{lang.dashboard.total}}</text>
+      <text class="m-value">{{totalCheckins}}</text>
+    </view>
+    <view class="metric">
+      <text class="m-label">🧑‍🎓 {{lang.dashboard.active}}</text>
+      <text class="m-value">{{activeUsers}}</text>
+    </view>
+    <view class="metric">
+      <text class="m-label">📍 {{lang.dashboard.points}}</text>
+      <text class="m-value">{{litPoints}}<text class="m-unit">/{{totalPoints}}</text></text>
+    </view>
+  </view>
+
+  <!-- 最近打卡 -->
+  <view class="panel">
+    <view class="p-title">{{lang.dashboard.recent}}</view>
+    <view class="feed" wx:if="{{recentCheckins.length > 0}}">
+      <view class="feed-item" wx:for="{{recentCheckins}}" wx:key="index">
+        <view class="f-who">{{item.nickname}}</view>
+        <view class="f-what">📍 {{item.pointName}} · {{lang.dashboard.spellTip}}「{{item.spell}}」</view>
+        <view class="f-when">{{item.timeText}}</view>
+      </view>
+    </view>
+    <view class="empty" wx:else>{{lang.dashboard.noData}}</view>
+  </view>
+
+  <!-- 排行榜 -->
+  <view class="panel">
+    <view class="p-title">{{lang.dashboard.rank}}</view>
+    <view class="rank-row {{item.medal ? 'top3' : ''}}" wx:for="{{rankingTop}}" wx:key="rank">
+      <view class="r-no">{{item.medal || item.rank}}</view>
+      <view class="r-name">{{item.nickname}}</view>
+      <view class="r-count">{{item.count}}<text class="r-unit">{{lang.dashboard.times}}</text></view>
+    </view>
+    <view class="empty" wx:if="{{rankingTop.length == 0}}">{{lang.dashboard.noData}}</view>
+  </view>
+
+  <!-- 点位热度 -->
+  <view class="panel">
+    <view class="p-title">{{lang.dashboard.heat}}</view>
+    <view class="heat-row" wx:for="{{pointHeat}}" wx:key="index">
+      <text class="h-name">{{item.name}}</text>
+      <view class="h-bar"><view class="h-fill" style="width: {{heatMax > 0 ? item.count * 100 / heatMax : 0}}%;"></view></view>
+      <text class="h-count">{{item.count}}</text>
+    </view>
+    <view class="empty" wx:if="{{pointHeat.length == 0}}">{{lang.dashboard.noData}}</view>
+  </view>
+
+  <!-- 剧本完成率 -->
+  <view class="panel">
+    <view class="p-title">{{lang.dashboard.route}}</view>
+    <view class="route-wrap">
+      <view class="route-ring" style="background: conic-gradient(#F5C26B {{routeRate * 3.6}}deg, rgba(74,144,217,0.15) 0deg);">
+        <view class="route-inner"><text class="route-num">{{routeRate}}%</text></view>
+      </view>
+      <text class="route-tip">{{lang.dashboard.routeTip}}</text>
+    </view>
+  </view>
+
+</view>

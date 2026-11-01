@@ -125,6 +125,11 @@ Page({
   onItemTap: function (e) {
     const type = e.currentTarget.dataset.type
     const lang = this.data.lang
+    // 数据大屏（答辩投屏，无需登录）
+    if (type === 'dashboard') {
+      wx.navigateTo({ url: '/pages/dashboard/dashboard' })
+      return
+    }
     // 我的打卡记录：未登录先登录，已登录跳转记录页
     if (type === 'records') {
       if (!this.data.user) {

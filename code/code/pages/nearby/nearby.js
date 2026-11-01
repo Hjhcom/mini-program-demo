@@ -434,7 +434,7 @@ Page({
       replyTarget: {
         id: id,
         nickname: name,
-        placeholder: i18n.format(lang.replyPlaceholder, { name: name })
+        placeholder: i18n.format(lang.records.replyPlaceholder, { name: name })
       }
     })
   },
