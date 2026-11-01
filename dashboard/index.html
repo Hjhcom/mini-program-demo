@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>依声游理 · 校园数据大屏</title>
-<script src="https://static.cloudbase.net/cloudbase-js-sdk/2.7.0/cloudbase.full.js"></script>
+<script src="https://static.cloudbase.net/cloudbase-js-sdk/1.7.2/cloudbase.full.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
 <style>
   :root {
@@ -462,28 +462,19 @@ function renderRoute(rs) {
   }, true);
 }
 
-// 云开发 Web SDK 匿名登录（兼容不同版本 API）
-async function sdkLogin(app) {
-  try {
-    const auth = app.auth({ persistence: 'local' });
-    if (auth && typeof auth.signInAnonymously === 'function') { await auth.signInAnonymously(); return true; }
-  } catch (e) { console.warn('signInAnonymously 失败：', e); }
-  try {
-    const auth2 = app.auth({ persistence: 'local' });
-    const p = auth2.anonymousAuthProvider();
-    await p.signIn();
-    return true;
-  } catch (e) { console.warn('anonymousAuthProvider 失败：', e); }
-  return false;
-}
-
-// 通过 Web SDK 拉取实时数据（走云开发鉴权通道，免费、无跨域问题）
+// 云开发 Web SDK 匿名登录（兼容不同版本 API / 全局变量）
 async function loadSDK() {
-  if (!window.cloudbase) return null;
+  const SDK = window.cloudbase || window.tcb;
+  if (!SDK) { console.warn('CloudBase Web SDK 未加载（CDN 失败？）'); return null; }
   try {
-    const app = window.cloudbase.init({ env: CLOUD_ENV });
-    const ok = await sdkLogin(app);
-    if (!ok) { console.warn('匿名登录未开启或失败，请在控制台「环境→登录方式」开启匿名登录'); return null; }
+    const app = SDK.init({ env: CLOUD_ENV });
+    const auth = app.auth({ persistence: 'local' });
+    // 旧版 tcb-js-sdk：signInAnonymously；新版：anonymousAuthProvider().signIn()
+    if (typeof auth.signInAnonymously === 'function') {
+      await auth.signInAnonymously();
+    } else if (auth.anonymousAuthProvider) {
+      await auth.anonymousAuthProvider().signIn();
+    }
     const res = await app.callFunction({ name: 'getDashboardData' });
     const r = res && res.result;
     if (r && r.code === 0) return r;
