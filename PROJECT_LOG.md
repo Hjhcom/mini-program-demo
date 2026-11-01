@@ -612,6 +612,7 @@ P2 最后两项。一件改云函数、一件纯前端。
   - `getDashboardData`（新建云函数）：聚合返回今日/累计打卡、活跃玩家、已点亮/总点位（records matched:true 聚合去重）、最近 10 条打卡（昵称/点位/咒语）、打卡次数榜 TOP10（聚合 group openid）、剧本完成率（route_progress 去重 openid）、点位热度 TOP10（聚合 group pointName）。口径与 voiceCheckin 一致（dayKey 按 UTC+8）。
   - `dashboard/index.html`（独立目录，项目根下）：深蓝科技风大屏，ECharts 点位热度横向条形图 + 剧本通关率仪表盘，北理工校徽/1940 水印/蓝金配色；指标卡数字滚动动画、最近打卡滑动入场、TOP3 金银铜高亮；**30 秒自动刷新**。
   - **接入方式**：云开发控制台 → HTTP 访问服务 → 添加 `getDashboardData` 路由 → 把 `<环境ID>` 填进 HTML 顶部 `API_URL`；未配置时自动展示演示数据并在右上角标注「演示数据」，保证答辩不翻车。
+  - **实时接入排障链（2026-11-01 已打通 ✅）**：① 路由跨域 SDEFAULT → 改为「已开启」；② Web SDK CDN 2.7.0 实为 404 → 换 1.7.2，浏览器直连 tcb-api 仍被网关 CORS 拦（需 Web 安全域名白名单，未继续）→ 最终回归 **HTTP 网关 fetch 优先 + Web SDK 兜底** 双数据源；③ 接口报 FUNCTIONS_INVOCATION_FAILED → 控制台「测试」定位为 **Cannot find module 'wx-server-sdk'**：新函数目录缺 package.json，云端装不了依赖 → 补 package.json（wx-server-sdk ~2.6.3）+ 右键「上传并部署：云端安装依赖」（Updating 状态冲突需等待重试）→ 接口返回真实 JSON ✅。函数重写为逐段容错（任何一段聚合失败只影响该指标，不整抛）。
 - ⚠️ **需部署云函数**：`addComment` / `getComments`（评论回复）、`getDashboardData`（大屏）。
 
 ## 后续计划
