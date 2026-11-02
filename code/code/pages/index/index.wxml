@@ -224,6 +224,37 @@
     </view>
   </view>
 
+<!-- F-22 新手实操引导（锚点高亮：选点→念咒→点亮，可跳过） -->
+  <view class="sg" wx:if="{{guideStep > 0}}" catchtouchmove="noop">
+    <view class="sg-mask"></view>
+    <view class="sg-focus" wx:if="{{guideStep == 1}}" style="top:150rpx;left:30rpx;right:30rpx;height:480rpx;"></view>
+    <view class="sg-focus" wx:if="{{guideStep == 2}}" style="left:40rpx;right:40rpx;bottom:320rpx;height:220rpx;"></view>
+    <view class="sg-focus" wx:if="{{guideStep == 3}}" style="top:620rpx;left:40rpx;right:40rpx;height:130rpx;"></view>
+
+    <view class="sg-bubble b1" wx:if="{{guideStep == 1}}">
+      <text class="sg-title">{{lang.index.guideStep1T}}</text>
+      <text class="sg-desc">{{lang.index.guideStep1D}}</text>
+    </view>
+    <view class="sg-bubble b2" wx:if="{{guideStep == 2}}">
+      <text class="sg-title">{{lang.index.guideStep2T}}</text>
+      <text class="sg-desc">{{lang.index.guideStep2D}}</text>
+    </view>
+    <view class="sg-bubble b3" wx:if="{{guideStep == 3}}">
+      <text class="sg-title">{{lang.index.guideStep3T}}</text>
+      <text class="sg-desc">{{lang.index.guideStep3D}}</text>
+    </view>
+
+    <view class="sg-foot">
+      <view class="sg-dots">
+        <view class="sg-dot {{guideStep == 1 ? 'on' : ''}}"></view>
+        <view class="sg-dot {{guideStep == 2 ? 'on' : ''}}"></view>
+        <view class="sg-dot {{guideStep == 3 ? 'on' : ''}}"></view>
+      </view>
+      <view class="sg-skip" bindtap="onStepSkip">{{lang.index.guideSkip}}</view>
+      <button class="sg-btn" bindtap="onStepNext">{{guideStep < 3 ? lang.index.guideNext : lang.index.guideEnter}}</button>
+    </view>
+  </view>
+
   <!-- 开启打卡之旅欢迎屏（校园插画背景） -->
   <view class="welcome-mask" wx:if="{{showWelcome}}">
     <image class="welcome-bg" src="/images/welcome-bg.jpg" mode="aspectFill" />

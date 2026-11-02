@@ -89,6 +89,7 @@ Page({
     // 首次进入的欢迎引导浮层
     showGuide: false,
     guideIndex: 0,
+    guideStep: 0, // F-22 新手实操引导步骤（0=不显示，1~3 对应三步）
     showWelcome: false,
     // F-17：剧本任务线浮层（点「开启打卡之旅」/「剧本任务线」按钮弹出，手动关闭）
     showRouteMask: false,
@@ -147,6 +148,11 @@ Page({
       this.loadPendingTask()
     } else {
       this.setData({ pendingTask: null, taskBarDesc: '' })
+    }
+
+    // F-22：已登录且未看过实操引导、当前无 swiper 欢迎引导 → 显示锚点引导
+    if (user && !this.data.showGuide && this.data.guideStep === 0 && !this._stepGuideShown()) {
+      this.setData({ guideStep: 1 })
     }
 
     // F-05：自建点位成功、或点位被举报隐藏后回到首页 → 重拉一次点位。
@@ -1081,6 +1087,26 @@ Page({
   closeGuide() {
     try { wx.setStorageSync('guideShown', true) } catch (e) {}
     this.setData({ showGuide: false, guideIndex: 0 })
+    // F-22：swiper 介绍关闭后，已登录且未看过锚点引导 → 追加实操引导
+    const u = getApp().globalData.userInfo
+    if (u && this.data.guideStep === 0 && !this._stepGuideShown()) {
+      this.setData({ guideStep: 1 })
+    }
+  },
+
+  // ===== F-22 新手实操引导（锚点高亮：选点 → 念咒 → 点亮） =====
+  _stepGuideShown() {
+    try { return !!wx.getStorageSync('guideStepShown') } catch (e) { return false }
+  },
+  onStepNext() {
+    const s = this.data.guideStep
+    if (s < 3) this.setData({ guideStep: s + 1 })
+    else this.finishStepGuide()
+  },
+  onStepSkip() { this.finishStepGuide() },
+  finishStepGuide() {
+    try { wx.setStorageSync('guideStepShown', true) } catch (e) {}
+    this.setData({ guideStep: 0 })
   },
 
   // 欢迎屏「开启打卡之旅」按钮：收起欢迎屏 → 弹出剧本任务浮层（F-17），
