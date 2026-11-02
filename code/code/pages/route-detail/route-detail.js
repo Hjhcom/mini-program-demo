@@ -8,11 +8,12 @@ Page({
     route: null,
     progress: null,
     acts: [],
+    dark: false,
     lang: {}
   },
 
   onLoad() {
-    this.setData({ lang: app.globalData.language === 'en' ? i18n.en : i18n.zh })
+    this.setData({ lang: app.globalData.language === 'en' ? i18n.en : i18n.zh, dark: app.globalData.darkMode })
   },
 
   onShow() {

@@ -277,3 +277,29 @@
   font-size: 28rpx;
   font-weight: bold;
 }
+
+/* ============ 深色模式（cover 彩色渐变保持不变） ============ */
+.page.dark {
+  background: #1c1c1e;
+}
+.page.dark .empty-text,
+.page.dark .loading,
+.page.dark .status-locked {
+  color: #9a9a9c;
+}
+.page.dark .act {
+  background: #2c2c2e;
+}
+.page.dark .act-point,
+.page.dark .act-name {
+  color: #e5e5e5;
+}
+.page.dark .act-story {
+  color: #b0b0b0;
+}
+.page.dark .act-spell {
+  background: #3a3a3c;
+}
+.page.dark .act-index {
+  background: rgba(74, 144, 217, 0.2);
+}

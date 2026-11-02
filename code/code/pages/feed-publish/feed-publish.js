@@ -120,7 +120,7 @@ Page({
       if (r.result && r.result.code !== 0) {
         wx.hideLoading()
         this.setData({ publishing: false })
-        wx.showToast({ title: r.result.msg || '内容违规', icon: 'none' })
+        wx.showToast({ title: r.result.msg || this.data.lang.feedPublish.contentRejected, icon: 'none' })
         return
       }
       // 文字通过，继续处理图片

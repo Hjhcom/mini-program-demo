@@ -97,3 +97,28 @@
   color: #4A90D9;
   font-weight: 500;
 }
+
+/* ============ 深色模式 ============ */
+.page.dark {
+  background: #1c1c1e;
+}
+.page.dark .point-card,
+.page.dark .rank-list {
+  background: #2c2c2e;
+}
+.page.dark .point-name,
+.page.dark .section-title,
+.page.dark .rank-name {
+  color: #e5e5e5;
+}
+.page.dark .point-spell,
+.page.dark .empty,
+.page.dark .loading {
+  color: #9a9a9c;
+}
+.page.dark .rank-item {
+  border-bottom-color: #3a3a3c;
+}
+.page.dark .photo-item {
+  background: #3a3a3c;
+}

@@ -7,16 +7,16 @@ const i18n = require('../../utils/i18n')
 const demo = {
   totalCheckins: 486, todayCheckins: 37, activeUsers: 96, totalPoints: 12, litPoints: 9,
   recentCheckins: [
-    { nickname: 'C₆H₁₂', pointName: '文萃楼B', spell: '我爱文萃', time: Date.now() - 90 * 1000 },
-    { nickname: '小张同学', pointName: '综教楼A', spell: '延安根军工魂', time: Date.now() - 5 * 60 * 1000 },
-    { nickname: '自动化er', pointName: '文博中心', spell: '明德精工', time: Date.now() - 18 * 60 * 1000 },
-    { nickname: '北理之声', pointName: '甘棠园7D', spell: '学以精工', time: Date.now() - 42 * 60 * 1000 },
-    { nickname: '夜跑星人', pointName: '中心花园', spell: '听风', time: Date.now() - 1.2 * 3600 * 1000 }
+    { nickname: '用户 A', pointName: '文萃楼B', spell: '我爱文萃', time: Date.now() - 90 * 1000 },
+    { nickname: '用户 B', pointName: '综教楼A', spell: '延安根军工魂', time: Date.now() - 5 * 60 * 1000 },
+    { nickname: '用户 C', pointName: '文博中心', spell: '明德精工', time: Date.now() - 18 * 60 * 1000 },
+    { nickname: '用户 D', pointName: '甘棠园7D', spell: '学以精工', time: Date.now() - 42 * 60 * 1000 },
+    { nickname: '用户 E', pointName: '中心花园', spell: '听风', time: Date.now() - 1.2 * 3600 * 1000 }
   ],
   rankingTop: [
-    { rank: 1, nickname: 'C₆H₁₂', count: 58 }, { rank: 2, nickname: '小张同学', count: 49 },
-    { rank: 3, nickname: '自动化er', count: 41 }, { rank: 4, nickname: '北理之声', count: 36 },
-    { rank: 5, nickname: '夜跑星人', count: 30 }
+    { rank: 1, nickname: '用户 A', count: 58 }, { rank: 2, nickname: '用户 B', count: 49 },
+    { rank: 3, nickname: '用户 C', count: 41 }, { rank: 4, nickname: '用户 D', count: 36 },
+    { rank: 5, nickname: '用户 E', count: 30 }
   ],
   routeStats: { totalRoutes: 1, participants: 32, completed: 11, rate: 34 },
   pointHeat: [

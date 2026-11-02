@@ -56,18 +56,20 @@ page {
   letter-spacing: 1rpx;
 }
 .badge {
-  font-size: 22rpx;
-  padding: 8rpx 20rpx;
+  font-size: 26rpx;
+  font-weight: bold;
+  padding: 10rpx 24rpx;
   border-radius: 999rpx;
-  border: 1rpx solid rgba(127, 192, 255, 0.5);
+  border: 2rpx solid rgba(127, 192, 255, 0.5);
   color: #7FC0FF;
   background: rgba(74, 144, 217, 0.15);
   flex-shrink: 0;
 }
 .badge.demo {
-  border-color: rgba(245, 194, 107, 0.6);
-  color: #F5C26B;
-  background: rgba(245, 194, 107, 0.12);
+  border-color: #F5C26B;
+  color: #1a1a1a;
+  background: #F5C26B;
+  box-shadow: 0 0 16rpx rgba(245, 194, 107, 0.6);
 }
 .update {
   font-size: 20rpx;

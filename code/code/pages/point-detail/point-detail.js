@@ -12,12 +12,13 @@ Page({
     rankList: [],
     spellText: '',
     totalText: '',
+    dark: false,
     lang: i18n.zh
   },
 
   onLoad(options) {
     const isEn = app.globalData.language === 'en'
-    this.setData({ pointId: options.pointId || '', lang: isEn ? i18n.en : i18n.zh })
+    this.setData({ pointId: options.pointId || '', lang: isEn ? i18n.en : i18n.zh, dark: app.globalData.darkMode })
     this.loadDetail()
   },
 

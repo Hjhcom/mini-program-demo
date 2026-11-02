@@ -140,6 +140,9 @@
   background: #eaf3fb;
   box-shadow: 0 0 0 3rpx #4A90D9, 0 6rpx 20rpx rgba(74,144,217,0.25);
 }
+.page.dark .feed-item.highlight {
+  background: rgba(74, 144, 217, 0.25);
+}
 
 /* F1：分页加载提示 */
 .feed-more {

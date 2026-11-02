@@ -1,5 +1,5 @@
 <!--pages/route-detail/route-detail.wxml —— 剧本任务线-->
-<view class="page">
+<view class="page {{dark ? 'dark' : ''}}">
   <!-- 加载中 -->
   <view class="loading" wx:if="{{loading}}">
     <text>{{lang.loading}}</text>

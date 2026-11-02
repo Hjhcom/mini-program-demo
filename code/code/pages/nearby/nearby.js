@@ -318,7 +318,7 @@ Page({
       })
       if (mr.result && mr.result.code !== 0) {
         wx.hideLoading()
-        wx.showToast({ title: mr.result.msg || '内容违规', icon: 'none' })
+        wx.showToast({ title: mr.result.msg || this.data.lang.nearby.contentRejected, icon: 'none' })
         return
       }
 

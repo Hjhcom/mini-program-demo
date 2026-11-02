@@ -122,6 +122,8 @@ const zh = {
     checkinNoLocation: '请开启定位后再打卡',
     checkinTooFar: '离打卡点太远，请靠近后再试',
     checkinTodayDone: '今天已经在这个点位打卡过了，明天再来吧',
+    // 照片内容安全兜底（文字内容违规在 nearby/feedPublish 分区各有词条）
+    photoRejected: '照片未通过审核，请更换后重试',
     // ===== 打卡照片 =====
     askPhotoTake: '拍一张打卡照片',
     askPhotoSkip: '不用了',
@@ -649,7 +651,8 @@ const zh = {
     commentDeleted: '评论已删除',
     commentDeleteFail: '删除评论失败',
     commentLike: '点赞评论',
-    viewProfile: '查看主页'
+    viewProfile: '查看主页',
+    contentRejected: '内容未通过审核，请修改后重试'
   },
   // ===== 发布动态（F4） =====
   feedPublish: {
@@ -666,7 +669,8 @@ const zh = {
     photoTooLarge: '图片过大，请选择 5MB 以内的图片',
     photoBadFormat: '图片格式不支持，请选择 JPG 或 PNG 图片',
     draftSaved: '草稿已保存',
-    contentLimit: '内容不能超过 200 字'
+    contentLimit: '内容不能超过 200 字',
+    contentRejected: '内容未通过审核，请修改后重试'
   },
   // ===== 他人主页（F2） =====
   userProfile: {
@@ -838,6 +842,8 @@ const en = {
     checkinNoLocation: 'Enable location to check in',
     checkinTooFar: 'Too far from this point, move closer and try again',
     checkinTodayDone: 'Already checked in here today, come back tomorrow',
+    // photo moderation fallback (text moderation in nearby/feedPublish sections)
+    photoRejected: 'Photo rejected by moderation, please try another',
     // ===== check-in photo =====
     askPhotoTake: 'Take a check-in photo',
     askPhotoSkip: 'Not now',
@@ -1365,7 +1371,8 @@ const en = {
     commentDeleted: 'Comment deleted',
     commentDeleteFail: 'Failed to delete comment',
     commentLike: 'Like comment',
-    viewProfile: 'View profile'
+    viewProfile: 'View profile',
+    contentRejected: 'Content rejected by moderation, please revise and retry'
   },
   // ===== publish feed =====
   feedPublish: {
@@ -1382,7 +1389,8 @@ const en = {
     photoTooLarge: 'Photo too large — please choose one under 5MB',
     photoBadFormat: 'Unsupported format — choose a JPG or PNG image',
     draftSaved: 'Draft saved',
-    contentLimit: 'Content cannot exceed 200 characters'
+    contentLimit: 'Content cannot exceed 200 characters',
+    contentRejected: 'Content rejected by moderation, please revise and retry'
   },
   // ===== other user profile =====
   userProfile: {
