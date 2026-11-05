@@ -623,6 +623,26 @@ P2 最后两项。一件改云函数、一件纯前端。
 - **实现**：`index.js` 新增 `guideStep` 状态 + `onStepNext/onStepSkip/finishStepGuide/_stepGuideShown`；`index.wxml` 新增 `sg-` 前缀引导浮层（避开既有 `guide-` 样式命名）；`index.wxss` 新增呼吸脉冲动画与气泡卡片。i18n 新增 7 键（guideSkip + guideStep1~3T/D）→ 全表 **649/649**（check-i18n 全绿）。
 - 纯前端改动，不动数据库/云函数，答辩演示对评委友好。
 
+## F-23 单元测试补全 + 探索迷雾 + README 架构图（2026-11-05）
+
+### 1) 云函数纯函数单测补全（防作弊终于可测）
+- **抽出防作弊纯函数**：`voiceCheckin/lib/geo.js`（haversineM + CHECKIN_MAX_DIST）、`voiceCheckin/lib/guard.js`（`dayKeyBJ` UTC+8 自然日 / `judgeDistance` / `judgeDuplicate` / `isCoordNum`）。`index.js` 只做编排调用，不再内联判定。
+- **发现并修掉真实缺陷**：`isFinite(null) === true`、`isFinite('') === true` —— 前端传空定位时会被当成 `0,0`（赤道），玩家收到的是「离打卡点太远」而不是「请开启定位」。新增 `isCoordNum()` 显式排掉 null/undefined/空串，且 `index.js` 改为传原始 `event.latitude/longitude`（不再先 `Number()`，否则 null 已被抹成 0）。
+- **新增 `tools/test-guard.js`（34 条）**：299.9m 放行 / 300.1m 拒绝、缺定位与脏点位 `no_location`、自定义阈值、`UTC 16:30 → 北京次日` 跨日、跨年边界、任务打卡豁免、字符串脏值不放行。
+- **新增 `tools/test-all.js`**：一键跑 7 个测试脚本（咒语匹配 53 / 积分 25 / 徽章 81 / 点位校验 84 / 录音清理 59 / 前端 geo 48 / 防作弊 34 = **384 条断言**），任一失败整体 exit(1)。
+
+### 2) 地图探索迷雾
+- 首页地图叠加**径向雾层** `map-fog`（中心透明、四周渐浓，图钉始终可辨），不透明度随点亮进度线性递减：0 点亮 0.72 → 全点亮 0.14；打卡成功时波纹扩散 + 雾短暂散到 0.02，1.6s 后按新进度重新聚拢（`transition: opacity 1.1s` 自动过渡）。
+- 点亮进度条下方新增 `fog-hint` 胶囊提示：`🌫 迷雾已散去 {percent}%` / 全点亮 `✨ 迷雾散尽，地图已点亮`（i18n +2 键，全表 **654/654**）。
+- 暗色模式单独配色；`_fogOf` / `_fogPatch` 统一在 3 处 setData（拉取点位 ×2、本地点亮 ×1）合并，避免多处重复计算。
+
+### 3) README + 架构图
+- 仓库 `README.md` 从两行扩成完整文档：功能矩阵、技术栈、**Mermaid 系统架构图**（小程序/云函数/外部服务/数据库四层）、**打卡时序图**（防作弊 → 讯飞 → 匹配 → 写库 → 点亮）、目录结构、32 个云函数分域清单、12 张集合表、本地运行 7 步、质量保障说明。
+- 测试与校验入口统一在 README 里可复制执行。
+
+### 部署提醒
+- `voiceCheckin` 云函数**有改动**（index.js + 新增 lib/geo.js、lib/guard.js）：需右键「上传并部署：云端安装依赖」重新部署一次，否则线上仍是旧的防作弊逻辑。
+
 ## 后续计划
 
 > 待补充：以下为基于当前进度的建议项，请按团队实际安排更新。

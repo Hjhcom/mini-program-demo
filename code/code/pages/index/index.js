@@ -99,7 +99,9 @@ Page({
     routeActs: [],
     routeError: '',   // 空态区分：''=无线路；非空=加载失败（未部署/报错）
     routeClosing: false, // 浮层淡出中（防重复点击 + 触发 CSS 退出动画）
-    litRipple: false  // F-18 UI：打卡成功时的点亮波纹动画（1.6s 后自动收起）
+    litRipple: false, // F-18 UI：打卡成功时的点亮波纹动画（1.6s 后自动收起）
+    fogOpacity: 0,    // F-23 探索迷雾：雾层不透明度（点亮进度越高雾越薄）
+    fogHintText: ''   // F-23 探索迷雾：雾散百分比提示文案
   },
 
   // 页面加载：初始化登录态 + 拉取打卡点 + 初始化录音
@@ -179,7 +181,8 @@ Page({
     }
     if (this.data.totalCount > 0) {
       this.setData({
-        litProgressText: i18n.format(lang.index.litProgress, { visited: this.data.visitedCount, total: this.data.totalCount })
+        litProgressText: i18n.format(lang.index.litProgress, { visited: this.data.visitedCount, total: this.data.totalCount }),
+        ...this._fogPatch(this.data.visitedCount, this.data.totalCount, lang)
       })
     }
     this.refreshTip()
@@ -292,7 +295,8 @@ Page({
         markers,
         visitedCount,
         totalCount: points.length,
-        litProgressText: i18n.format(this.data.lang.index.litProgress, { visited: visitedCount, total: points.length })
+        litProgressText: i18n.format(this.data.lang.index.litProgress, { visited: visitedCount, total: points.length }),
+        ...this._fogPatch(visitedCount, points.length)
       })
       console.log('打卡点加载成功', points.length, '个')
 
@@ -806,11 +810,38 @@ Page({
   // F-17：浮层滚动穿透拦截
   noop: function () {},
 
+  // F-23 探索迷雾：按点亮进度算雾浓度
+  //   0 点亮 → 0.72（很浓；雾是径向的，中心区仍能看清图钉）
+  //   全点亮 → 0.14（只剩一点氛围雾，等于「散尽」）
+  _fogOf: function (visited, total) {
+    const v = Math.max(0, Number(visited) || 0)
+    const t = Math.max(0, Number(total) || 0)
+    const pct = t > 0 ? Math.round(Math.min(v, t) / t * 100) : 0
+    const op = t > 0 ? 0.14 + 0.58 * (1 - Math.min(v, t) / t) : 0.42
+    return { pct: pct, op: Math.round(op * 100) / 100 }
+  },
+  // F-23：雾浓度 + 雾散文案的 setData 补丁（调用方展开合并到自己的 setData 里）
+  _fogPatch: function (visited, total, lang) {
+    const fog = this._fogOf(visited, total)
+    const L = lang || this.data.lang
+    const done = total > 0 && visited >= total
+    return {
+      fogOpacity: fog.op,
+      fogHintText: total > 0
+        ? (done ? L.index.fogDone : i18n.format(L.index.fogHint, { percent: fog.pct }))
+        : ''
+    }
+  },
+
   // F-18 UI：打卡点亮动画 —— 金色波纹从地图中心扩散（1.6s 后自动收起）
+  // F-23：波纹扩散时雾同步散开，1.6s 后按最新进度重新聚拢（增强「探索揭开」的观感）
   playLitRipple: function () {
     if (this.data.litRipple) return
-    this.setData({ litRipple: true })
-    setTimeout(() => this.setData({ litRipple: false }), 1600)
+    this.setData({ litRipple: true, fogOpacity: 0.02 })
+    setTimeout(() => {
+      const fog = this._fogOf(this.data.visitedCount, this.data.totalCount)
+      this.setData({ litRipple: false, fogOpacity: fog.op })
+    }, 1600)
   },
 
   // F-18 UI：打卡成功后本地即时点亮图钉（不重拉 getPoints）
@@ -828,7 +859,8 @@ Page({
       markers: this.buildMarkers(points, this.data.selectedPoint ? this.data.selectedPoint._id : null),
       visitedCount: visitedCount,
       totalCount: points.length,
-      litProgressText: i18n.format(this.data.lang.index.litProgress, { visited: visitedCount, total: points.length })
+      litProgressText: i18n.format(this.data.lang.index.litProgress, { visited: visitedCount, total: points.length }),
+      ...this._fogPatch(visitedCount, points.length)
     })
   },
 

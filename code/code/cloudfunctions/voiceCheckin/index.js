@@ -8,6 +8,9 @@ const WebSocket = require('ws') // WebSocket 客户端（云端安装依赖时�
 // ⚠️ 云函数各自独立打包，只能 require 自己目录内的文件 —— code/code/utils/spell.js 是**前端**
 //    那份拷贝（两者必须行为一致，由 tools/check-sync.js 兜底比对），云函数 require 不到。
 const { matchSpell, REASON, starsOf } = require('./lib/match')
+// F-23：防作弊判定抽成纯函数（geo 距离 + guard 门槛），index.js 只做编排调用，
+// 这样边界值（299/300/301 米、UTC+8 跨零点）可以在本地跑 tools/test-guard.js 验证。
+const { dayKeyBJ, judgeDistance, judgeDuplicate } = require('./lib/guard')
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
@@ -119,17 +122,7 @@ async function dropFile(fileID, why) {
   }
 }
 
-// F-20 防作弊：两经纬度直线距离（米），haversine 公式（云函数独立打包，就地实现）
-function haversineM(lat1, lng1, lat2, lng2) {
-  const R = 6371000
-  const toRad = d => d * Math.PI / 180
-  const dLat = toRad(lat2 - lat1)
-  const dLng = toRad(lng2 - lng1)
-  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-    Math.sin(dLng / 2) * Math.sin(dLng / 2)
-  return 2 * R * Math.asin(Math.sqrt(a))
-}
+// F-23：haversineM 已抽到 lib/geo.js（纯函数，可本地单测），此处不再内联
 
 // ========== F-17 剧本任务线：打卡成功后推进线路进度 ==========
 // 规则：线路按顺序打卡（steps 数组）。玩家必须从第一幕依次打到最后一幕。
@@ -233,33 +226,26 @@ exports.main = async (event, context) => {
   // 1) 定位距离校验：必须携带当前定位，且与打卡点直线距离 ≤ 300 米。
   //    前端 inRange 门禁可被绕过/模拟器改参，云函数端才是最终防线；
   //    先于讯飞识别拦截，既防刷分也省一次讯飞调用。gcj02 与地图坐标系一致，误差 ±30m 量级。
-  const lat = Number(event.latitude)
-  const lng = Number(event.longitude)
-  const CHECKIN_MAX_DIST = 300 // 米：官方点位/玩家点位统一兜底阈值
-  if (!isFinite(lat) || !isFinite(lng)) {
-    await dropFile(fileID, '缺少定位')
-    return { code: -1, msg: '请开启定位后再打卡', errCode: 'no_location' }
-  }
-  const distM = haversineM(lat, lng, point.latitude, point.longitude)
-  if (distM > CHECKIN_MAX_DIST) {
-    await dropFile(fileID, '距离过远')
-    return { code: -1, msg: '离打卡点太远，请靠近后再试', errCode: 'too_far' }
+  // 阈值与判定规则都在 lib/guard.js（纯函数，tools/test-guard.js 覆盖边界）。
+  // 传原始值而不是先 Number()：Number(null)/Number('') 都会变成 0，把「没定位」伪装成赤道坐标。
+  const gate = judgeDistance(event.latitude, event.longitude, point.latitude, point.longitude)
+  if (!gate.ok) {
+    await dropFile(fileID, gate.errCode === 'no_location' ? '缺少定位' : '距离过远')
+    return gate.errCode === 'no_location'
+      ? { code: -1, msg: '请开启定位后再打卡', errCode: 'no_location' }
+      : { code: -1, msg: '离打卡点太远，请靠近后再试', errCode: 'too_far' }
   }
 
   // 2) 同日同点限一次：同一 openid 同一打卡点同一天只允许成功一次。
   //    任务打卡豁免——避免"上午普通打过、下午接任务还要再打一次"被误伤。
   //    dayKey 按 UTC+8 自然日（云函数容器时区是 UTC，直接取本地日期会差 8 小时）。
-  const bjNow = new Date(Date.now() + 8 * 3600 * 1000)
-  const bjMonth = bjNow.getUTCMonth() + 1
-  const bjDate = bjNow.getUTCDate()
-  const dayKey = bjNow.getUTCFullYear() + '-' +
-    (bjMonth < 10 ? '0' : '') + bjMonth + '-' +
-    (bjDate < 10 ? '0' : '') + bjDate
+  const dayKey = dayKeyBJ(Date.now()) // UTC+8 自然日，规则在 lib/guard.js
   if (!taskId) {
     const dupRes = await db.collection('records')
       .where({ openid: OPENID, pointId: pointId, dayKey: dayKey, matched: true })
       .count()
-    if (dupRes.total > 0) {
+    const dup = judgeDuplicate(dupRes.total, taskId)
+    if (!dup.ok) {
       await dropFile(fileID, '同日重复打卡')
       return { code: -1, msg: '今天已经在这个点位打卡过了，明天再来吧', errCode: 'duplicate_today' }
     }

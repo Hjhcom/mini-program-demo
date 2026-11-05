@@ -21,6 +21,9 @@
        show-location
        bindmarkertap="onMarkerTap"></map>
 
+  <!-- F-23 探索迷雾：边缘浓、中心淡的雾层；浓度随点亮进度递减，点亮瞬间自动散开 -->
+  <view class="map-fog" style="opacity: {{fogOpacity}}"></view>
+
   <!-- F-18 UI：打卡成功点亮波纹（金色圆环从地图中部扩散） -->
   <view class="lit-ripple" wx:if="{{litRipple}}">
     <view class="lit-ripple-ring r1"></view>
@@ -58,6 +61,11 @@
       <view class="lit-progress-fill" style="width: {{visitedCount / totalCount * 100}}%"></view>
     </view>
     <text class="lit-progress-text">{{litProgressText}}</text>
+  </view>
+
+  <!-- F-23 探索迷雾：雾散进度提示（与点亮进度同步） -->
+  <view class="fog-hint" wx:if="{{isLoggedIn && totalCount > 0 && fogHintText}}">
+    <text class="fog-hint-text">{{fogHintText}}</text>
   </view>
 
   <!-- 待完成任务提示条（指派给我、进行中、未过期） -->
